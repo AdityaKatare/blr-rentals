@@ -91,7 +91,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-      <form method="get" className="h-fit space-y-5 rounded-xl border border-zinc-200 bg-white p-4 lg:sticky lg:top-4">
+      <form method="get" className="h-fit space-y-5 rounded-xl border border-zinc-200 bg-white p-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:overscroll-contain">
         <div>
           <label htmlFor="locality" className="text-sm font-medium">
             Near
@@ -201,7 +201,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </div>
         </fieldset>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 bg-white lg:sticky lg:-bottom-4 lg:-mx-4 lg:border-t lg:border-zinc-100 lg:px-4 lg:py-3">
           <button type="submit" className="flex-1 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
             Search
           </button>
