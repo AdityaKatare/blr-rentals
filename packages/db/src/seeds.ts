@@ -1,4 +1,6 @@
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { LatLng, SourceSlug } from '@blr/core';
 
 export interface SeedSource {
@@ -39,10 +41,10 @@ export interface ResolvedSearchArea {
   sourceOverrides: Record<string, Record<string, unknown>>;
 }
 
-const SEEDS_DIR = new URL('../seeds/', import.meta.url);
+const seedsDir = (): string => path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'seeds');
 
 async function loadJson<T>(file: string): Promise<T> {
-  return JSON.parse(await readFile(new URL(file, SEEDS_DIR), 'utf8')) as T;
+  return JSON.parse(await readFile(path.join(seedsDir(), file), 'utf8')) as T;
 }
 
 export const loadSeedSources = (): Promise<SeedSource[]> => loadJson('sources.json');
