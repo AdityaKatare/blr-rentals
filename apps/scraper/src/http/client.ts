@@ -21,7 +21,6 @@ export class BlockedError extends HttpError {
 
 export interface HttpClientOptions {
   userAgent: string;
-  /** Minimum gap between two requests to the same host. */
   minDelayMs: number;
   jitterMs?: number;
   timeoutMs?: number;
@@ -53,11 +52,6 @@ const RETRY_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const DEFAULT_ACCEPT = 'text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8';
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/**
- * Polite HTTP GET: one request at a time per host, a minimum delay (+ jitter)
- * between them, bounded retries with backoff on 429/5xx/network errors, and a
- * hard stop on 401/403/406. Uses the global fetch (undici) — no extra deps.
- */
 export function createHttpClient(opts: HttpClientOptions): HttpClient {
   const {
     userAgent,
@@ -111,8 +105,8 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
         return { url, ...r, elapsedMs: now() - started, attempts: attempt + 1 };
       } catch (err) {
         host.lastAt = now();
-        if (err instanceof HttpError) throw err; // blocked or a non-retryable status
-        lastError = err; // network error / timeout → retry
+        if (err instanceof HttpError) throw err;
+        lastError = err;
         logger?.debug({ url, err: String(err) }, 'request failed');
       }
     }

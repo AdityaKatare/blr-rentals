@@ -4,9 +4,6 @@ import type { SourceAdapter } from '../types';
 export const HOUSING_BASE = 'https://housing.com';
 
 /**
- * Housing.com — Phase 2, disabled in seeds. Planned `transport: 'browser'`
- * (Playwright helper in src/browser/, not written yet).
- *
  * Locality pages carry an opaque id (…-P5s2sntlyr4a7izpb) that must be
  * discovered from the city page and stored in search_areas.source_overrides.housing.path.
  */

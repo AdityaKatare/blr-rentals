@@ -1,4 +1,3 @@
--- 0000_init: extensions, enums, core tables, indexes.
 -- Mirrors packages/db/src/schema.ts. Applied by `pnpm db:migrate`.
 
 CREATE EXTENSION IF NOT EXISTS postgis;

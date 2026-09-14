@@ -17,7 +17,6 @@ const num = (v: string | string[] | undefined): number | undefined => {
 const list = (v: string | string[] | undefined): string[] => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
 const has = (v: string[], x: string) => v.includes(x);
 
-/** Form fields → SearchQueryInput. The API and the URL share this contract. */
 function toQuery(sp: Params): SearchQueryInput {
   const q: SearchQueryInput = {
     // TODO(M4): resolve `locality` text via the localities table; until then lat/lng are explicit.

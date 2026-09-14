@@ -31,7 +31,6 @@ export type GeoAccuracy = (typeof GEO_ACCURACIES)[number];
 export const LISTING_STATUSES = ['active', 'stale', 'removed'] as const;
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
 
-/** Canonical amenity tokens. Sources map their own labels/codes onto these (see normalize/amenities.ts). */
 export const AMENITIES = [
   'lift',
   'gym',

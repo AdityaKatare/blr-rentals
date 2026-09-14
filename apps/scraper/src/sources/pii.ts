@@ -11,12 +11,10 @@ const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 
 export const isPiiKey = (key: string): boolean => PII_KEY.test(key.replace(/_/g, ''));
 
-/** Redact phone numbers and e-mail addresses that people paste into free text. */
 export function redactContactText(text: string): string {
   return text.replace(PHONE, '[phone redacted]').replace(EMAIL, '[email redacted]');
 }
 
-/** Deep copy with PII keys removed and contact details redacted from strings. */
 export function stripPii<T>(value: T): T {
   if (typeof value === 'string') return redactContactText(value) as unknown as T;
   if (Array.isArray(value)) return value.map((v) => stripPii(v)) as unknown as T;

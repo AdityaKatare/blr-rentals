@@ -10,10 +10,6 @@ export function encodeSearchParam(center: LatLng, placeName: string): string {
   return Buffer.from(JSON.stringify([{ lat: center.lat, lon: center.lng, placeName }])).toString('base64');
 }
 
-/**
- * NoBroker — MVP source #1. Uses the robots-allowed SSR search page, which
- * embeds the listing objects as JSON.
- */
 export const nobrokerAdapter: SourceAdapter = {
   slug: 'nobroker',
   transport: 'http',

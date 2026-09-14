@@ -31,7 +31,6 @@ export interface SeedSearchArea {
   sourceOverrides?: Record<string, Record<string, unknown>>;
 }
 
-/** Runtime shape the scraper needs; identical whether resolved from seeds or from the DB. */
 export interface ResolvedSearchArea {
   id: number | null;
   slug: string;

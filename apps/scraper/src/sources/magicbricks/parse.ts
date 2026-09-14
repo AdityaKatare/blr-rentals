@@ -1,7 +1,6 @@
 import { NotImplementedError } from '../../errors';
 import type { ParsedPage } from '../types';
 
-/** Inline state on the SRP: `window.SERVER_PRELOADED_STATE_ = {…}` (~405 KB, `isCsr:false`). */
 export const MAGICBRICKS_STATE_MARKER = /window\.SERVER_PRELOADED_STATE_\s*=\s*/;
 
 /**

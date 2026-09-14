@@ -17,7 +17,6 @@ export interface RunDeps {
 export interface RunOptions {
   area: SearchArea;
   maxPages?: number;
-  /** Build URLs and check robots only; never fetch. */
   dryRun?: boolean;
 }
 
@@ -35,13 +34,7 @@ export interface RunSummary {
   blocked: boolean;
 }
 
-/**
- * Source-agnostic orchestration: for each page → robots check → fetch → parse →
- * normalize (Zod-validated) → upsert. Stops on the first block, robots refusal
- * or fetch failure; never retries a 403/406.
- *
- * TODO(M2): record a `scrape_runs` row (start/finish/status/counters) around this.
- */
+// TODO(M2): record a `scrape_runs` row (start/finish/status/counters) around this.
 export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSummary> {
   const { adapter, http, robots, logger } = deps;
   const { area, dryRun = false } = opts;

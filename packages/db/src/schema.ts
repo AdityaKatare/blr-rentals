@@ -71,7 +71,6 @@ export const sources = pgTable('sources', {
   updatedAt: updatedAt(),
 });
 
-/** Gazetteer: "Koramangala" → centroid. Seeded; extended in M1. */
 export const localities = pgTable(
   'localities',
   {
@@ -91,7 +90,6 @@ export const localities = pgTable(
   ],
 );
 
-/** What the scheduler iterates: a centre + radius per run, with optional per-source params. */
 export const searchAreas = pgTable(
   'search_areas',
   {
@@ -182,7 +180,6 @@ export const listings = pgTable(
     postedAt: timestamp('posted_at', { withTimezone: true }),
     sourceUpdatedAt: timestamp('source_updated_at', { withTimezone: true }),
 
-    /** Trimmed, PII-stripped source payload. */
     raw: jsonb('raw').$type<Record<string, unknown>>(),
     rawHash: text('raw_hash').notNull(),
 

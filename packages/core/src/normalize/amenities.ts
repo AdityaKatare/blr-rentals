@@ -70,7 +70,6 @@ function key(label: string): string {
   return label.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
 }
 
-/** Map a list of source labels/codes to sorted, de-duplicated canonical amenities. Unknown labels are dropped. */
 export function normalizeAmenities(labels: Iterable<string>): Amenity[] {
   const out = new Set<Amenity>();
   for (const raw of labels) {
@@ -82,7 +81,6 @@ export function normalizeAmenities(labels: Iterable<string>): Amenity[] {
   return [...out].sort();
 }
 
-/** Convenience for sources that expose amenities as a flag map ({ LIFT: true, GYM: false }). */
 export function amenitiesFromFlags(flags: Record<string, unknown>): Amenity[] {
   return normalizeAmenities(
     Object.entries(flags)

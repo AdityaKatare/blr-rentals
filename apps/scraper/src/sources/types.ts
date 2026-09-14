@@ -33,6 +33,5 @@ export interface SourceAdapter {
   parseSearchPage(body: string, url: string): ParsedPage;
   /** Must call stripPii() and return an object NormalizedListingSchema accepts. */
   normalize(raw: RawListing, ctx: NormalizeContext): NormalizedListing;
-  /** Optional detail enrichment. Unused in MVP. */
   fetchDetail?(raw: RawListing): Promise<RawListing>;
 }

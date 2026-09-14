@@ -6,7 +6,6 @@ export type Db = PostgresJsDatabase<typeof schema>;
 
 export interface DbHandle {
   db: Db;
-  /** Raw postgres-js client for PostGIS-heavy SQL and migrations. */
   sql: postgres.Sql;
   close: () => Promise<void>;
 }

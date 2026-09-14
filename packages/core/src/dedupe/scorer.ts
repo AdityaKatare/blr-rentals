@@ -46,12 +46,11 @@ export const DEFAULT_DEDUPE_WEIGHTS: DedupeWeights = {
   deposit: 0.04,
 };
 
-/** Pairs scoring at or above this are attached to the same `properties` row. */
 export const DEDUPE_THRESHOLD = 0.75;
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
-/** Weighted sum in [0, 1]. Unknown features contribute a neutral 0.5 so missing data neither confirms nor denies. */
+/** Unknown features contribute a neutral 0.5 so missing data neither confirms nor denies. */
 export function scoreCandidate(f: DedupeFeatures, w: DedupeWeights = DEFAULT_DEDUPE_WEIGHTS): number {
   const bool = (b: boolean | null) => (b === null ? 0.5 : b ? 1 : 0);
   const parts: Array<[number, number]> = [

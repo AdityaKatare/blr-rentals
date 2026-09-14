@@ -44,7 +44,6 @@ interface Entry {
   status: number;
 }
 
-/** Fetches and caches robots.txt per origin; every request goes through assertAllowed(). */
 export function createRobotsGate(opts: RobotsGateOptions): RobotsGate {
   const {
     userAgent,

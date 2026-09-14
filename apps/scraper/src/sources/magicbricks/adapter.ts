@@ -4,9 +4,6 @@ import { parseMagicbricksSearchPage } from './parse';
 
 export const MAGICBRICKS_BASE = 'https://www.magicbricks.com';
 
-/**
- * MagicBricks — MVP source #2. Kill switch = sources.enabled.
- */
 export const magicbricksAdapter: SourceAdapter = {
   slug: 'magicbricks',
   transport: 'http',

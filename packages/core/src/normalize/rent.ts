@@ -1,5 +1,4 @@
 /**
- * Parse Indian rupee amounts as they appear on portals into integer rupees.
  *   95000 · "95,000" · "₹ 95,000" · "Rs. 25k" · "1.2 Lac" · "70,000/month" → number
  * Returns null for anything unparseable or non-positive.
  */

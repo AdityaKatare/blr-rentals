@@ -25,7 +25,6 @@ export function parseEwkbPoint(hex: string): LatLng {
   return { lng: readF64(offset), lat: readF64(offset + 8) };
 }
 
-/** Inverse of parseEwkbPoint (little-endian, with SRID). Used in tests and seeds. */
 export function toEwkbHex(p: LatLng, srid = 4326): string {
   const buf = Buffer.alloc(25);
   buf.writeUInt8(1, 0);

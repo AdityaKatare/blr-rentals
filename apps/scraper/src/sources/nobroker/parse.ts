@@ -1,7 +1,6 @@
 import { NotImplementedError } from '../../errors';
 import type { ParsedPage } from '../types';
 
-/** Inline state on the SSR search page: `nb.appState = {…}` (~416 KB). */
 export const NOBROKER_STATE_MARKER = /nb\.appState\s*=\s*/;
 
 /**

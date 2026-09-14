@@ -1,12 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SearchQuerySchema } from '@blr/core';
 
-/**
- * POST /api/search — body is a SearchQuery (packages/core/src/search-query.ts).
- * The contract is enforced now; the query itself lands in M4:
- *   PostGIS ST_DWithin radius filter + attribute filters + sort + pagination,
- *   then rankListings() for sort=relevance, grouped by property_id (M5).
- */
+// TODO(M4): ST_DWithin radius + filters + sort + pagination, rankListings() for relevance, group by property_id (M5).
 export async function POST(req: Request) {
   let body: unknown;
   try {

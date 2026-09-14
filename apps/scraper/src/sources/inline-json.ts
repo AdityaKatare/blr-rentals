@@ -1,14 +1,4 @@
-/**
- * Extract the JSON value (object or array) that follows `marker` in a page,
- * e.g. `window.__INITIAL_STATE__ = {...};`. Bracket matching is string-aware,
- * so braces inside JSON strings do not confuse it. Returns the parsed value.
- *
- * All four sources embed their listing state this way:
- *   NoBroker      nb.appState = {...}
- *   MagicBricks   window.SERVER_PRELOADED_STATE_ = {...}
- *   Housing.com   window.__INITIAL_STATE__ = {...}
- *   99acres       window.__initialData__ = {...}
- */
+/** Bracket matching is string-aware, so braces inside JSON strings do not confuse it. */
 export function extractInlineJson(text: string, marker: string | RegExp): unknown {
   let start = -1;
   let markerLength = 0;

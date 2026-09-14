@@ -15,7 +15,6 @@ const SQFT_PER_UNIT: Record<string, number> = {
   acres: 43560,
 };
 
-/** Convert an area to integer square feet. Unknown units or non-positive values → null. */
 export function toSqft(value: unknown, unit: string = 'sqft'): number | null {
   const n = typeof value === 'string' ? parseFloat(value.replace(/[,\s]/g, '')) : value;
   if (typeof n !== 'number' || !Number.isFinite(n) || n <= 0) return null;
