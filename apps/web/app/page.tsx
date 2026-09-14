@@ -19,7 +19,6 @@ const has = (v: string[], x: string) => v.includes(x);
 
 function toQuery(sp: Params): SearchQueryInput {
   const q: SearchQueryInput = {
-    // TODO(M4): resolve `locality` text via the localities table; until then lat/lng are explicit.
     center: { lat: num(sp.lat) ?? 12.9352, lng: num(sp.lng) ?? 77.6245 },
     radiusKm: num(sp.radiusKm) ?? 5,
     rent: { max: num(sp.maxRent) },

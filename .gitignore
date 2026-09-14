@@ -12,5 +12,4 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# local-only research notes
 docs/

@@ -1,5 +1,3 @@
--- Mirrors packages/db/src/schema.ts. Applied by `pnpm db:migrate`.
-
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 

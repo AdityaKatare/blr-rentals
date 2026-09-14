@@ -4,7 +4,6 @@ import { createDb, type DbHandle } from './client';
 import { loadEnv } from './env';
 import { loadSeedLocalities, loadSeedSearchAreas, loadSeedSources } from './seeds';
 
-/** `sources.enabled` is set on first insert only — it is the operator's kill switch. */
 export async function seed(handle: DbHandle): Promise<{ sources: number; localities: number; searchAreas: number }> {
   const { sql } = handle;
   const [sources, localities, areas] = await Promise.all([loadSeedSources(), loadSeedLocalities(), loadSeedSearchAreas()]);

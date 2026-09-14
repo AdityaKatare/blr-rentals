@@ -6,11 +6,6 @@ import { loadEnv } from './env';
 
 const MIGRATIONS_DIR = fileURLToPath(new URL('../migrations/', import.meta.url));
 
-/**
- * Apply every `migrations/*.sql` not yet recorded in `schema_migrations`, in
- * filename order, each in its own transaction. Deliberately tiny: no down
- * migrations, no journal format — add a new numbered file to change the schema.
- */
 export async function migrate(handle: DbHandle): Promise<{ ran: string[]; skipped: number }> {
   const { sql } = handle;
   await sql`CREATE TABLE IF NOT EXISTS schema_migrations (

@@ -2,7 +2,6 @@ import { loadEnv } from '@blr/db';
 
 export interface ScraperConfig {
   databaseUrl: string | undefined;
-  /** Honest identity. Never a browser UA string. */
   userAgent: string;
   contact: string;
   minDelayMs: number;

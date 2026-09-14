@@ -4,10 +4,6 @@ export interface Bedrooms {
   bedroomsPlus: boolean;
 }
 
-/**
- * "BHK2" · "2 BHK" · "2bhk" · "1 RK" · "RK1" · "BHK4PLUS" · "4+ BHK" · 3 → { bedrooms, is1rk, bedroomsPlus }
- * 1RK and studios are bedrooms=0 with is1rk=true.
- */
 export function parseBedrooms(input: unknown): Bedrooms | null {
   if (typeof input === 'number') {
     return Number.isInteger(input) && input >= 0 && input <= 20

@@ -3,7 +3,6 @@ export interface LatLng {
   lng: number;
 }
 
-/** Generous bounding box around Bengaluru urban + suburbs. Used as a sanity check, not a filter. */
 export const BENGALURU_BBOX = { minLat: 12.7, maxLat: 13.3, minLng: 77.3, maxLng: 77.9 } as const;
 
 export function isInBengaluru(p: LatLng): boolean {

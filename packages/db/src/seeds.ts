@@ -24,7 +24,6 @@ export interface SeedLocality {
 export interface SeedSearchArea {
   slug: string;
   name: string;
-  /** slug of a seed locality */
   locality: string;
   radiusKm: number;
   enabled?: boolean;
@@ -50,7 +49,6 @@ export const loadSeedSources = (): Promise<SeedSource[]> => loadJson('sources.js
 export const loadSeedLocalities = (): Promise<SeedLocality[]> => loadJson('localities.json');
 export const loadSeedSearchAreas = (): Promise<SeedSearchArea[]> => loadJson('search_areas.json');
 
-/** Resolve a search area from the seed files only (no database) — used by `scrape --dry-run`. */
 export async function resolveSeedArea(slug: string): Promise<ResolvedSearchArea | null> {
   const [areas, localities] = await Promise.all([loadSeedSearchAreas(), loadSeedLocalities()]);
   const area = areas.find((a) => a.slug === slug);

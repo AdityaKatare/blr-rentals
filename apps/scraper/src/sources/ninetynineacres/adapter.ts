@@ -3,10 +3,6 @@ import type { SourceAdapter } from '../types';
 
 export const NINETYNINEACRES_BASE = 'https://www.99acres.com';
 
-/**
- * If it is ever enabled: SEO pages `/flats-for-rent-in-<locality>-bangalore-<zone>-ffid[-page-N]`
- * are robots-allowed and embed window.__initialData__.srp.pageData.properties (26/page).
- */
 export const ninetynineacresAdapter: SourceAdapter = {
   slug: 'ninetynineacres',
   transport: 'browser',

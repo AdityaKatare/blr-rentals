@@ -1,11 +1,6 @@
 import type { ListedBy } from './enums';
 import type { SearchQuery } from './search-query';
 
-/**
- * Relevance ranking. MVP evaluates this in memory over the page of candidates
- * PostGIS returns (M4 mirrors the same formula in SQL). Phase 2 can replace
- * `rankListings` with a learned model behind the same signature.
- */
 export interface RankingWeights {
   distance: number;
   freshness: number;
@@ -44,7 +39,6 @@ export function scoreListing(
   const distance = item.distanceM === null ? 0.5 : clamp01(1 - item.distanceM / radiusM);
   const freshness = item.ageDays === null ? 0.5 : clamp01(1 - item.ageDays / 30);
   const maxRent = query.rent.max;
-  // Under budget is mildly better; at budget is neutral (0.5).
   const priceFit = maxRent ? 0.5 + 0.5 * clamp01(1 - item.rent / maxRent) : 0.5;
   const completeness = (Number(item.hasImages) + Number(item.hasArea) + Number(item.geoExact)) / 3;
   const owner = item.listedBy === 'owner' ? 1 : 0;

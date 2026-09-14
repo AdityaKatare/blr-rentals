@@ -19,7 +19,6 @@ const ALIASES: Record<string, Furnishing> = {
   bare: 'unfurnished',
 };
 
-/** Text labels only. Numeric source codes (e.g. MagicBricks `furnished: 11902`) are decoded in the adapter first. */
 export function normalizeFurnishing(input: unknown): Furnishing {
   if (typeof input !== 'string') return 'unknown';
   return ALIASES[input.trim().toLowerCase()] ?? 'unknown';

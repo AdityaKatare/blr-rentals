@@ -31,9 +31,6 @@ import {
 } from '@blr/core';
 import { parseEwkbPoint } from './ewkb';
 
-// Keep in sync with migrations/0000_init.sql. The SQL file is the source of truth
-// for the database; this file is the source of truth for TypeScript.
-
 export const transportEnum = pgEnum('transport', ['http', 'browser']);
 export const propertyTypeEnum = pgEnum('property_type', PROPERTY_TYPES);
 export const furnishingEnum = pgEnum('furnishing', FURNISHINGS);
@@ -44,7 +41,6 @@ export const geoAccuracyEnum = pgEnum('geo_accuracy', GEO_ACCURACIES);
 export const listingStatusEnum = pgEnum('listing_status', LISTING_STATUSES);
 export const runStatusEnum = pgEnum('run_status', ['running', 'ok', 'partial', 'failed']);
 
-/** PostGIS geography(Point,4326). Written via ST_MakePoint(lng, lat); read back from EWKB hex. */
 export const geographyPoint = customType<{ data: LatLng; driverData: string }>({
   dataType: () => 'geography(Point,4326)',
   toDriver: (v) => sql`ST_SetSRID(ST_MakePoint(${v.lng}, ${v.lat}), 4326)::geography`,
@@ -60,7 +56,6 @@ export const sources = pgTable('sources', {
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   baseUrl: text('base_url').notNull(),
-  /** Kill switch. Seeds set it once; re-seeding never overrides it. */
   enabled: boolean('enabled').notNull().default(false),
   transport: transportEnum('transport').notNull().default('http'),
   crawlIntervalMin: integer('crawl_interval_min').notNull().default(720),
@@ -107,12 +102,10 @@ export const searchAreas = pgTable(
   (t) => [index('search_areas_center_gix').using('gist', t.center)],
 );
 
-/** One row per deduplicated real-world flat. Listings point here via property_id. */
 export const properties = pgTable(
   'properties',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    /** FK to listings(id) is added in SQL (circular reference). */
     canonicalListingId: uuid('canonical_listing_id'),
     location: geographyPoint('location'),
     bedrooms: smallint('bedrooms'),
@@ -202,7 +195,6 @@ export const listings = pgTable(
   ],
 );
 
-/** Field-level history; written only for rent / deposit / status / available_from. */
 export const listingChanges = pgTable(
   'listing_changes',
   {

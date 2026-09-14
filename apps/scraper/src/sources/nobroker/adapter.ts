@@ -5,17 +5,20 @@ import { parseNobrokerSearchPage } from './parse';
 
 export const NOBROKER_BASE = 'https://www.nobroker.in';
 
-/** `searchParam` is base64 JSON `[{lat, lon, placeId?, placeName}]`; placeId verified optional (2026-09-13). */
 export function encodeSearchParam(center: LatLng, placeName: string): string {
   return Buffer.from(JSON.stringify([{ lat: center.lat, lon: center.lng, placeName }])).toString('base64');
 }
 
+export const NOBROKER_SLICES = ['RK1', 'BHK1', 'BHK2', 'BHK3', 'BHK4', 'BHK4PLUS'] as const;
+
 export const nobrokerAdapter: SourceAdapter = {
   slug: 'nobroker',
   transport: 'http',
-  supports: { radiusSearch: true, maxPages: 40 },
+  supports: { radiusSearch: true, maxPages: NOBROKER_SLICES.length },
 
   buildSearchUrl(area, page) {
+    const slice = NOBROKER_SLICES[page - 1];
+    if (!slice) throw new RangeError(`nobroker has ${NOBROKER_SLICES.length} search slices; got page ${page}`);
     const overrides = area.sourceOverrides.nobroker ?? {};
     const locality = typeof overrides.locality === 'string' ? overrides.locality : area.name;
     const url = new URL(`${NOBROKER_BASE}/property/rent/bangalore/${encodeURIComponent(locality)}`);
@@ -24,8 +27,8 @@ export const nobrokerAdapter: SourceAdapter = {
     url.searchParams.set('city', 'bangalore');
     url.searchParams.set('locality', locality);
     url.searchParams.set('sharedAccomodation', '0');
-    // TODO(M2): confirm the SSR page honours pageNo (the JSON API does).
-    if (page > 1) url.searchParams.set('pageNo', String(page));
+    url.searchParams.set('type', slice);
+    url.searchParams.set('orderBy', 'lastUpdateDate,desc');
     return url.toString();
   },
 

@@ -3,10 +3,6 @@ import type { SourceAdapter } from '../types';
 
 export const HOUSING_BASE = 'https://housing.com';
 
-/**
- * Locality pages carry an opaque id (…-P5s2sntlyr4a7izpb) that must be
- * discovered from the city page and stored in search_areas.source_overrides.housing.path.
- */
 export const housingAdapter: SourceAdapter = {
   slug: 'housing',
   transport: 'browser',
@@ -27,7 +23,6 @@ export const housingAdapter: SourceAdapter = {
   },
 
   parseSearchPage() {
-    // window.__INITIAL_STATE__.searchResults.data{<id>: listing} (30 per page)
     throw new NotImplementedError('housing.parseSearchPage', 'Phase 2');
   },
 

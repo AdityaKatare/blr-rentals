@@ -11,7 +11,6 @@ export class HttpError extends Error {
   }
 }
 
-/** 401/403/406: the host is refusing us. Never retried; the run must stop. */
 export class BlockedError extends HttpError {
   constructor(status: number, url: string) {
     super(status, url, `Blocked with HTTP ${status} by ${new URL(url).host}; stopping (no retry, no evasion)`);

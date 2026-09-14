@@ -3,6 +3,7 @@ import type { Logger } from 'pino';
 import { BlockedError, type HttpClient } from '../http/client';
 import type { RobotsGate } from '../http/robots';
 import type { ParsedPage, SearchArea, SourceAdapter } from '../sources/types';
+import type { RunRecorder } from './runs';
 import type { ListingStore, UpsertSummary } from './upsert';
 
 export interface RunDeps {
@@ -10,8 +11,8 @@ export interface RunDeps {
   http: HttpClient;
   robots: RobotsGate;
   logger: Logger;
-  /** Omit for dry runs / tests. */
   store?: ListingStore;
+  recorder?: RunRecorder;
 }
 
 export interface RunOptions {
@@ -21,42 +22,70 @@ export interface RunOptions {
 }
 
 export interface RunSummary {
+  runId: number | null;
   source: SourceSlug;
   areaSlug: string;
   status: 'ok' | 'partial' | 'failed';
   pagesPlanned: string[];
   pagesFetched: number;
   listingsSeen: number;
+  listingsSkipped: number;
   parseFailures: number;
+  httpErrors: number;
   normalized: NormalizedListing[];
   upsert?: UpsertSummary;
   errors: string[];
   blocked: boolean;
 }
 
-// TODO(M2): record a `scrape_runs` row (start/finish/status/counters) around this.
 export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSummary> {
-  const { adapter, http, robots, logger } = deps;
+  const { adapter, logger } = deps;
   const { area, dryRun = false } = opts;
-  const maxPages = Math.min(opts.maxPages ?? adapter.supports.maxPages, adapter.supports.maxPages);
 
   const summary: RunSummary = {
+    runId: null,
     source: adapter.slug,
     areaSlug: area.slug,
     status: 'ok',
     pagesPlanned: [],
     pagesFetched: 0,
     listingsSeen: 0,
+    listingsSkipped: 0,
     parseFailures: 0,
+    httpErrors: 0,
     normalized: [],
     errors: [],
     blocked: false,
   };
 
+  const recorder = dryRun ? undefined : deps.recorder;
+  if (recorder) summary.runId = await recorder.start(adapter.slug, area.id);
+
+  try {
+    await collect(deps, opts, summary);
+    if (deps.store && !dryRun && summary.normalized.length > 0) {
+      summary.upsert = await deps.store.upsertMany(summary.normalized);
+    }
+  } catch (err) {
+    summary.status = 'failed';
+    summary.errors.push(`store: ${String(err).slice(0, 300)}`);
+    logger.error({ err: String(err) }, 'run failed');
+  } finally {
+    if (recorder && summary.runId !== null) await recorder.finish(summary.runId, summary);
+  }
+
+  return summary;
+}
+
+async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Promise<void> {
+  const { adapter, http, robots, logger } = deps;
+  const { area, dryRun = false } = opts;
+  const maxPages = Math.min(opts.maxPages ?? adapter.supports.maxPages, adapter.supports.maxPages);
+
   if (adapter.transport !== 'http') {
     summary.status = 'failed';
     summary.errors.push(`${adapter.slug} needs transport "${adapter.transport}", which is not available yet (Phase 2)`);
-    return summary;
+    return;
   }
 
   for (let page = 1; page <= maxPages; page += 1) {
@@ -69,7 +98,7 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
       summary.status = 'failed';
       summary.errors.push(String(err));
       logger.error({ url, err: String(err) }, 'robots check failed');
-      break;
+      return;
     }
 
     if (dryRun) {
@@ -85,6 +114,7 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
       finalUrl = res.finalUrl;
       summary.pagesFetched += 1;
     } catch (err) {
+      summary.httpErrors += 1;
       summary.errors.push(String(err));
       if (err instanceof BlockedError) {
         summary.blocked = true;
@@ -94,7 +124,7 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
         summary.status = summary.pagesFetched > 0 ? 'partial' : 'failed';
         logger.error({ url, err: String(err) }, 'fetch failed');
       }
-      break;
+      return;
     }
 
     let parsed: ParsedPage;
@@ -104,9 +134,10 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
       summary.status = summary.pagesFetched > 1 ? 'partial' : 'failed';
       summary.errors.push(`parse: ${String(err)}`);
       logger.error({ url, err: String(err) }, 'page parse failed');
-      break;
+      return;
     }
 
+    summary.listingsSkipped += parsed.skipped ?? 0;
     for (const raw of parsed.raw) {
       summary.listingsSeen += 1;
       try {
@@ -118,17 +149,14 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
       }
     }
 
-    logger.info({ page, url, listings: parsed.raw.length, total: parsed.total ?? null }, 'page done');
+    logger.info(
+      { page, listings: parsed.raw.length, skipped: parsed.skipped ?? 0, total: parsed.total ?? null },
+      'page done',
+    );
     if (!parsed.hasNext) break;
   }
 
   if (summary.status === 'ok' && summary.listingsSeen > 0 && summary.parseFailures / summary.listingsSeen > 0.2) {
     summary.status = 'partial';
   }
-
-  if (deps.store && !dryRun && summary.normalized.length > 0) {
-    summary.upsert = await deps.store.upsertMany(summary.normalized);
-  }
-
-  return summary;
 }

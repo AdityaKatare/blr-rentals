@@ -4,10 +4,6 @@ const SRID_FLAG = 0x20000000;
 const TYPE_MASK = 0x0fffffff;
 const POINT = 1;
 
-/**
- * Parse the EWKB hex string PostGIS returns for a `geography(Point)` column
- * (e.g. `0101000020E6100000<lng f64><lat f64>`) into { lat, lng }.
- */
 export function parseEwkbPoint(hex: string): LatLng {
   if (typeof hex !== 'string' || hex.length < 42) {
     throw new Error(`Not an EWKB point: ${String(hex).slice(0, 40)}`);

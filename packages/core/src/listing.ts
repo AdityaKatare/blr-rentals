@@ -20,12 +20,6 @@ export type Image = z.infer<typeof ImageSchema>;
 
 const optInt = (min = 0) => z.number().int().min(min).nullable().default(null);
 
-/**
- * The one shape every source adapter must produce. Validated on every listing;
- * validation failures are the schema-drift alarm.
- *
- * Deliberately absent: poster names, phone numbers, emails, company names.
- */
 export const NormalizedListingSchema = z
   .object({
     source: z.enum(SOURCE_SLUGS),
@@ -75,7 +69,6 @@ export const NormalizedListingSchema = z
     postedAt: z.string().datetime({ offset: true }).nullable().default(null),
     sourceUpdatedAt: z.string().datetime({ offset: true }).nullable().default(null),
 
-    /** Source-specific leftovers, already stripped of PII. Kept for re-normalisation without re-fetching. */
     raw: z.record(z.unknown()).default({}),
   })
   .superRefine((v, ctx) => {

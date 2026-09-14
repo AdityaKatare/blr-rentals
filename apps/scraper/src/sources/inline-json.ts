@@ -1,4 +1,3 @@
-/** Bracket matching is string-aware, so braces inside JSON strings do not confuse it. */
 export function extractInlineJson(text: string, marker: string | RegExp): unknown {
   let start = -1;
   let markerLength = 0;

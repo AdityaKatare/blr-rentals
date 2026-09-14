@@ -37,7 +37,7 @@ describe('stripPii', () => {
   });
 
   it('matches keys case-insensitively and leaves lookalikes alone', () => {
-    expect(isPiiKey('OWNER_NAME')).toBe(true); // underscores ignored: 99acres uses CONTACT_NAME
+    expect(isPiiKey('OWNER_NAME')).toBe(true);
     expect(isPiiKey('ownerName')).toBe(true);
     expect(isPiiKey('DEALER_PHOTO_URL')).toBe(true);
     expect(isPiiKey('dealerPhotoUrl')).toBe(true);

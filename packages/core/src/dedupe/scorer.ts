@@ -1,24 +1,12 @@
-/**
- * Tier-1 cross-source duplicate scoring. Candidate *generation* happens in SQL
- * (same bedrooms, rent within 7 %, area within 12 %, ST_DWithin 250 m or same
- * society name). This module only scores a candidate pair.
- *
- * TODO(M5): tune weights/threshold against a hand-labelled set of ~100 pairs.
- */
 export interface DedupeFeatures {
-  /** metres between the two points; null if either has no coordinates */
   distanceM: number | null;
-  /** min(rentA, rentB) / max(rentA, rentB) */
   rentRatio: number;
-  /** min/max of area, or null if either unknown */
   areaRatio: number | null;
-  /** 0..1 trigram similarity of society/building names, null if either unknown */
   societySimilarity: number | null;
   floorMatch: boolean | null;
   totalFloorsMatch: boolean | null;
   bathroomsMatch: boolean | null;
   furnishingMatch: boolean;
-  /** min/max of deposit, or null */
   depositRatio: number | null;
 }
 
@@ -50,7 +38,6 @@ export const DEDUPE_THRESHOLD = 0.75;
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
-/** Unknown features contribute a neutral 0.5 so missing data neither confirms nor denies. */
 export function scoreCandidate(f: DedupeFeatures, w: DedupeWeights = DEFAULT_DEDUPE_WEIGHTS): number {
   const bool = (b: boolean | null) => (b === null ? 0.5 : b ? 1 : 0);
   const parts: Array<[number, number]> = [

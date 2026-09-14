@@ -1,7 +1,3 @@
-/**
- *   95000 · "95,000" · "₹ 95,000" · "Rs. 25k" · "1.2 Lac" · "70,000/month" → number
- * Returns null for anything unparseable or non-positive.
- */
 export function parseRupees(input: unknown): number | null {
   if (typeof input === 'number') {
     return Number.isFinite(input) && input > 0 ? Math.round(input) : null;

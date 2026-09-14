@@ -1,10 +1,5 @@
 import { AMENITIES, type Amenity } from '../enums';
 
-/**
- * Source label/code → canonical token. Keys are lower-cased and normalised
- * (underscores/hyphens → spaces) before lookup. NoBroker's short codes
- * (CPA, PB, VP, …) are included.
- */
 const ALIASES: Record<string, Amenity> = {
   lift: 'lift',
   elevator: 'lift',

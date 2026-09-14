@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { SearchQuerySchema } from '@blr/core';
 
-// TODO(M4): ST_DWithin radius + filters + sort + pagination, rankListings() for relevance, group by property_id (M5).
 export async function POST(req: Request) {
   let body: unknown;
   try {

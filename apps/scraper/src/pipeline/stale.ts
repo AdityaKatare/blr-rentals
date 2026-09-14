@@ -1,28 +1,71 @@
 import type { SourceSlug } from '@blr/core';
-import type { Db } from '@blr/db';
-import { NotImplementedError } from '../errors';
+import { resolveSourceId, type Sql } from './upsert';
 
 export interface StaleOptions {
   source: SourceSlug;
   now?: Date;
-  /** active → stale after this many crawl intervals without being seen. */
-  staleAfterIntervals?: number;
-  /** stale → removed after this many days. */
+  staleAfterDays?: number;
   removeAfterDays?: number;
 }
 
-export interface StaleSummary {
-  markedStale: number;
-  markedRemoved: number;
-}
+export type StaleSummary =
+  | { skipped: false; markedStale: number; markedRemoved: number }
+  | { skipped: true; reason: string };
 
-/**
- * TODO(M2): status transitions, run only when the latest scrape_runs row for the
- * source is 'ok' (an outage must never mass-expire listings):
- *   active → stale    where last_seen_at < now − staleAfterIntervals × sources.crawl_interval_min
- *   stale  → removed  where last_seen_at < now − removeAfterDays, set removed_at,
- *                     and write a listing_changes row (field 'status').
- */
-export async function markStale(_db: Db, _opts: StaleOptions): Promise<StaleSummary> {
-  throw new NotImplementedError('markStale', 'M2');
+const DEFAULT_STALE_DAYS = 7;
+const DEFAULT_REMOVE_DAYS = 21;
+
+export async function markStale(sql: Sql, opts: StaleOptions): Promise<StaleSummary> {
+  const now = (opts.now ?? new Date()).toISOString();
+  const staleDays = opts.staleAfterDays ?? DEFAULT_STALE_DAYS;
+  const removeDays = opts.removeAfterDays ?? DEFAULT_REMOVE_DAYS;
+  if (!(removeDays > staleDays)) throw new Error('removeAfterDays must be greater than staleAfterDays');
+
+  const sourceId = await resolveSourceId(sql, opts.source);
+
+  const [latest] = await sql<{ status: string }[]>`
+    SELECT status FROM scrape_runs
+    WHERE source_id = ${sourceId} AND status <> 'running'
+    ORDER BY started_at DESC LIMIT 1`;
+  if (!latest) return { skipped: true, reason: 'no finished scrape runs for this source' };
+  if (latest.status !== 'ok') return { skipped: true, reason: `latest run for ${opts.source} is ${latest.status}` };
+
+  return sql.begin(async (txn) => {
+    const tx = txn as unknown as Sql;
+    const freshness = tx`GREATEST(last_seen_at, COALESCE(source_updated_at, last_seen_at))`;
+
+    const removed = await tx<{ id: string; old: string }[]>`
+      WITH target AS (
+        SELECT id, status AS old FROM listings
+        WHERE source_id = ${sourceId} AND status <> 'removed'
+          AND ${freshness} < ${now}::timestamptz - make_interval(days => ${removeDays})
+        FOR UPDATE
+      )
+      UPDATE listings l SET status = 'removed', removed_at = ${now}, updated_at = now()
+      FROM target WHERE l.id = target.id
+      RETURNING l.id, target.old`;
+
+    const stale = await tx<{ id: string; old: string }[]>`
+      WITH target AS (
+        SELECT id, status AS old FROM listings
+        WHERE source_id = ${sourceId} AND status = 'active'
+          AND ${freshness} < ${now}::timestamptz - make_interval(days => ${staleDays})
+        FOR UPDATE
+      )
+      UPDATE listings l SET status = 'stale', updated_at = now()
+      FROM target WHERE l.id = target.id
+      RETURNING l.id, target.old`;
+
+    const rows = [
+      ...removed.map((r) => ({ id: r.id, old: r.old, next: 'removed' })),
+      ...stale.map((r) => ({ id: r.id, old: r.old, next: 'stale' })),
+    ];
+    for (const r of rows) {
+      await tx`
+        INSERT INTO listing_changes (listing_id, observed_at, field, old_value, new_value)
+        VALUES (${r.id}, ${now}, 'status', ${JSON.stringify(r.old)}::jsonb, ${JSON.stringify(r.next)}::jsonb)`;
+    }
+
+    return { skipped: false as const, markedStale: stale.length, markedRemoved: removed.length };
+  });
 }

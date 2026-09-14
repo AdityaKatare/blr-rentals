@@ -12,9 +12,6 @@ export const magicbricksAdapter: SourceAdapter = {
   buildSearchUrl(area, page) {
     const overrides = area.sourceOverrides.magicbricks ?? {};
     const locality = typeof overrides.locality === 'string' ? overrides.locality : area.name;
-    // Deliberately no `proptype=`: robots.txt disallows `/*proptype=`.
-    // TODO(M3): confirm `Locality=` filters on its own; consider the SEO form
-    // /flats-for-rent-in-<slug>-bangalore-pppfr (robots-allowed, sitemap-enumerated).
     const url = new URL(`${MAGICBRICKS_BASE}/property-for-rent/residential-real-estate`);
     url.searchParams.set('cityName', 'Bangalore');
     url.searchParams.set('Locality', locality);

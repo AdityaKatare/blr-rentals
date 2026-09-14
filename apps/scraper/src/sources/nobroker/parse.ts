@@ -1,19 +1,31 @@
-import { NotImplementedError } from '../../errors';
-import type { ParsedPage } from '../types';
+import { extractInlineJson } from '../inline-json';
+import { stripPii } from '../pii';
+import type { ParsedPage, RawListing } from '../types';
 
 export const NOBROKER_STATE_MARKER = /nb\.appState\s*=\s*/;
 
-/**
- * TODO(M2):
- *  1. `const state = extractInlineJson(body, NOBROKER_STATE_MARKER)`.
- *  2. Locate the listing array (verified present on 2026-09-13: ~26 objects
- *     carrying `rent`, `deposit`, `latitude`, `propertyType`, plus a "nearby"
- *     carousel that must be excluded).
- *  3. Return `{ raw: listings.map(stripPii), hasNext, total }` where `total`
- *     comes from the same state (API equivalent: `otherParams.total_count`).
- *  4. Capture a scrubbed fixture under __fixtures__/ and test this function
- *     against it; the fixture is the schema-drift canary.
- */
-export function parseNobrokerSearchPage(_body: string, _url: string): ParsedPage {
-  throw new NotImplementedError('nobroker.parseSearchPage', 'M2');
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+const isMonthlyRental = (p: Record<string, unknown>): boolean =>
+  p.forLease !== true && typeof p.rent === 'number' && p.rent > 0;
+
+export function parseNobrokerSearchPage(body: string, _url: string): ParsedPage {
+  const state = extractInlineJson(body, NOBROKER_STATE_MARKER);
+  const listPage = isRecord(state) ? state.listPage : undefined;
+  if (!isRecord(listPage)) throw new Error('nobroker: appState.listPage missing');
+
+  const items = listPage.listPageProperties;
+  if (!Array.isArray(items)) throw new Error('nobroker: appState.listPage.listPageProperties is not an array');
+
+  const listings = items.filter(isRecord);
+  const monthly = listings.filter(isMonthlyRental);
+  const other = isRecord(listPage.listPageOtherParams) ? listPage.listPageOtherParams : {};
+
+  return {
+    raw: monthly.map((l) => stripPii(l) as RawListing),
+    skipped: listings.length - monthly.length,
+    hasNext: true,
+    total: typeof other.total_count === 'number' ? other.total_count : undefined,
+    pageSize: listings.length,
+  };
 }

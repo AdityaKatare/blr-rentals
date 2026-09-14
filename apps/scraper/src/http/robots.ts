@@ -25,7 +25,6 @@ export interface RobotsGateOptions {
   userAgent: string;
   fetchImpl?: typeof fetch;
   ttlMs?: number;
-  /** What to do when robots.txt is unreachable (403/406/5xx/network). Default: deny. */
   onUnavailable?: 'deny' | 'allow';
   timeoutMs?: number;
   now?: () => number;

@@ -8,6 +8,7 @@ import { createRobotsGate, type RobotsGate } from './http/robots';
 import { createLogger } from './log';
 import { dedupeListings } from './pipeline/dedupe';
 import { runScrape } from './pipeline/run';
+import { createRunRecorder } from './pipeline/runs';
 import { markStale } from './pipeline/stale';
 import { createListingStore } from './pipeline/upsert';
 import { getAdapter, listAdapters } from './sources/registry';
@@ -18,7 +19,6 @@ program
   .description('Collects Bangalore rental listings from enabled sources into Postgres.')
   .version('0.1.0');
 
-/** Dry runs must not touch the network, so robots is a no-op unless --check-robots is given. */
 function offlineRobots(): RobotsGate {
   return {
     isAllowed: async () => true,
@@ -63,13 +63,13 @@ program
   .description('Fetch one search area from one source')
   .requiredOption('--source <slug>', `one of: ${listAdapters().map((a) => a.slug).join(', ')}`)
   .requiredOption('--area <slug>', 'search area slug (packages/db/seeds/search_areas.json)')
-  .option('--pages <n>', 'maximum pages to fetch', '1')
+  .option('--pages <n>', 'maximum pages (or search slices) to fetch; default: all the adapter supports')
   .option('--dry-run', 'build the URLs only; no network unless --check-robots', false)
   .option('--check-robots', 'with --dry-run: fetch robots.txt and report the verdict', false)
-  .action(async (o: { source: string; area: string; pages: string; dryRun: boolean; checkRobots: boolean }) => {
+  .action(async (o: { source: string; area: string; pages?: string; dryRun: boolean; checkRobots: boolean }) => {
     const config = loadConfig();
     const logger = createLogger(config.logLevel);
-    const maxPages = Math.max(1, Number.parseInt(o.pages, 10) || 1);
+    const maxPages = o.pages === undefined ? undefined : Math.max(1, Number.parseInt(o.pages, 10) || 1);
     let handle: DbHandle | null = null;
     try {
       const adapter = getAdapter(o.source);
@@ -95,14 +95,17 @@ program
         logger,
       });
       const robots = o.dryRun && !o.checkRobots ? offlineRobots() : createRobotsGate({ userAgent: config.userAgent, logger });
-      const store = handle ? createListingStore(handle.db) : undefined;
+      const store = handle ? createListingStore(handle.sql) : undefined;
+      const recorder = handle ? createRunRecorder(handle.sql) : undefined;
 
-      const summary = await runScrape({ adapter, http, robots, logger, store }, { area, maxPages, dryRun: o.dryRun });
+      const summary = await runScrape({ adapter, http, robots, logger, store, recorder }, { area, maxPages, dryRun: o.dryRun });
       if (o.dryRun) {
         console.log(summary.pagesPlanned.join('\n'));
         console.log(o.checkRobots ? `robots: ${summary.status === 'ok' ? 'allowed' : 'REFUSED'}` : 'robots: not checked (add --check-robots)');
       } else {
-        console.log(JSON.stringify({ ...summary, normalized: summary.normalized.length }, null, 2));
+        const { normalized, pagesPlanned, upsert, ...rest } = summary;
+        const { touchedIds, ...counts } = upsert ?? { touchedIds: [] };
+        console.log(JSON.stringify({ ...rest, pages: pagesPlanned.length, normalized: normalized.length, upsert: upsert ? counts : null }, null, 2));
       }
       if (summary.status === 'failed') process.exitCode = 1;
     } catch (err) {
@@ -143,13 +146,21 @@ program
   .command('mark-stale')
   .description('Transition listings active → stale → removed for a source')
   .requiredOption('--source <slug>')
-  .action(async (o: { source: string }) => {
+  .option('--stale-days <n>', 'days without being seen or updated before a listing is hidden', '7')
+  .option('--remove-days <n>', 'days without being seen or updated before a listing is removed', '21')
+  .action(async (o: { source: string; staleDays: string; removeDays: string }) => {
     const config = loadConfig();
     let handle: DbHandle | null = null;
     try {
       handle = createDb(config.databaseUrl);
       const adapter = getAdapter(o.source);
-      console.log(await markStale(handle.db, { source: adapter.slug }));
+      console.log(
+        await markStale(handle.sql, {
+          source: adapter.slug,
+          staleAfterDays: Number(o.staleDays),
+          removeAfterDays: Number(o.removeDays),
+        }),
+      );
     } catch (err) {
       reportError(err);
     } finally {
