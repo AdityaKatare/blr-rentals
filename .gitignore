@@ -1,0 +1,16 @@
+node_modules/
+.pnpm-store/
+dist/
+.next/
+out/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+apps/scraper/.data/
+coverage/
+.DS_Store
+Thumbs.db
+
+# local-only research notes
+docs/

@@ -1,0 +1,27 @@
+{
+  "name": "@blr/scraper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Scheduled CLI that collects listings from enabled sources, normalises them and writes them to Postgres.",
+  "scripts": {
+    "cli": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@blr/core": "workspace:*",
+    "@blr/db": "workspace:*",
+    "commander": "^13.0.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "robots-parser": "^3.0.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

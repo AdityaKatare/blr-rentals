@@ -1,0 +1,42 @@
+[
+  {
+    "slug": "nobroker",
+    "name": "NoBroker",
+    "baseUrl": "https://www.nobroker.in",
+    "enabled": true,
+    "transport": "http",
+    "crawlIntervalMin": 360,
+    "minDelayMs": 2500,
+    "notes": "MVP source #1."
+  },
+  {
+    "slug": "magicbricks",
+    "name": "MagicBricks",
+    "baseUrl": "https://www.magicbricks.com",
+    "enabled": true,
+    "transport": "http",
+    "crawlIntervalMin": 720,
+    "minDelayMs": 3000,
+    "notes": "MVP source #2."
+  },
+  {
+    "slug": "housing",
+    "name": "Housing.com",
+    "baseUrl": "https://housing.com",
+    "enabled": false,
+    "transport": "browser",
+    "crawlIntervalMin": 1440,
+    "minDelayMs": 4000,
+    "notes": "Phase 2. Needs browser transport."
+  },
+  {
+    "slug": "ninetynineacres",
+    "name": "99acres",
+    "baseUrl": "https://www.99acres.com",
+    "enabled": false,
+    "transport": "browser",
+    "crawlIntervalMin": 1440,
+    "minDelayMs": 4000,
+    "notes": "Deferred."
+  }
+]
