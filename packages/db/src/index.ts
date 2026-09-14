@@ -12,3 +12,12 @@ export {
   type SeedSearchArea,
   type SeedSource,
 } from './seeds';
+export {
+  findLocality,
+  listLocalities,
+  RELEVANCE_CANDIDATE_CAP,
+  searchListings,
+  type LocalityMatch,
+  type SearchHit,
+  type SearchResult,
+} from './search';

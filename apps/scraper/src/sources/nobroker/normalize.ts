@@ -38,7 +38,8 @@ const TENANTS: Record<string, TenantPreference> = {
   ANY: 'any',
 };
 
-const PLACEHOLDER_SOCIETY = /^(independent\s*house|stand\s*a?lone\s*building|none|na|n\/a|-)$/i;
+const PLACEHOLDER_SOCIETY =
+  /^(independent\s*(house|building)|stand\s*a?lone(\s*building)?|apartments?|flats?|house|building|villa|none|na|n\/a|nil|-+|\.+)$/i;
 
 const RAW_DROP = new Set([
   'photos',
@@ -58,6 +59,11 @@ const RAW_DROP = new Set([
 ]);
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
+const SENTINEL = /^(not[_\s]?found|null|undefined|unknown|n\/?a)$/i;
+const place = (v: unknown): string | null => {
+  const s = str(v);
+  return s && !SENTINEL.test(s) ? s : null;
+};
 const int = (v: unknown, min = 0): number | null =>
   typeof v === 'number' && Number.isFinite(v) && v >= min ? Math.round(v) : null;
 const epochToIso = (v: unknown): string | null => (typeof v === 'number' && v > 0 ? new Date(v).toISOString() : null);
@@ -142,8 +148,8 @@ export function normalizeNobroker(raw: RawListing, _ctx: NormalizeContext): Norm
     tenantPreference: (typeof raw.leaseType === 'string' && TENANTS[raw.leaseType]) || 'unknown',
     listedBy: 'owner',
 
-    locality: str(raw.nbLocality) ?? str(raw.locality),
-    subLocality: str(raw.street),
+    locality: place(raw.nbLocality) ?? place(raw.locality),
+    subLocality: place(raw.street),
     city: 'Bengaluru',
     pincode: pincode && /^\d{6}$/.test(pincode) ? pincode : null,
     societyName: society && !PLACEHOLDER_SOCIETY.test(society) ? society : null,

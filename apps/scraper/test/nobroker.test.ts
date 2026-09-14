@@ -117,6 +117,21 @@ describe('normalizeNobroker', () => {
     expect(l.subLocality).toBe('Sample Road 3');
   });
 
+  it('falls back past sentinel locality values', () => {
+    const base = parsed.raw[0]!;
+    const l = NormalizedListingSchema.parse(nobrokerAdapter.normalize({ ...base, nbLocality: 'NOT_FOUND', locality: 'Koramangala', street: 'null' }, ctx));
+    expect(l.locality).toBe('Koramangala');
+    expect(l.subLocality).toBeNull();
+  });
+
+  it('drops generic words used as society names', () => {
+    const base = parsed.raw[0]!;
+    for (const society of ['Apartment', 'apartments', 'Standalone', 'Independent Building', 'NA', '--']) {
+      expect(NormalizedListingSchema.parse(nobrokerAdapter.normalize({ ...base, society }, ctx)).societyName).toBeNull();
+    }
+    expect(NormalizedListingSchema.parse(nobrokerAdapter.normalize({ ...base, society: 'Apartment Gardens' }, ctx)).societyName).toBe('Apartment Gardens');
+  });
+
   it('marks landmark-only coordinates as approximate', () => {
     expect(byId('000003').geoAccuracy).toBe('approximate');
   });

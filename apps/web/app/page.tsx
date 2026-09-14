@@ -1,183 +1,310 @@
-import {
-  AMENITIES,
-  FURNISHINGS,
-  PROPERTY_TYPES,
-  SOURCE_SLUGS,
-  SearchQuerySchema,
-  type SearchQueryInput,
-} from '@blr/core';
+import type { ReactNode } from 'react';
+import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SOURCE_SLUGS, SearchQuerySchema } from '@blr/core';
+import { findLocality, listLocalities, searchListings, type LocalityMatch, type SearchResult } from '@blr/db';
+import { getDb } from '@/lib/db';
+import { FURNISHING_LABELS, humanize, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/lib/format';
+import { first, list, parseParams, SORTS, withParams, type Params } from '@/lib/search-params';
+import { ListingCard } from './listing-card';
 
-type Params = Record<string, string | string[] | undefined>;
+export const dynamic = 'force-dynamic';
 
-const num = (v: string | string[] | undefined): number | undefined => {
-  if (typeof v !== 'string' || v === '') return undefined;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
+const SORT_LABELS: Record<(typeof SORTS)[number], string> = {
+  relevance: 'Best match',
+  rent_asc: 'Rent: low to high',
+  distance: 'Nearest',
+  newest: 'Recently updated',
 };
-const list = (v: string | string[] | undefined): string[] => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
-const has = (v: string[], x: string) => v.includes(x);
 
-function toQuery(sp: Params): SearchQueryInput {
-  const q: SearchQueryInput = {
-    center: { lat: num(sp.lat) ?? 12.9352, lng: num(sp.lng) ?? 77.6245 },
-    radiusKm: num(sp.radiusKm) ?? 5,
-    rent: { max: num(sp.maxRent) },
-    bedrooms: list(sp.bedrooms).map(Number),
-    parking: sp.parking === 'required' ? 'required' : 'any',
-    listedBy: sp.ownerOnly === 'on' ? 'owner' : 'any',
-    sort: (typeof sp.sort === 'string' ? sp.sort : 'relevance') as SearchQueryInput['sort'],
-  };
-  if (list(sp.furnishing).length) q.furnishing = list(sp.furnishing) as SearchQueryInput['furnishing'];
-  if (list(sp.propertyTypes).length) q.propertyTypes = list(sp.propertyTypes) as SearchQueryInput['propertyTypes'];
-  if (list(sp.amenities).length) q.amenitiesAll = list(sp.amenities) as SearchQueryInput['amenitiesAll'];
-  if (list(sp.sources).length) q.sources = list(sp.sources) as SearchQueryInput['sources'];
-  return q;
+const BHK_OPTIONS = [
+  { value: '0', label: '1 RK' },
+  { value: '1', label: '1 BHK' },
+  { value: '2', label: '2 BHK' },
+  { value: '3', label: '3 BHK' },
+  { value: '4', label: '4+ BHK' },
+];
+
+const RADII = [1, 2, 3, 5, 8, 10, 15];
+
+type Outcome =
+  | { kind: 'ok'; result: SearchResult; localities: LocalityMatch[] }
+  | { kind: 'unknown-locality'; text: string; localities: LocalityMatch[] }
+  | { kind: 'invalid'; issues: string[]; localities: LocalityMatch[] }
+  | { kind: 'db-error'; message: string };
+
+async function run(sp: Params): Promise<Outcome> {
+  const parsed = parseParams(sp);
+  try {
+    const { sql } = getDb();
+    const localities = await listLocalities(sql);
+    let center: { lat: number; lng: number } | { localityId: number };
+    if (parsed.explicitCenter) {
+      center = parsed.explicitCenter;
+    } else {
+      const match = await findLocality(sql, parsed.localityText);
+      if (!match) return { kind: 'unknown-locality', text: parsed.localityText, localities };
+      center = { localityId: match.id };
+    }
+    const bedrooms = parsed.query.bedrooms ?? [];
+    const withLargeHomes = bedrooms.includes(4) ? [...new Set([...bedrooms, 5, 6, 7, 8, 9, 10])] : bedrooms;
+    const query = SearchQuerySchema.safeParse({ ...parsed.query, bedrooms: withLargeHomes, center });
+    if (!query.success) {
+      return { kind: 'invalid', issues: query.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`), localities };
+    }
+    return { kind: 'ok', result: await searchListings(sql, query.data), localities };
+  } catch (err) {
+    return { kind: 'db-error', message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function Checkbox({ name, value, label, checked }: { name: string; value: string; label: string; checked: boolean }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-1.5 text-sm">
+      <input type="checkbox" name={name} value={value} defaultChecked={checked} className="accent-zinc-900" />
+      {label}
+    </label>
+  );
+}
+
+function Chip({ name, value, label, checked }: { name: string; value: string; label: string; checked: boolean }) {
+  return (
+    <label className="cursor-pointer">
+      <input type="checkbox" name={name} value={value} defaultChecked={checked} className="peer sr-only" />
+      <span className="inline-block rounded-full border border-zinc-300 px-3 py-1 text-sm peer-checked:border-zinc-900 peer-checked:bg-zinc-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-zinc-400">
+        {label}
+      </span>
+    </label>
+  );
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Params> }) {
   const sp = await searchParams;
-  const submitted = Object.keys(sp).length > 0;
-  const parsed = submitted ? SearchQuerySchema.safeParse(toQuery(sp)) : null;
+  const parsed = parseParams(sp);
+  const outcome = await run(sp);
 
   const bedrooms = list(sp.bedrooms);
   const furnishing = list(sp.furnishing);
   const propertyTypes = list(sp.propertyTypes);
   const amenities = list(sp.amenities);
   const sources = list(sp.sources);
+  const sort = parsed.query.sort ?? 'relevance';
+  const radiusKm = parsed.query.radiusKm ?? 5;
 
   return (
-    <div className="grid gap-6 md:grid-cols-[320px_1fr]">
-      <form method="get" className="space-y-5 rounded-lg border border-zinc-200 bg-white p-4 text-sm">
-        <h1 className="text-base font-semibold">Find a rental</h1>
-
-        <label className="block">
-          <span className="text-zinc-600">Locality</span>
-          <input name="locality" defaultValue={typeof sp.locality === 'string' ? sp.locality : 'Koramangala'} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1" />
-          <span className="text-xs text-zinc-500">Locality lookup lands in M4; lat/lng below drive the search for now.</span>
-        </label>
-
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block">
-            <span className="text-zinc-600">Lat</span>
-            <input name="lat" type="number" step="0.0001" defaultValue={typeof sp.lat === 'string' ? sp.lat : '12.9352'} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1" />
+    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+      <form method="get" className="h-fit space-y-5 rounded-xl border border-zinc-200 bg-white p-4 lg:sticky lg:top-4">
+        <div>
+          <label htmlFor="locality" className="text-sm font-medium">
+            Near
           </label>
-          <label className="block">
-            <span className="text-zinc-600">Lng</span>
-            <input name="lng" type="number" step="0.0001" defaultValue={typeof sp.lng === 'string' ? sp.lng : '77.6245'} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1" />
+          <input
+            id="locality"
+            name="locality"
+            list="localities"
+            defaultValue={parsed.explicitCenter ? '' : parsed.localityText}
+            placeholder="Koramangala, HSR, Whitefield…"
+            className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            autoComplete="off"
+          />
+          {'localities' in outcome && (
+            <datalist id="localities">
+              {outcome.localities.map((l) => (
+                <option key={l.id} value={l.name} />
+              ))}
+            </datalist>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="text-sm font-medium">
+            Within
+            <select name="radiusKm" defaultValue={String(radiusKm)} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
+              {(RADII.includes(radiusKm) ? RADII : [...RADII, radiusKm].sort((a, b) => a - b)).map((r) => (
+                <option key={r} value={r}>
+                  {r} km
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Sort
+            <select name="sort" defaultValue={sort} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
+              {SORTS.map((s) => (
+                <option key={s} value={s}>
+                  {SORT_LABELS[s]}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 
-        <label className="block">
-          <span className="text-zinc-600">Radius (km)</span>
-          <input name="radiusKm" type="number" min={0.5} max={25} step={0.5} defaultValue={typeof sp.radiusKm === 'string' ? sp.radiusKm : '5'} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1" />
-        </label>
-
-        <label className="block">
-          <span className="text-zinc-600">Max rent (₹/month)</span>
-          <input name="maxRent" type="number" min={1000} step={1000} defaultValue={typeof sp.maxRent === 'string' ? sp.maxRent : '30000'} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1" />
-        </label>
+        <fieldset>
+          <legend className="text-sm font-medium">Rent (₹/month)</legend>
+          <div className="mt-1 grid grid-cols-2 gap-3">
+            <input name="minRent" type="number" min={0} step={1000} placeholder="Min" defaultValue={first(sp.minRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+            <input name="maxRent" type="number" min={0} step={1000} placeholder="Max" defaultValue={first(sp.maxRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+          </div>
+        </fieldset>
 
         <fieldset>
-          <legend className="text-zinc-600">BHK</legend>
-          <div className="mt-1 flex flex-wrap gap-3">
-            {['0', '1', '2', '3', '4'].map((b) => (
-              <label key={b} className="flex items-center gap-1">
-                <input type="checkbox" name="bedrooms" value={b} defaultChecked={has(bedrooms, b)} />
-                {b === '0' ? '1RK' : `${b} BHK`}
-              </label>
+          <legend className="text-sm font-medium">Size</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {BHK_OPTIONS.map((o) => (
+              <Chip key={o.value} name="bedrooms" value={o.value} label={o.label} checked={bedrooms.includes(o.value)} />
             ))}
           </div>
         </fieldset>
 
         <fieldset>
-          <legend className="text-zinc-600">Furnishing</legend>
-          <div className="mt-1 flex flex-wrap gap-3">
+          <legend className="text-sm font-medium">Furnishing</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
             {FURNISHINGS.filter((f) => f !== 'unknown').map((f) => (
-              <label key={f} className="flex items-center gap-1">
-                <input type="checkbox" name="furnishing" value={f} defaultChecked={has(furnishing, f)} />
-                {f}
-              </label>
+              <Chip key={f} name="furnishing" value={f} label={FURNISHING_LABELS[f] ?? f} checked={furnishing.includes(f)} />
             ))}
           </div>
         </fieldset>
-
-        <label className="block">
-          <span className="text-zinc-600">Property type</span>
-          <select name="propertyTypes" multiple defaultValue={propertyTypes} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1">
-            {PROPERTY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t.replace('_', ' ')}
-              </option>
-            ))}
-          </select>
-        </label>
 
         <fieldset>
-          <legend className="text-zinc-600">Amenities (all of)</legend>
-          <div className="mt-1 grid grid-cols-2 gap-1">
-            {AMENITIES.map((a) => (
-              <label key={a} className="flex items-center gap-1">
-                <input type="checkbox" name="amenities" value={a} defaultChecked={has(amenities, a)} />
-                {a.replace(/_/g, ' ')}
-              </label>
+          <legend className="text-sm font-medium">Property type</legend>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
+              <Checkbox key={t} name="propertyTypes" value={t} label={PROPERTY_TYPE_LABELS[t] ?? t} checked={propertyTypes.includes(t)} />
             ))}
           </div>
         </fieldset>
 
-        <div className="flex flex-wrap gap-4">
-          <label className="flex items-center gap-1">
-            <input type="checkbox" name="parking" value="required" defaultChecked={sp.parking === 'required'} /> parking required
-          </label>
-          <label className="flex items-center gap-1">
-            <input type="checkbox" name="ownerOnly" defaultChecked={sp.ownerOnly === 'on'} /> owner listings only
+        <div className="space-y-1.5">
+          <Checkbox name="parking" value="required" label="Has parking" checked={first(sp.parking) === 'required'} />
+          <Checkbox name="ownerOnly" value="on" label="Owner listings only" checked={first(sp.ownerOnly) === 'on'} />
+          <label className="flex items-center justify-between gap-2 pt-1 text-sm">
+            Available by
+            <input name="availableBy" type="date" defaultValue={first(sp.availableBy) ?? ''} className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
           </label>
         </div>
 
+        <details open={amenities.length > 0}>
+          <summary className="cursor-pointer text-sm font-medium">
+            Amenities{amenities.length ? ` (${amenities.length})` : ''}
+          </summary>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {AMENITIES.map((a) => (
+              <Checkbox key={a} name="amenities" value={a} label={humanize(a)} checked={amenities.includes(a)} />
+            ))}
+          </div>
+        </details>
+
         <fieldset>
-          <legend className="text-zinc-600">Sources</legend>
-          <div className="mt-1 flex flex-wrap gap-3">
+          <legend className="text-sm font-medium">Sources</legend>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
             {SOURCE_SLUGS.map((s) => (
-              <label key={s} className="flex items-center gap-1">
-                <input type="checkbox" name="sources" value={s} defaultChecked={has(sources, s)} />
-                {s}
-              </label>
+              <Checkbox key={s} name="sources" value={s} label={SOURCE_LABELS[s] ?? s} checked={sources.includes(s)} />
             ))}
           </div>
         </fieldset>
 
-        <label className="block">
-          <span className="text-zinc-600">Sort</span>
-          <select name="sort" defaultValue={typeof sp.sort === 'string' ? sp.sort : 'relevance'} className="mt-1 w-full rounded border border-zinc-300 px-2 py-1">
-            <option value="relevance">relevance</option>
-            <option value="rent_asc">rent, low to high</option>
-            <option value="distance">distance</option>
-            <option value="newest">newest</option>
-          </select>
-        </label>
-
-        <button type="submit" className="w-full rounded bg-zinc-900 px-3 py-2 font-medium text-white hover:bg-zinc-700">
-          Search
-        </button>
+        <div className="flex gap-2">
+          <button type="submit" className="flex-1 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
+            Search
+          </button>
+          <a href="/" className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50">
+            Reset
+          </a>
+        </div>
       </form>
 
-      <section className="space-y-4">
-        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-4 text-sm text-zinc-600">
-          <p className="font-medium text-zinc-800">Results land in M4.</p>
-          <p className="mt-1">
-            Cards will show rent, BHK, locality, area, furnishing, distance, posted date and a <strong>source badge</strong>, and link
-            out to the original listing. Until the search API is wired, the form only proves the query contract.
-          </p>
-        </div>
-
-        {parsed && (
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm">
-            <h2 className="font-medium">{parsed.success ? 'Parsed SearchQuery' : 'Invalid query'}</h2>
-            <pre className="mt-2 overflow-x-auto rounded bg-zinc-100 p-3 text-xs">
-              {JSON.stringify(parsed.success ? parsed.data : parsed.error.issues, null, 2)}
-            </pre>
-          </div>
-        )}
+      <section className="min-w-0 space-y-4">
+        <Results outcome={outcome} sp={sp} sort={sort} radiusKm={radiusKm} />
       </section>
     </div>
+  );
+}
+
+function Notice({ tone, title, children }: { tone: 'amber' | 'zinc'; title: string; children?: ReactNode }) {
+  const styles = tone === 'amber' ? 'border-amber-300 bg-amber-50' : 'border-zinc-200 bg-white';
+  return (
+    <div className={`rounded-xl border p-5 text-sm ${styles}`}>
+      <p className="font-medium">{title}</p>
+      {children && <div className="mt-1 text-zinc-600">{children}</div>}
+    </div>
+  );
+}
+
+function Results({ outcome, sp, sort, radiusKm }: { outcome: Outcome; sp: Params; sort: (typeof SORTS)[number]; radiusKm: number }) {
+  if (outcome.kind === 'db-error') {
+    return (
+      <Notice tone="amber" title="Database unreachable">
+        <p>{outcome.message}</p>
+        <p className="mt-2">
+          Start it with <code>pnpm db:up</code>, then <code>pnpm db:migrate &amp;&amp; pnpm db:seed</code>.
+        </p>
+      </Notice>
+    );
+  }
+  if (outcome.kind === 'unknown-locality') {
+    return (
+      <Notice tone="amber" title={`No locality matches “${outcome.text}”`}>
+        Try a nearby area, e.g. {outcome.localities.slice(0, 6).map((l) => l.name).join(', ')}.
+      </Notice>
+    );
+  }
+  if (outcome.kind === 'invalid') {
+    return (
+      <Notice tone="amber" title="Some filters are out of range">
+        <ul className="list-disc pl-5">
+          {outcome.issues.map((i) => (
+            <li key={i}>{i}</li>
+          ))}
+        </ul>
+      </Notice>
+    );
+  }
+
+  const { result } = outcome;
+  const near = result.center.locality?.name ?? `${result.center.lat.toFixed(4)}, ${result.center.lng.toFixed(4)}`;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="text-lg font-semibold">
+          {result.total.toLocaleString('en-IN')} {result.total === 1 ? 'rental' : 'rentals'} within {radiusKm} km of {near}
+        </h1>
+        <p className="text-xs text-zinc-500">
+          {SORT_LABELS[sort]} · {result.tookMs} ms
+        </p>
+      </div>
+
+      {result.hits.length === 0 ? (
+        <Notice tone="zinc" title="Nothing matches these filters yet">
+          Widen the radius, raise the rent limit or clear some filters. Only areas the scraper has visited have listings.
+        </Notice>
+      ) : (
+        <div className="space-y-3">
+          {result.hits.map((hit) => (
+            <ListingCard key={hit.id} hit={hit} />
+          ))}
+        </div>
+      )}
+
+      {result.pages > 1 && (
+        <nav className="flex items-center justify-between pt-2 text-sm">
+          {result.page > 1 ? (
+            <a href={withParams(sp, { page: String(result.page - 1) })} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
+              ← Previous
+            </a>
+          ) : (
+            <span />
+          )}
+          <span className="text-zinc-500">
+            Page {result.page} of {result.pages}
+          </span>
+          {result.page < result.pages ? (
+            <a href={withParams(sp, { page: String(result.page + 1) })} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
+              Next →
+            </a>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
+    </>
   );
 }
