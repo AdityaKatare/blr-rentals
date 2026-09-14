@@ -25,10 +25,17 @@ interface SourceRow {
   active_listings: number;
 }
 
-async function load(): Promise<{ runs: RunRow[]; sources: SourceRow[] } | { error: string }> {
+interface DedupeRow {
+  active_listings: number;
+  homes: number;
+  grouped_homes: number;
+  ungrouped: number;
+}
+
+async function load(): Promise<{ runs: RunRow[]; sources: SourceRow[]; dedupe: DedupeRow } | { error: string }> {
   try {
     const { sql } = getDb();
-    const [runs, sources] = await Promise.all([
+    const [runs, sources, [dedupe]] = await Promise.all([
       sql<RunRow[]>`
         SELECT r.id, s.slug AS source, a.slug AS area, r.status, r.started_at, r.finished_at,
                r.pages_fetched, r.listings_seen, r.inserted, r.updated, r.parse_failures, r.http_errors
@@ -42,8 +49,14 @@ async function load(): Promise<{ runs: RunRow[]; sources: SourceRow[] } | { erro
                (SELECT count(*)::int FROM listings l WHERE l.source_id = s.id AND l.status = 'active') AS active_listings
         FROM sources s
         ORDER BY s.id`,
+      sql<DedupeRow[]>`
+        SELECT
+          (SELECT count(*)::int FROM listings WHERE status = 'active') AS active_listings,
+          (SELECT count(*)::int FROM properties WHERE listing_count > 0) AS homes,
+          (SELECT count(*)::int FROM properties WHERE listing_count > 1) AS grouped_homes,
+          (SELECT count(*)::int FROM listings WHERE status = 'active' AND property_id IS NULL) AS ungrouped`,
     ]);
-    return { runs, sources };
+    return { runs, sources, dedupe: dedupe! };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -66,6 +79,20 @@ export default async function StatusPage() {
 
   return (
     <div className="space-y-8 text-sm">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ['Active listings', data.dedupe.active_listings],
+          ['Distinct homes', data.dedupe.homes],
+          ['Homes listed more than once', data.dedupe.grouped_homes],
+          ['Awaiting dedupe', data.dedupe.ungrouped],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-lg border border-zinc-200 bg-white p-3">
+            <p className="text-2xl font-semibold">{value}</p>
+            <p className="text-xs text-zinc-500">{label}</p>
+          </div>
+        ))}
+      </section>
+
       <section>
         <h1 className="text-base font-semibold">Sources</h1>
         <table className="mt-2 w-full border-collapse bg-white">

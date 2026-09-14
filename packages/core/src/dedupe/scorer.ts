@@ -52,5 +52,8 @@ export function scoreCandidate(f: DedupeFeatures, w: DedupeWeights = DEFAULT_DED
     [w.deposit, f.depositRatio === null ? 0.5 : clamp01((f.depositRatio - 0.8) / 0.2)],
   ];
   const total = parts.reduce((s, [wt]) => s + wt, 0);
-  return parts.reduce((s, [wt, v]) => s + wt * v, 0) / total;
+  const score = parts.reduce((s, [wt, v]) => s + wt * v, 0) / total;
+  return f.floorMatch === false ? score * FLOOR_MISMATCH_FACTOR : score;
 }
+
+export const FLOOR_MISMATCH_FACTOR = 0.5;

@@ -1,4 +1,5 @@
 import { NormalizedListingSchema, type NormalizedListing, type SourceSlug } from '@blr/core';
+import type { DedupeSummary } from '@blr/db';
 import type { Logger } from 'pino';
 import { BlockedError, type HttpClient } from '../http/client';
 import type { RobotsGate } from '../http/robots';
@@ -13,6 +14,7 @@ export interface RunDeps {
   logger: Logger;
   store?: ListingStore;
   recorder?: RunRecorder;
+  dedupe?: (listingIds: string[]) => Promise<DedupeSummary>;
 }
 
 export interface RunOptions {
@@ -34,6 +36,7 @@ export interface RunSummary {
   httpErrors: number;
   normalized: NormalizedListing[];
   upsert?: UpsertSummary;
+  dedupe?: DedupeSummary;
   errors: string[];
   blocked: boolean;
 }
@@ -65,6 +68,9 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
     await collect(deps, opts, summary);
     if (deps.store && !dryRun && summary.normalized.length > 0) {
       summary.upsert = await deps.store.upsertMany(summary.normalized);
+      if (deps.dedupe && summary.upsert.touchedIds.length > 0) {
+        summary.dedupe = await deps.dedupe(summary.upsert.touchedIds);
+      }
     }
   } catch (err) {
     summary.status = 'failed';

@@ -18,6 +18,17 @@ export {
   RELEVANCE_CANDIDATE_CAP,
   searchListings,
   type LocalityMatch,
+  type OtherListing,
   type SearchHit,
   type SearchResult,
 } from './search';
+export {
+  DEDUPE_AREA_TOLERANCE,
+  DEDUPE_RADIUS_M,
+  DEDUPE_RENT_TOLERANCE,
+  DEDUPE_SOCIETY_SIMILARITY,
+  dedupeListings,
+  refreshProperty,
+  type DedupeOptions,
+  type DedupeSummary,
+} from './dedupe';

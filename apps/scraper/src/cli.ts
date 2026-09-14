@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { createDb, resolveSeedArea, type DbHandle, type ResolvedSearchArea } from '@blr/db';
+import { createDb, dedupeListings, resolveSeedArea, type DbHandle, type ResolvedSearchArea } from '@blr/db';
 import { loadConfig } from './config';
 import { NotImplementedError } from './errors';
 import { createHttpClient } from './http/client';
 import { createRobotsGate, type RobotsGate } from './http/robots';
 import { createLogger } from './log';
-import { dedupeListings } from './pipeline/dedupe';
 import { runScrape } from './pipeline/run';
 import { createRunRecorder } from './pipeline/runs';
 import { markStale } from './pipeline/stale';
@@ -97,8 +96,10 @@ program
       const robots = o.dryRun && !o.checkRobots ? offlineRobots() : createRobotsGate({ userAgent: config.userAgent, logger });
       const store = handle ? createListingStore(handle.sql) : undefined;
       const recorder = handle ? createRunRecorder(handle.sql) : undefined;
+      const db = handle;
+      const dedupe = db ? (ids: string[]) => dedupeListings(db.sql, { listingIds: ids }) : undefined;
 
-      const summary = await runScrape({ adapter, http, robots, logger, store, recorder }, { area, maxPages, dryRun: o.dryRun });
+      const summary = await runScrape({ adapter, http, robots, logger, store, recorder, dedupe }, { area, maxPages, dryRun: o.dryRun });
       if (o.dryRun) {
         console.log(summary.pagesPlanned.join('\n'));
         console.log(o.checkRobots ? `robots: ${summary.status === 'ok' ? 'allowed' : 'REFUSED'}` : 'robots: not checked (add --check-robots)');
@@ -170,13 +171,13 @@ program
 
 program
   .command('dedupe')
-  .description('Group listings that describe the same property')
+  .description('Group all active listings that describe the same property')
   .action(async () => {
     const config = loadConfig();
     let handle: DbHandle | null = null;
     try {
       handle = createDb(config.databaseUrl);
-      console.log(await dedupeListings(handle.db, []));
+      console.log(await dedupeListings(handle.sql));
     } catch (err) {
       reportError(err);
     } finally {

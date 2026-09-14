@@ -1,4 +1,5 @@
 import type { SourceSlug } from '@blr/core';
+import { refreshProperty } from '@blr/db';
 import { resolveSourceId, type Sql } from './upsert';
 
 export interface StaleOptions {
@@ -34,7 +35,7 @@ export async function markStale(sql: Sql, opts: StaleOptions): Promise<StaleSumm
     const tx = txn as unknown as Sql;
     const freshness = tx`GREATEST(last_seen_at, COALESCE(source_updated_at, last_seen_at))`;
 
-    const removed = await tx<{ id: string; old: string }[]>`
+    const removed = await tx<{ id: string; old: string; property_id: string | null }[]>`
       WITH target AS (
         SELECT id, status AS old FROM listings
         WHERE source_id = ${sourceId} AND status <> 'removed'
@@ -43,9 +44,9 @@ export async function markStale(sql: Sql, opts: StaleOptions): Promise<StaleSumm
       )
       UPDATE listings l SET status = 'removed', removed_at = ${now}, updated_at = now()
       FROM target WHERE l.id = target.id
-      RETURNING l.id, target.old`;
+      RETURNING l.id, target.old, l.property_id`;
 
-    const stale = await tx<{ id: string; old: string }[]>`
+    const stale = await tx<{ id: string; old: string; property_id: string | null }[]>`
       WITH target AS (
         SELECT id, status AS old FROM listings
         WHERE source_id = ${sourceId} AND status = 'active'
@@ -54,7 +55,7 @@ export async function markStale(sql: Sql, opts: StaleOptions): Promise<StaleSumm
       )
       UPDATE listings l SET status = 'stale', updated_at = now()
       FROM target WHERE l.id = target.id
-      RETURNING l.id, target.old`;
+      RETURNING l.id, target.old, l.property_id`;
 
     const rows = [
       ...removed.map((r) => ({ id: r.id, old: r.old, next: 'removed' })),
@@ -65,6 +66,9 @@ export async function markStale(sql: Sql, opts: StaleOptions): Promise<StaleSumm
         INSERT INTO listing_changes (listing_id, observed_at, field, old_value, new_value)
         VALUES (${r.id}, ${now}, 'status', ${JSON.stringify(r.old)}::jsonb, ${JSON.stringify(r.next)}::jsonb)`;
     }
+
+    const properties = new Set([...removed, ...stale].map((r) => r.property_id).filter((p): p is string => p !== null));
+    for (const p of properties) await refreshProperty(tx, p);
 
     return { skipped: false as const, markedStale: stale.length, markedRemoved: removed.length };
   });

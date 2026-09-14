@@ -51,6 +51,17 @@ export interface SearchHit {
   updatedAt: string | null;
   distanceM: number;
   score: number | null;
+  propertyId: string | null;
+  sources: SourceSlug[];
+  otherListings: OtherListing[];
+}
+
+export interface OtherListing {
+  id: string;
+  source: SourceSlug;
+  rent: number;
+  sourceUrl: string;
+  updatedAt: string | null;
 }
 
 export interface SearchResult {
@@ -66,6 +77,7 @@ export interface SearchResult {
 
 interface Row {
   id: string;
+  property_id: string | null;
   source: SourceSlug;
   source_url: string;
   title: string;
@@ -155,7 +167,30 @@ function toHit(r: Row, score: number | null): SearchHit {
     updatedAt: r.updated_at,
     distanceM: Math.round(r.distance_m),
     score,
+    propertyId: r.property_id,
+    sources: [r.source],
+    otherListings: [],
   };
+}
+
+async function attachOtherListings(sql: Sql, hits: SearchHit[]): Promise<void> {
+  const grouped = hits.filter((h) => h.propertyId);
+  if (!grouped.length) return;
+  const rows = await sql<(OtherListing & { propertyId: string })[]>`
+    SELECT l.property_id AS "propertyId", l.id, s.slug AS source, l.rent, l.source_url AS "sourceUrl",
+           to_char(COALESCE(l.source_updated_at, l.posted_at, l.first_seen_at) AT TIME ZONE 'UTC',
+                   'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "updatedAt"
+    FROM listings l
+    JOIN sources s ON s.id = l.source_id
+    WHERE l.status = 'active' AND l.property_id = ANY (${pgArray(grouped.map((h) => h.propertyId!))}::uuid[])
+    ORDER BY l.rent, l.id`;
+  for (const hit of grouped) {
+    const members = rows.filter((r) => r.propertyId === hit.propertyId);
+    hit.otherListings = members
+      .filter((m) => m.id !== hit.id)
+      .map(({ propertyId: _p, ...rest }) => rest);
+    hit.sources = [...new Set([hit.source, ...members.map((m) => m.source)])];
+  }
 }
 
 export async function searchListings(sql: Sql, query: SearchQuery, now: Date = new Date()): Promise<SearchResult> {
@@ -200,29 +235,44 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
 
   const order =
     query.sort === 'rent_asc'
-      ? sql`l.rent ASC, distance_m ASC, l.id`
+      ? sql`rent ASC, distance_m ASC, id`
       : query.sort === 'newest'
-        ? sql`${updated} DESC, l.id`
-        : sql`distance_m ASC, l.id`;
+        ? sql`updated_ts DESC, id`
+        : sql`distance_m ASC, id`;
 
   const relevance = query.sort === 'relevance';
   const limit = relevance ? RELEVANCE_CANDIDATE_CAP : query.pageSize;
   const offset = relevance ? 0 : (query.page - 1) * query.pageSize;
 
   const rows = await sql<Row[]>`
-    SELECT l.id, s.slug AS source, l.source_url, l.title, l.rent, l.deposit, l.maintenance,
-           l.bedrooms, l.is_1rk, l.bedrooms_plus, l.bathrooms, l.area_sqft,
-           l.property_type, l.furnishing, l.parking, l.listed_by,
-           l.locality, l.society_name, l.geo_accuracy, l.is_verified, l.amenities,
-           l.images -> 0 ->> 'url' AS image_url, jsonb_array_length(l.images) AS image_count,
-           l.available_from::text AS available_from,
-           to_char(l.posted_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS posted_at,
-           to_char(${updated} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS updated_at,
-           ST_Distance(l.location, ${point}) AS distance_m,
+    WITH matched AS (
+      SELECT l.id, l.property_id, COALESCE(l.property_id, l.id) AS group_id,
+             s.slug AS source, l.source_url, l.title, l.rent, l.deposit, l.maintenance,
+             l.bedrooms, l.is_1rk, l.bedrooms_plus, l.bathrooms, l.area_sqft,
+             l.property_type, l.furnishing, l.parking, l.listed_by,
+             l.locality, l.society_name, l.geo_accuracy, l.is_verified, l.amenities,
+             l.images -> 0 ->> 'url' AS image_url, jsonb_array_length(l.images) AS image_count,
+             l.available_from, l.posted_at, ${updated} AS updated_ts,
+             ST_Distance(l.location, ${point}) AS distance_m
+      FROM listings l
+      JOIN sources s ON s.id = l.source_id
+      WHERE ${where}
+    ),
+    grouped AS (
+      SELECT DISTINCT ON (group_id) *
+      FROM matched
+      ORDER BY group_id, rent ASC, updated_ts DESC, id
+    )
+    SELECT id, property_id, source, source_url, title, rent, deposit, maintenance,
+           bedrooms, is_1rk, bedrooms_plus, bathrooms, area_sqft,
+           property_type, furnishing, parking, listed_by,
+           locality, society_name, geo_accuracy, is_verified, amenities, image_url, image_count,
+           available_from::text AS available_from,
+           to_char(posted_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS posted_at,
+           to_char(updated_ts AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS updated_at,
+           distance_m,
            count(*) OVER ()::int AS total
-    FROM listings l
-    JOIN sources s ON s.id = l.source_id
-    WHERE ${where}
+    FROM grouped
     ORDER BY ${order}
     LIMIT ${limit} OFFSET ${offset}`;
 
@@ -248,6 +298,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   } else {
     hits = rows.map((r) => toHit(r, null));
   }
+  await attachOtherListings(sql, hits);
 
   const rankedTotal = relevance ? Math.min(total, RELEVANCE_CANDIDATE_CAP) : total;
   return {

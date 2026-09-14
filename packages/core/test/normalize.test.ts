@@ -12,6 +12,7 @@ import {
   rankListings,
   scoreCandidate,
   toSqft,
+  DEDUPE_THRESHOLD,
 } from '../src/index';
 
 describe('parseRupees', () => {
@@ -169,5 +170,31 @@ describe('ranking and dedupe scorers', () => {
     });
     expect(same).toBeGreaterThan(0.9);
     expect(other).toBeLessThan(0.4);
+  });
+
+  it('keeps identical flats on different floors of one society apart', () => {
+    const neighbours = scoreCandidate({
+      distanceM: 10,
+      rentRatio: 1,
+      areaRatio: 1,
+      societySimilarity: 1,
+      floorMatch: false,
+      totalFloorsMatch: true,
+      bathroomsMatch: true,
+      furnishingMatch: true,
+      depositRatio: 1,
+    });
+    expect(neighbours).toBeLessThan(DEDUPE_THRESHOLD);
+    expect(scoreCandidate({
+      distanceM: 10,
+      rentRatio: 1,
+      areaRatio: 1,
+      societySimilarity: 1,
+      floorMatch: null,
+      totalFloorsMatch: true,
+      bathroomsMatch: true,
+      furnishingMatch: true,
+      depositRatio: 1,
+    })).toBeGreaterThan(DEDUPE_THRESHOLD);
   });
 });

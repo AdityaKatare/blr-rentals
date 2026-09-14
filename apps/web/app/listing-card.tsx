@@ -45,9 +45,13 @@ export function ListingCard({ hit }: { hit: SearchHit }) {
               {hit.maintenance ? ` · Maintenance ${rupees(hit.maintenance)}` : ''}
             </p>
           </div>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_STYLES[hit.source] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-200'}`}>
-            {sourceLabel}
-          </span>
+          <div className="flex shrink-0 flex-wrap justify-end gap-1">
+            {hit.sources.map((s) => (
+              <span key={s} className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_STYLES[s] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-200'}`}>
+                {SOURCE_LABELS[s] ?? s}
+              </span>
+            ))}
+          </div>
         </div>
 
         <h2 className="truncate font-medium" title={hit.title}>
@@ -55,6 +59,25 @@ export function ListingCard({ hit }: { hit: SearchHit }) {
         </h2>
 
         <p className="text-sm text-zinc-600">{facts.join(' · ')}</p>
+
+        {hit.otherListings.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-zinc-500">
+              {hit.otherListings.length === 1 ? 'Also listed' : `Also listed ${hit.otherListings.length} more times`}:
+            </span>
+            {hit.otherListings.map((o) => (
+              <a
+                key={o.id}
+                href={o.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-zinc-200 px-2 py-0.5 text-zinc-700 hover:border-zinc-400"
+              >
+                {SOURCE_LABELS[o.source] ?? o.source} {rupees(o.rent)} ↗
+              </a>
+            ))}
+          </div>
+        )}
 
         <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-zinc-500">
           <span>
