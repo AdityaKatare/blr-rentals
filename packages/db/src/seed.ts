@@ -38,7 +38,7 @@ export async function seed(handle: DbHandle): Promise<{ sources: number; localit
   for (const a of areas) {
     const result = await sql`
       INSERT INTO search_areas (slug, name, locality_id, center, radius_km, enabled, source_overrides)
-      SELECT ${a.slug}, ${a.name}, l.id, l.centroid, ${a.radiusKm}, ${a.enabled ?? true}, ${sql.json((a.sourceOverrides ?? {}) as Parameters<typeof sql.json>[0])}
+      SELECT ${a.slug}, ${a.name}, l.id, l.centroid, ${a.radiusKm}, ${a.enabled ?? true}, ${JSON.stringify(a.sourceOverrides ?? {})}::jsonb
       FROM localities l WHERE l.slug = ${a.locality}
       ON CONFLICT (slug) DO UPDATE SET
         name = EXCLUDED.name,
