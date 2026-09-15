@@ -14,11 +14,12 @@ export const NOBROKER_SLICES = ['RK1', 'BHK1', 'BHK2', 'BHK3', 'BHK4', 'BHK4PLUS
 export const nobrokerAdapter: SourceAdapter = {
   slug: 'nobroker',
   transport: 'http',
-  supports: { radiusSearch: true, maxPages: NOBROKER_SLICES.length },
+  supports: { radiusSearch: true, maxPages: 1 },
+  slices: NOBROKER_SLICES,
 
-  buildSearchUrl(area, page) {
-    const slice = NOBROKER_SLICES[page - 1];
-    if (!slice) throw new RangeError(`nobroker has ${NOBROKER_SLICES.length} search slices; got page ${page}`);
+  buildSearchUrl(area, page, slice) {
+    if (page !== 1) throw new RangeError(`nobroker search pages ignore pageNo; got page ${page}`);
+    if (!(NOBROKER_SLICES as readonly string[]).includes(slice)) throw new RangeError(`unknown nobroker slice "${slice}"`);
     const overrides = area.sourceOverrides.nobroker ?? {};
     const locality = typeof overrides.locality === 'string' ? overrides.locality : area.name;
     const url = new URL(`${NOBROKER_BASE}/property/rent/bangalore/${encodeURIComponent(locality)}`);

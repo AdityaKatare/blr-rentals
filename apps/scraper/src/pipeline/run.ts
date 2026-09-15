@@ -1,7 +1,7 @@
 import { NormalizedListingSchema, type NormalizedListing, type SourceSlug } from '@blr/core';
 import type { DedupeSummary } from '@blr/db';
 import type { Logger } from 'pino';
-import { BlockedError, type HttpClient } from '../http/client';
+import { BlockedError, HttpError, type HttpClient } from '../http/client';
 import type { RobotsGate } from '../http/robots';
 import type { ParsedPage, SearchArea, SourceAdapter } from '../sources/types';
 import type { RunRecorder } from './runs';
@@ -20,6 +20,7 @@ export interface RunDeps {
 export interface RunOptions {
   area: SearchArea;
   maxPages?: number;
+  slices?: readonly string[];
   dryRun?: boolean;
 }
 
@@ -32,6 +33,7 @@ export interface RunSummary {
   pagesFetched: number;
   listingsSeen: number;
   listingsSkipped: number;
+  emptySlices: string[];
   parseFailures: number;
   httpErrors: number;
   normalized: NormalizedListing[];
@@ -54,6 +56,7 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
     pagesFetched: 0,
     listingsSeen: 0,
     listingsSkipped: 0,
+    emptySlices: [],
     parseFailures: 0,
     httpErrors: 0,
     normalized: [],
@@ -84,8 +87,7 @@ export async function runScrape(deps: RunDeps, opts: RunOptions): Promise<RunSum
 }
 
 async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Promise<void> {
-  const { adapter, http, robots, logger } = deps;
-  const { area, dryRun = false } = opts;
+  const { adapter } = deps;
   const maxPages = Math.min(opts.maxPages ?? adapter.supports.maxPages, adapter.supports.maxPages);
 
   if (adapter.transport !== 'http') {
@@ -94,8 +96,41 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
     return;
   }
 
+  const slices = opts.slices ?? adapter.slices;
+  const unknown = slices.filter((s) => !adapter.slices.includes(s));
+  if (unknown.length > 0) {
+    summary.status = 'failed';
+    summary.errors.push(`unknown ${adapter.slug} slices: ${unknown.join(', ')} (known: ${adapter.slices.join(', ')})`);
+    return;
+  }
+
+  for (const slice of slices) {
+    const outcome = await collectSlice(deps, opts, summary, slice, maxPages);
+    if (outcome === 'abort') return;
+  }
+
+  if (summary.status === 'ok' && slices.length > 0 && summary.emptySlices.length === slices.length) {
+    summary.status = 'failed';
+    summary.errors.push(`${adapter.slug} has no search page for area "${opts.area.slug}"; check its source override`);
+  }
+
+  if (summary.status === 'ok' && summary.listingsSeen > 0 && summary.parseFailures / summary.listingsSeen > 0.2) {
+    summary.status = 'partial';
+  }
+}
+
+async function collectSlice(
+  deps: RunDeps,
+  opts: RunOptions,
+  summary: RunSummary,
+  slice: string,
+  maxPages: number,
+): Promise<'done' | 'abort'> {
+  const { adapter, http, robots, logger } = deps;
+  const { area, dryRun = false } = opts;
+
   for (let page = 1; page <= maxPages; page += 1) {
-    const url = adapter.buildSearchUrl(area, page);
+    const url = adapter.buildSearchUrl(area, page, slice);
     summary.pagesPlanned.push(url);
 
     try {
@@ -104,11 +139,11 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
       summary.status = 'failed';
       summary.errors.push(String(err));
       logger.error({ url, err: String(err) }, 'robots check failed');
-      return;
+      return 'abort';
     }
 
     if (dryRun) {
-      logger.info({ url, page }, 'dry-run: would fetch');
+      logger.info({ url, slice, page }, 'dry-run: would fetch');
       continue;
     }
 
@@ -120,6 +155,11 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
       finalUrl = res.finalUrl;
       summary.pagesFetched += 1;
     } catch (err) {
+      if (err instanceof HttpError && !(err instanceof BlockedError) && err.status === 404 && page === 1) {
+        summary.emptySlices.push(slice);
+        logger.warn({ url, slice }, 'no search page for this slice');
+        return 'done';
+      }
       summary.httpErrors += 1;
       summary.errors.push(String(err));
       if (err instanceof BlockedError) {
@@ -130,7 +170,7 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
         summary.status = summary.pagesFetched > 0 ? 'partial' : 'failed';
         logger.error({ url, err: String(err) }, 'fetch failed');
       }
-      return;
+      return 'abort';
     }
 
     let parsed: ParsedPage;
@@ -140,7 +180,7 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
       summary.status = summary.pagesFetched > 1 ? 'partial' : 'failed';
       summary.errors.push(`parse: ${String(err)}`);
       logger.error({ url, err: String(err) }, 'page parse failed');
-      return;
+      return 'abort';
     }
 
     summary.listingsSkipped += parsed.skipped ?? 0;
@@ -156,13 +196,10 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
     }
 
     logger.info(
-      { page, listings: parsed.raw.length, skipped: parsed.skipped ?? 0, total: parsed.total ?? null },
+      { slice, page, listings: parsed.raw.length, skipped: parsed.skipped ?? 0, total: parsed.total ?? null },
       'page done',
     );
     if (!parsed.hasNext) break;
   }
-
-  if (summary.status === 'ok' && summary.listingsSeen > 0 && summary.parseFailures / summary.listingsSeen > 0.2) {
-    summary.status = 'partial';
-  }
+  return 'done';
 }

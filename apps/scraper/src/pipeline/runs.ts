@@ -21,6 +21,7 @@ export function createRunRecorder(sql: Sql): RunRecorder {
       const notes = [
         `pages ${s.pagesFetched}/${s.pagesPlanned.length}`,
         s.listingsSkipped ? `skipped ${s.listingsSkipped}` : null,
+        s.emptySlices.length ? `no page: ${s.emptySlices.join(',')}` : null,
         s.blocked ? 'BLOCKED' : null,
       ]
         .filter(Boolean)

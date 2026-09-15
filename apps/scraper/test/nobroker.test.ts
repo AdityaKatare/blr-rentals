@@ -25,8 +25,9 @@ const byId = (suffix: string) => {
 };
 
 describe('nobroker adapter URLs', () => {
-  it('builds one newest-first search per BHK slice and refuses pages beyond them', () => {
-    const urls = NOBROKER_SLICES.map((_, i) => new URL(nobrokerAdapter.buildSearchUrl(area, i + 1)));
+  it('builds one newest-first search per BHK slice and refuses pages beyond the first', () => {
+    expect(nobrokerAdapter.slices).toEqual(NOBROKER_SLICES);
+    const urls = NOBROKER_SLICES.map((slice) => new URL(nobrokerAdapter.buildSearchUrl(area, 1, slice)));
     expect(urls.map((u) => u.searchParams.get('type'))).toEqual([...NOBROKER_SLICES]);
     for (const u of urls) {
       expect(u.pathname).toBe('/property/rent/bangalore/Koramangala');
@@ -37,12 +38,13 @@ describe('nobroker adapter URLs', () => {
         { lat: 12.9352, lon: 77.6245, placeName: 'Koramangala' },
       ]);
     }
-    expect(nobrokerAdapter.supports.maxPages).toBe(NOBROKER_SLICES.length);
-    expect(() => nobrokerAdapter.buildSearchUrl(area, NOBROKER_SLICES.length + 1)).toThrow(RangeError);
+    expect(nobrokerAdapter.supports.maxPages).toBe(1);
+    expect(() => nobrokerAdapter.buildSearchUrl(area, 2, 'BHK2')).toThrow(RangeError);
+    expect(() => nobrokerAdapter.buildSearchUrl(area, 1, 'BHK9')).toThrow(RangeError);
   });
 
   it('uses the locality override when present', () => {
-    const url = new URL(nobrokerAdapter.buildSearchUrl({ ...area, sourceOverrides: { nobroker: { locality: 'HSR Layout' } } }, 1));
+    const url = new URL(nobrokerAdapter.buildSearchUrl({ ...area, sourceOverrides: { nobroker: { locality: 'HSR Layout' } } }, 1, 'BHK1'));
     expect(url.pathname).toBe('/property/rent/bangalore/HSR%20Layout');
     expect(url.searchParams.get('locality')).toBe('HSR Layout');
   });

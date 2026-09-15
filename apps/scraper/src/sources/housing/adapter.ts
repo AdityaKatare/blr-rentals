@@ -7,6 +7,7 @@ export const housingAdapter: SourceAdapter = {
   slug: 'housing',
   transport: 'browser',
   supports: { radiusSearch: false, maxPages: 20 },
+  slices: ['all'],
 
   buildSearchUrl(area, page) {
     const overrides = area.sourceOverrides.housing ?? {};

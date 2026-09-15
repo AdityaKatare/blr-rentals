@@ -9,6 +9,7 @@ import {
   type TenantPreference,
 } from '@blr/core';
 import { redactContactText } from '../pii';
+import { societyName } from '../society';
 import type { NormalizeContext, RawListing } from '../types';
 
 const BASE = 'https://www.nobroker.in';
@@ -37,9 +38,6 @@ const TENANTS: Record<string, TenantPreference> = {
   ANYONE: 'any',
   ANY: 'any',
 };
-
-const PLACEHOLDER_SOCIETY =
-  /^(independent\s*(house|building)|stand\s*a?lone(\s*building)?|apartments?|flats?|house|building|villa|none|na|n\/a|nil|-+|\.+)$/i;
 
 const RAW_DROP = new Set([
   'photos',
@@ -115,7 +113,6 @@ export function normalizeNobroker(raw: RawListing, _ctx: NormalizeContext): Norm
   const hasGeo = lat !== null && lng !== null && !(lat === 0 && lng === 0);
 
   const maintenanceAmount = int(raw.maintenanceAmount);
-  const society = str(raw.society);
   const description = str(raw.ownerDescription) ?? str(raw.description);
   const pincode = raw.pinCode === undefined || raw.pinCode === null ? null : String(raw.pinCode).trim();
 
@@ -152,7 +149,7 @@ export function normalizeNobroker(raw: RawListing, _ctx: NormalizeContext): Norm
     subLocality: place(raw.street),
     city: 'Bengaluru',
     pincode: pincode && /^\d{6}$/.test(pincode) ? pincode : null,
-    societyName: society && !PLACEHOLDER_SOCIETY.test(society) ? society : null,
+    societyName: societyName(raw.society),
 
     lat: hasGeo ? lat : null,
     lng: hasGeo ? lng : null,

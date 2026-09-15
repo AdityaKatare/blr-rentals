@@ -62,13 +62,15 @@ program
   .description('Fetch one search area from one source')
   .requiredOption('--source <slug>', `one of: ${listAdapters().map((a) => a.slug).join(', ')}`)
   .requiredOption('--area <slug>', 'search area slug (packages/db/seeds/search_areas.json)')
-  .option('--pages <n>', 'maximum pages (or search slices) to fetch; default: all the adapter supports')
+  .option('--pages <n>', 'maximum pages per search slice; default: all the adapter supports')
+  .option('--slices <list>', 'comma-separated search slices; default: all of them')
   .option('--dry-run', 'build the URLs only; no network unless --check-robots', false)
   .option('--check-robots', 'with --dry-run: fetch robots.txt and report the verdict', false)
-  .action(async (o: { source: string; area: string; pages?: string; dryRun: boolean; checkRobots: boolean }) => {
+  .action(async (o: { source: string; area: string; pages?: string; slices?: string; dryRun: boolean; checkRobots: boolean }) => {
     const config = loadConfig();
     const logger = createLogger(config.logLevel);
     const maxPages = o.pages === undefined ? undefined : Math.max(1, Number.parseInt(o.pages, 10) || 1);
+    const slices = o.slices?.split(',').map((s) => s.trim()).filter(Boolean);
     let handle: DbHandle | null = null;
     try {
       const adapter = getAdapter(o.source);
@@ -99,7 +101,7 @@ program
       const db = handle;
       const dedupe = db ? (ids: string[]) => dedupeListings(db.sql, { listingIds: ids }) : undefined;
 
-      const summary = await runScrape({ adapter, http, robots, logger, store, recorder, dedupe }, { area, maxPages, dryRun: o.dryRun });
+      const summary = await runScrape({ adapter, http, robots, logger, store, recorder, dedupe }, { area, maxPages, slices, dryRun: o.dryRun });
       if (o.dryRun) {
         console.log(summary.pagesPlanned.join('\n'));
         console.log(o.checkRobots ? `robots: ${summary.status === 'ok' ? 'allowed' : 'REFUSED'}` : 'robots: not checked (add --check-robots)');

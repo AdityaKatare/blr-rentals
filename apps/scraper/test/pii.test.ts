@@ -34,6 +34,20 @@ describe('stripPii', () => {
       'Call [phone redacted] or +91 98765 43210 or mail [email redacted]',
     );
     expect(stripPii({ description: 'contact 9123456789 today' })).toEqual({ description: 'contact [phone redacted] today' });
+    expect(redactContactText('call 9876543210. or 9876543210, or (+919876543210)')).toBe(
+      'call [phone redacted]. or [phone redacted], or ([phone redacted])',
+    );
+  });
+
+  it('leaves identifiers, coordinates and URLs that merely contain ten digits alone', () => {
+    const raw = {
+      id: 'ff808181604edd6501604f6789012345',
+      location: '12.927597704199984000,77.637387139876543210',
+      detailUrl: '/property/2-bhk-for-rent/ff808181604edd6501604f6789012345/detail',
+      photo: 'https://img.example.com/Photo_h470_w1080/8313_1789123456.10411_470_1080.jpg',
+      ref: 'LISTING_9876543210',
+    };
+    expect(stripPii(raw)).toEqual(raw);
   });
 
   it('matches keys case-insensitively and leaves lookalikes alone', () => {

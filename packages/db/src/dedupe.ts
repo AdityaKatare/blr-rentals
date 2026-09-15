@@ -45,7 +45,9 @@ export const DEDUPE_SOCIETY_SIMILARITY = 0.6;
 async function candidatesFor(tx: Sql, id: string): Promise<CandidateRow[]> {
   return tx<CandidateRow[]>`
     SELECT c.id, c.property_id,
-      CASE WHEN t.location IS NULL OR c.location IS NULL THEN NULL ELSE ST_Distance(t.location, c.location) END AS distance_m,
+      CASE WHEN t.location IS NULL OR c.location IS NULL OR t.geo_accuracy IN ('locality_centroid', 'none')
+                OR c.geo_accuracy IN ('locality_centroid', 'none')
+           THEN NULL ELSE ST_Distance(t.location, c.location) END AS distance_m,
       LEAST(t.rent, c.rent)::float8 / GREATEST(t.rent, c.rent) AS rent_ratio,
       CASE WHEN t.area_sqft IS NULL OR c.area_sqft IS NULL THEN NULL
            ELSE LEAST(t.area_sqft, c.area_sqft)::float8 / GREATEST(t.area_sqft, c.area_sqft) END AS area_ratio,
@@ -66,7 +68,8 @@ async function candidatesFor(tx: Sql, id: string): Promise<CandidateRow[]> {
       AND abs(c.rent - t.rent) <= ${DEDUPE_RENT_TOLERANCE}::float8 * GREATEST(c.rent, t.rent)
       AND (t.area_sqft IS NULL OR c.area_sqft IS NULL
            OR abs(c.area_sqft - t.area_sqft) <= ${DEDUPE_AREA_TOLERANCE}::float8 * GREATEST(c.area_sqft, t.area_sqft))
-      AND (ST_DWithin(c.location, t.location, ${DEDUPE_RADIUS_M}::float8)
+      AND ((t.geo_accuracy IN ('exact', 'approximate') AND c.geo_accuracy IN ('exact', 'approximate')
+            AND ST_DWithin(c.location, t.location, ${DEDUPE_RADIUS_M}::float8))
            OR (t.society_name IS NOT NULL AND c.society_name IS NOT NULL
                AND similarity(lower(t.society_name), lower(c.society_name)) > ${DEDUPE_SOCIETY_SIMILARITY}::float8))`;
 }

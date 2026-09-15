@@ -44,6 +44,7 @@ function okSummary(): RunSummary {
     status: 'ok',
     pagesPlanned: ['u'],
     pagesFetched: 1,
+    emptySlices: [],
     listingsSeen: 6,
     listingsSkipped: 2,
     parseFailures: 0,

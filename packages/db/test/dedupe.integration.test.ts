@@ -36,6 +36,7 @@ interface Fixture {
   furnishing: 'semi' | 'full' | 'unfurnished';
   deposit: number | null;
   images: number;
+  geo?: 'exact' | 'locality_centroid';
 }
 
 const FIXTURES: Fixture[] = [
@@ -43,6 +44,8 @@ const FIXTURES: Fixture[] = [
   { key: 'home-on-b', source: 'b', metersNorth: 40, rent: 31000, area: 1150, society: 'Prestige Lake Side Habitat', floor: 5, furnishing: 'semi', deposit: 150000, images: 8 },
   { key: 'neighbour', source: 'a', metersNorth: 10, rent: 30000, area: 1100, society: 'Prestige Lakeside Habitat', floor: 9, furnishing: 'semi', deposit: 150000, images: 2 },
   { key: 'stranger', source: 'b', metersNorth: 180, rent: 29000, area: 800, society: 'Sobha Dream Acres', floor: 2, furnishing: 'unfurnished', deposit: 100000, images: 1 },
+  { key: 'centre-on-a', source: 'a', metersNorth: 900, rent: 52000, area: 1500, society: null, floor: null, furnishing: 'full', deposit: 200000, images: 1, geo: 'locality_centroid' },
+  { key: 'centre-on-b', source: 'b', metersNorth: 900, rent: 52000, area: 1500, society: null, floor: null, furnishing: 'full', deposit: 200000, images: 1, geo: 'locality_centroid' },
 ];
 
 describe.runIf(handle)('dedupeListings against Postgres', () => {
@@ -67,7 +70,7 @@ describe.runIf(handle)('dedupeListings against Postgres', () => {
                               area_sqft, floor, total_floors, furnishing, society_name, location, geo_accuracy, images, raw_hash)
         VALUES (${sourceIds[f.source]}, ${f.key}, ${`https://example.com/${f.key}`}, ${f.key}, 'apartment', 2, 2, ${f.rent},
                 ${f.deposit}, ${f.area}, ${f.floor}, 14, ${f.furnishing}::furnishing, ${f.society},
-                ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${north(f.metersNorth)}), 4326)::geography, 'exact', ${images}::jsonb, 'h')
+                ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${north(f.metersNorth)}), 4326)::geography, ${f.geo ?? 'exact'}::geo_accuracy, ${images}::jsonb, 'h')
         RETURNING id`;
       ids[f.key] = row!.id;
     }
@@ -84,14 +87,15 @@ describe.runIf(handle)('dedupeListings against Postgres', () => {
 
   it('groups the same flat across sources and keeps neighbours and strangers apart', async () => {
     const summary = await dedupeListings(sql, { listingIds: Object.values(ids) });
-    expect(summary.examined).toBe(4);
+    expect(summary.examined).toBe(FIXTURES.length);
 
-    const [a, b, neighbour, stranger] = await Promise.all(FIXTURES.map((f) => propertyOf(f.key)));
+    const [a, b, neighbour, stranger, centreA, centreB] = await Promise.all(FIXTURES.map((f) => propertyOf(f.key)));
     expect(a).not.toBeNull();
     expect(b).toBe(a);
     expect(neighbour).not.toBe(a);
     expect(stranger).not.toBe(a);
     expect(neighbour).not.toBe(stranger);
+    expect(centreA).not.toBe(centreB);
 
     const [property] = await sql<{ listing_count: number; rent_min: number; rent_max: number; canonical_listing_id: string; n_sources: number }[]>`
       SELECT listing_count, rent_min, rent_max, canonical_listing_id, cardinality(sources) AS n_sources FROM properties WHERE id = ${a!}`;
@@ -101,13 +105,13 @@ describe.runIf(handle)('dedupeListings against Postgres', () => {
   it('is stable when run again', async () => {
     const before = await Promise.all(FIXTURES.map((f) => propertyOf(f.key)));
     const summary = await dedupeListings(sql, { listingIds: Object.values(ids) });
-    expect(summary).toMatchObject({ examined: 4, created: 0, moved: 0, unchanged: 4 });
+    expect(summary).toMatchObject({ examined: FIXTURES.length, created: 0, moved: 0, unchanged: FIXTURES.length });
     expect(await Promise.all(FIXTURES.map((f) => propertyOf(f.key)))).toEqual(before);
   });
 
   it('shows one card per home with the other listing attached', async () => {
     const result = await searchListings(sql, SearchQuerySchema.parse({ center: CENTER, radiusKm: 1, sort: 'rent_asc' }));
-    const mine = result.hits.filter((h) => h.sourceUrl.startsWith('https://example.com/'));
+    const mine = result.hits.filter((h) => h.sourceUrl.startsWith('https://example.com/') && !h.sourceUrl.includes('/centre-'));
     expect(mine.map((h) => h.sourceUrl.split('/').pop())).toEqual(['stranger', 'home-on-a', 'neighbour']);
     const home = mine.find((h) => h.sourceUrl.endsWith('home-on-a'))!;
     expect(home.otherListings).toEqual([
