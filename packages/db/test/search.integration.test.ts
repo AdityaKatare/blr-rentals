@@ -3,7 +3,7 @@ import { SearchQuerySchema, type SearchQueryInput, type SourceSlug } from '@blr/
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type DbHandle } from '../src/client';
 import { loadEnv } from '../src/env';
-import { findLocality, searchListings } from '../src/search';
+import { CARD_IMAGE_LIMIT, findLocality, listingsByIds, searchListings } from '../src/search';
 
 loadEnv();
 
@@ -111,6 +111,32 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     const scores = r.hits.map((h) => h.score!);
     expect(scores.every((s) => s > 0 && s <= 1)).toBe(true);
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
+  });
+
+  it('returns card photos, recent rent drops and saved listings by id', async () => {
+    const [near] = await sql<{ id: string }[]>`SELECT id FROM listings WHERE source_id = ${sourceId} AND source_listing_id = 'near-2bhk'`;
+    const [stale] = await sql<{ id: string }[]>`SELECT id FROM listings WHERE source_id = ${sourceId} AND source_listing_id = 'stale'`;
+    const photos = Array.from({ length: CARD_IMAGE_LIMIT + 3 }, (_, i) => ({ url: `https://example.com/p/${i}.jpg` }));
+    await sql`UPDATE listings SET images = ${JSON.stringify(photos)}::jsonb WHERE id = ${near!.id}`;
+    await sql`
+      INSERT INTO listing_changes (listing_id, observed_at, field, old_value, new_value) VALUES
+        (${near!.id}, now() - interval '40 days', 'rent', '40000'::jsonb, '30000'::jsonb),
+        (${near!.id}, now() - interval '3 days', 'rent', '28000'::jsonb, '26000'::jsonb),
+        (${near!.id}, now() - interval '1 day', 'rent', '26000'::jsonb, '25000'::jsonb),
+        (${near!.id}, now() - interval '1 day', 'available_from', '"2026-08-01"'::jsonb, '"2026-09-01"'::jsonb)`;
+
+    const r = await search({ radiusKm: 1, sort: 'distance', bedrooms: [2] });
+    const hit = r.hits.find((h) => h.id === near!.id)!;
+    expect(hit.images).toEqual(photos.slice(0, CARD_IMAGE_LIMIT).map((p) => p.url));
+    expect(hit.imageCount).toBe(CARD_IMAGE_LIMIT + 3);
+    expect(hit.rentDrop).toMatchObject({ from: 28000 });
+    expect(hit.status).toBe('active');
+
+    const saved = await listingsByIds(sql, [stale!.id, 'not-a-uuid', near!.id]);
+    expect(saved.map((h) => h.id)).toEqual([stale!.id, near!.id]);
+    expect(saved[0]).toMatchObject({ status: 'stale', distanceM: null, rentDrop: null, images: [] });
+    expect(saved[1]!.rentDrop).toMatchObject({ from: 28000 });
+    expect(await listingsByIds(sql, [])).toEqual([]);
   });
 
   it('centres on a locality by id and matches locality names loosely', async () => {

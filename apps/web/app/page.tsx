@@ -1,10 +1,15 @@
+import { cookies } from 'next/headers';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SOURCE_SLUGS, SearchQuerySchema } from '@blr/core';
 import { findLocality, listLocalities, searchListings, type LocalityMatch, type SearchResult } from '@blr/db';
 import { getDb } from '@/lib/db';
+import { activeFilters, BHK_OPTIONS, clearFiltersHref } from '@/lib/filters';
 import { FURNISHING_LABELS, humanize, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/lib/format';
 import { first, list, parseParams, SORTS, withParams, type Params } from '@/lib/search-params';
+import { parseShortlist, SHORTLIST_COOKIE } from '@/lib/shortlist';
 import { ListingCard } from './listing-card';
+import { SearchShell } from './search-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,14 +19,6 @@ const SORT_LABELS: Record<(typeof SORTS)[number], string> = {
   distance: 'Nearest',
   newest: 'Recently updated',
 };
-
-const BHK_OPTIONS = [
-  { value: '0', label: '1 RK' },
-  { value: '1', label: '1 BHK' },
-  { value: '2', label: '2 BHK' },
-  { value: '3', label: '3 BHK' },
-  { value: '4', label: '4+ BHK' },
-];
 
 const RADII = [1, 2, 3, 5, 8, 10, 15];
 
@@ -80,6 +77,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const parsed = parseParams(sp);
   const outcome = await run(sp);
+  const saved = new Set(parseShortlist((await cookies()).get(SHORTLIST_COOKIE)?.value));
+  const chips = activeFilters(sp);
 
   const bedrooms = list(sp.bedrooms);
   const furnishing = list(sp.furnishing);
@@ -90,131 +89,124 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const radiusKm = parsed.query.radiusKm ?? 5;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-      <form method="get" className="h-fit space-y-5 rounded-xl border border-zinc-200 bg-white p-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:overscroll-contain">
-        <div>
-          <label htmlFor="locality" className="text-sm font-medium">
-            Near
-          </label>
-          <input
-            id="locality"
-            name="locality"
-            list="localities"
-            defaultValue={parsed.explicitCenter ? '' : parsed.localityText}
-            placeholder="Koramangala, HSR, Whitefield…"
-            className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-            autoComplete="off"
-          />
-          {'localities' in outcome && (
-            <datalist id="localities">
-              {outcome.localities.map((l) => (
-                <option key={l.id} value={l.name} />
+    <SearchShell
+      activeCount={chips.length}
+      total={outcome.kind === 'ok' ? outcome.result.total : null}
+      fields={
+        <>
+          <div>
+            <label htmlFor="locality" className="text-sm font-medium">
+              Near
+            </label>
+            <input
+              id="locality"
+              name="locality"
+              list="localities"
+              defaultValue={parsed.explicitCenter ? '' : parsed.localityText}
+              placeholder="Koramangala, HSR, Whitefield…"
+              className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              autoComplete="off"
+            />
+            {'localities' in outcome && (
+              <datalist id="localities">
+                {outcome.localities.map((l) => (
+                  <option key={l.id} value={l.name} />
+                ))}
+              </datalist>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm font-medium">
+              Within
+              <select name="radiusKm" defaultValue={String(radiusKm)} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
+                {(RADII.includes(radiusKm) ? RADII : [...RADII, radiusKm].sort((a, b) => a - b)).map((r) => (
+                  <option key={r} value={r}>
+                    {r} km
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium">
+              Sort
+              <select name="sort" defaultValue={sort} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
+                {SORTS.map((s) => (
+                  <option key={s} value={s}>
+                    {SORT_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <fieldset>
+            <legend className="text-sm font-medium">Rent (₹/month)</legend>
+            <div className="mt-1 grid grid-cols-2 gap-3">
+              <input name="minRent" type="number" min={0} step={1000} placeholder="Min" defaultValue={first(sp.minRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+              <input name="maxRent" type="number" min={0} step={1000} placeholder="Max" defaultValue={first(sp.maxRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="text-sm font-medium">Size</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {BHK_OPTIONS.map((o) => (
+                <Chip key={o.value} name="bedrooms" value={o.value} label={o.label} checked={bedrooms.includes(o.value)} />
               ))}
-            </datalist>
-          )}
-        </div>
+            </div>
+          </fieldset>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="text-sm font-medium">
-            Within
-            <select name="radiusKm" defaultValue={String(radiusKm)} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
-              {(RADII.includes(radiusKm) ? RADII : [...RADII, radiusKm].sort((a, b) => a - b)).map((r) => (
-                <option key={r} value={r}>
-                  {r} km
-                </option>
+          <fieldset>
+            <legend className="text-sm font-medium">Furnishing</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {FURNISHINGS.filter((f) => f !== 'unknown').map((f) => (
+                <Chip key={f} name="furnishing" value={f} label={FURNISHING_LABELS[f] ?? f} checked={furnishing.includes(f)} />
               ))}
-            </select>
-          </label>
-          <label className="text-sm font-medium">
-            Sort
-            <select name="sort" defaultValue={sort} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
-              {SORTS.map((s) => (
-                <option key={s} value={s}>
-                  {SORT_LABELS[s]}
-                </option>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="text-sm font-medium">Property type</legend>
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
+              {PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
+                <Checkbox key={t} name="propertyTypes" value={t} label={PROPERTY_TYPE_LABELS[t] ?? t} checked={propertyTypes.includes(t)} />
               ))}
-            </select>
-          </label>
-        </div>
+            </div>
+          </fieldset>
 
-        <fieldset>
-          <legend className="text-sm font-medium">Rent (₹/month)</legend>
-          <div className="mt-1 grid grid-cols-2 gap-3">
-            <input name="minRent" type="number" min={0} step={1000} placeholder="Min" defaultValue={first(sp.minRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
-            <input name="maxRent" type="number" min={0} step={1000} placeholder="Max" defaultValue={first(sp.maxRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+          <div className="space-y-1.5">
+            <Checkbox name="parking" value="required" label="Has parking" checked={first(sp.parking) === 'required'} />
+            <Checkbox name="ownerOnly" value="on" label="Owner listings only" checked={first(sp.ownerOnly) === 'on'} />
+            <label className="flex items-center justify-between gap-2 pt-1 text-sm">
+              Available by
+              <input name="availableBy" type="date" defaultValue={first(sp.availableBy) ?? ''} className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+            </label>
           </div>
-        </fieldset>
 
-        <fieldset>
-          <legend className="text-sm font-medium">Size</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {BHK_OPTIONS.map((o) => (
-              <Chip key={o.value} name="bedrooms" value={o.value} label={o.label} checked={bedrooms.includes(o.value)} />
-            ))}
-          </div>
-        </fieldset>
+          <details open={amenities.length > 0}>
+            <summary className="cursor-pointer text-sm font-medium">
+              Amenities{amenities.length ? ` (${amenities.length})` : ''}
+            </summary>
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
+              {AMENITIES.map((a) => (
+                <Checkbox key={a} name="amenities" value={a} label={humanize(a)} checked={amenities.includes(a)} />
+              ))}
+            </div>
+          </details>
 
-        <fieldset>
-          <legend className="text-sm font-medium">Furnishing</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {FURNISHINGS.filter((f) => f !== 'unknown').map((f) => (
-              <Chip key={f} name="furnishing" value={f} label={FURNISHING_LABELS[f] ?? f} checked={furnishing.includes(f)} />
-            ))}
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend className="text-sm font-medium">Property type</legend>
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
-            {PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
-              <Checkbox key={t} name="propertyTypes" value={t} label={PROPERTY_TYPE_LABELS[t] ?? t} checked={propertyTypes.includes(t)} />
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="space-y-1.5">
-          <Checkbox name="parking" value="required" label="Has parking" checked={first(sp.parking) === 'required'} />
-          <Checkbox name="ownerOnly" value="on" label="Owner listings only" checked={first(sp.ownerOnly) === 'on'} />
-          <label className="flex items-center justify-between gap-2 pt-1 text-sm">
-            Available by
-            <input name="availableBy" type="date" defaultValue={first(sp.availableBy) ?? ''} className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
-          </label>
-        </div>
-
-        <details open={amenities.length > 0}>
-          <summary className="cursor-pointer text-sm font-medium">
-            Amenities{amenities.length ? ` (${amenities.length})` : ''}
-          </summary>
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
-            {AMENITIES.map((a) => (
-              <Checkbox key={a} name="amenities" value={a} label={humanize(a)} checked={amenities.includes(a)} />
-            ))}
-          </div>
-        </details>
-
-        <fieldset>
-          <legend className="text-sm font-medium">Sources</legend>
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
-            {SOURCE_SLUGS.map((s) => (
-              <Checkbox key={s} name="sources" value={s} label={SOURCE_LABELS[s] ?? s} checked={sources.includes(s)} />
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="flex gap-2 bg-white lg:sticky lg:-bottom-4 lg:-mx-4 lg:border-t lg:border-zinc-100 lg:px-4 lg:py-3">
-          <button type="submit" className="flex-1 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
-            Search
-          </button>
-          <a href="/" className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50">
-            Reset
-          </a>
-        </div>
-      </form>
-
-      <section className="min-w-0 space-y-4">
-        <Results outcome={outcome} sp={sp} sort={sort} radiusKm={radiusKm} />
-      </section>
-    </div>
+          <fieldset>
+            <legend className="text-sm font-medium">Sources</legend>
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
+              {SOURCE_SLUGS.map((s) => (
+                <Checkbox key={s} name="sources" value={s} label={SOURCE_LABELS[s] ?? s} checked={sources.includes(s)} />
+              ))}
+            </div>
+          </fieldset>
+        </>
+      }
+    >
+      <Results outcome={outcome} sp={sp} sort={sort} radiusKm={radiusKm} saved={saved} chips={chips} />
+    </SearchShell>
   );
 }
 
@@ -228,7 +220,16 @@ function Notice({ tone, title, children }: { tone: 'amber' | 'zinc'; title: stri
   );
 }
 
-function Results({ outcome, sp, sort, radiusKm }: { outcome: Outcome; sp: Params; sort: (typeof SORTS)[number]; radiusKm: number }) {
+interface ResultsProps {
+  outcome: Outcome;
+  sp: Params;
+  sort: (typeof SORTS)[number];
+  radiusKm: number;
+  saved: Set<string>;
+  chips: ReturnType<typeof activeFilters>;
+}
+
+function Results({ outcome, sp, sort, radiusKm, saved, chips }: ResultsProps) {
   if (outcome.kind === 'db-error') {
     return (
       <Notice tone="amber" title="Database unreachable">
@@ -272,6 +273,30 @@ function Results({ outcome, sp, sort, radiusKm }: { outcome: Outcome; sp: Params
         </p>
       </div>
 
+      {chips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {chips.map((c) => (
+            <Link
+              key={c.key}
+              href={c.href}
+              scroll={false}
+              aria-label={`Remove filter ${c.label}`}
+              className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white py-0.5 pl-2.5 pr-1.5 text-xs hover:border-zinc-500"
+            >
+              {c.label}
+              <span aria-hidden className="text-zinc-400">
+                ✕
+              </span>
+            </Link>
+          ))}
+          {chips.length > 1 && (
+            <Link href={clearFiltersHref(sp)} scroll={false} className="px-1.5 text-xs text-zinc-600 underline underline-offset-2">
+              Clear all
+            </Link>
+          )}
+        </div>
+      )}
+
       {result.hits.length === 0 ? (
         <Notice tone="zinc" title="Nothing matches these filters yet">
           Widen the radius, raise the rent limit or clear some filters. Only areas the scraper has visited have listings.
@@ -279,7 +304,7 @@ function Results({ outcome, sp, sort, radiusKm }: { outcome: Outcome; sp: Params
       ) : (
         <div className="space-y-3">
           {result.hits.map((hit) => (
-            <ListingCard key={hit.id} hit={hit} />
+            <ListingCard key={hit.id} hit={hit} saved={saved.has(hit.id)} />
           ))}
         </div>
       )}
@@ -287,9 +312,9 @@ function Results({ outcome, sp, sort, radiusKm }: { outcome: Outcome; sp: Params
       {result.pages > 1 && (
         <nav className="flex items-center justify-between pt-2 text-sm">
           {result.page > 1 ? (
-            <a href={withParams(sp, { page: String(result.page - 1) })} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
+            <Link href={withParams(sp, { page: String(result.page - 1) })} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
               ← Previous
-            </a>
+            </Link>
           ) : (
             <span />
           )}
@@ -297,9 +322,9 @@ function Results({ outcome, sp, sort, radiusKm }: { outcome: Outcome; sp: Params
             Page {result.page} of {result.pages}
           </span>
           {result.page < result.pages ? (
-            <a href={withParams(sp, { page: String(result.page + 1) })} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
+            <Link href={withParams(sp, { page: String(result.page + 1) })} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
               Next →
-            </a>
+            </Link>
           ) : (
             <span />
           )}

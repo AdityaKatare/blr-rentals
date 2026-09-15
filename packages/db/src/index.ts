@@ -13,12 +13,16 @@ export {
   type SeedSource,
 } from './seeds';
 export {
+  CARD_IMAGE_LIMIT,
   findLocality,
+  listingsByIds,
   listLocalities,
   RELEVANCE_CANDIDATE_CAP,
+  RENT_DROP_WINDOW_DAYS,
   searchListings,
   type LocalityMatch,
   type OtherListing,
+  type RentDrop,
   type SearchHit,
   type SearchResult,
 } from './search';

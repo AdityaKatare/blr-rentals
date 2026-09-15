@@ -3,14 +3,17 @@ import {
   type Furnishing,
   type GeoAccuracy,
   type ListedBy,
+  type ListingStatus,
   type Parking,
   type PropertyType,
   type SearchQuery,
   type SourceSlug,
 } from '@blr/core';
+import type { PendingQuery, Row as PgRow } from 'postgres';
 import type { DbHandle } from './client';
 
 type Sql = DbHandle['sql'];
+type Fragment = PendingQuery<PgRow[]>;
 
 export const RELEVANCE_CANDIDATE_CAP = 1000;
 
@@ -46,14 +49,22 @@ export interface SearchHit {
   amenities: string[];
   imageUrl: string | null;
   imageCount: number;
+  images: string[];
   availableFrom: string | null;
   postedAt: string | null;
   updatedAt: string | null;
-  distanceM: number;
+  distanceM: number | null;
   score: number | null;
+  status: ListingStatus;
+  rentDrop: RentDrop | null;
   propertyId: string | null;
   sources: SourceSlug[];
   otherListings: OtherListing[];
+}
+
+export interface RentDrop {
+  from: number;
+  at: string;
 }
 
 export interface OtherListing {
@@ -103,9 +114,12 @@ interface Row {
   available_from: string | null;
   posted_at: string | null;
   updated_at: string | null;
-  distance_m: number;
-  total: number;
+  status: ListingStatus;
+  distance_m: number | null;
 }
+
+export const RENT_DROP_WINDOW_DAYS = 14;
+export const CARD_IMAGE_LIMIT = 12;
 
 const pgArray = (values: readonly (string | number)[]): string => `{${values.join(',')}}`;
 
@@ -162,15 +176,83 @@ function toHit(r: Row, score: number | null): SearchHit {
     amenities: r.amenities,
     imageUrl: r.image_url,
     imageCount: r.image_count,
+    images: r.image_url ? [r.image_url] : [],
     availableFrom: r.available_from,
     postedAt: r.posted_at,
     updatedAt: r.updated_at,
-    distanceM: Math.round(r.distance_m),
+    distanceM: r.distance_m === null ? null : Math.round(r.distance_m),
     score,
+    status: r.status,
+    rentDrop: null,
     propertyId: r.property_id,
     sources: [r.source],
     otherListings: [],
   };
+}
+
+const utc = (sql: Sql, column: Fragment) => sql`to_char(${column} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')`;
+
+function hitColumns(sql: Sql, point: Fragment | null) {
+  const updated = sql`COALESCE(l.source_updated_at, l.posted_at, l.first_seen_at)`;
+  return sql`
+    l.id, l.property_id, s.slug AS source, l.source_url, l.title, l.rent, l.deposit, l.maintenance,
+    l.bedrooms, l.is_1rk, l.bedrooms_plus, l.bathrooms, l.area_sqft,
+    l.property_type, l.furnishing, l.parking, l.listed_by,
+    l.locality, l.society_name, l.geo_accuracy, l.is_verified, l.amenities,
+    l.images -> 0 ->> 'url' AS image_url, jsonb_array_length(l.images) AS image_count,
+    l.available_from::text AS available_from,
+    ${utc(sql, sql`l.posted_at`)} AS posted_at,
+    ${updated} AS updated_ts,
+    ${utc(sql, updated)} AS updated_at,
+    l.status,
+    ${point ? sql`ST_Distance(l.location, ${point})` : sql`NULL::float8`} AS distance_m`;
+}
+
+async function enrichHits(sql: Sql, hits: SearchHit[], now: Date): Promise<void> {
+  if (!hits.length) return;
+  const ids = pgArray(hits.map((h) => h.id));
+  const since = new Date(now.getTime() - RENT_DROP_WINDOW_DAYS * 86_400_000).toISOString();
+  const [images, drops] = await Promise.all([
+    sql<{ id: string; urls: string[] }[]>`
+      SELECT l.id, COALESCE(array_agg(img.value ->> 'url' ORDER BY img.ordinality)
+                            FILTER (WHERE img.ordinality <= ${CARD_IMAGE_LIMIT}), '{}') AS urls
+      FROM listings l
+      LEFT JOIN LATERAL jsonb_array_elements(l.images) WITH ORDINALITY AS img(value, ordinality) ON true
+      WHERE l.id = ANY (${ids}::uuid[])
+      GROUP BY l.id`,
+    sql<{ id: string; from: number; at: string }[]>`
+      SELECT DISTINCT ON (c.listing_id) c.listing_id AS id, (c.old_value #>> '{}')::int AS "from",
+             ${utc(sql, sql`c.observed_at`)} AS at
+      FROM listing_changes c
+      JOIN listings l ON l.id = c.listing_id
+      WHERE c.listing_id = ANY (${ids}::uuid[])
+        AND c.field = 'rent'
+        AND c.observed_at >= ${since}::timestamptz
+        AND jsonb_typeof(c.old_value) = 'number'
+        AND (c.old_value #>> '{}')::int > l.rent
+      ORDER BY c.listing_id, c.observed_at ASC`,
+  ]);
+  const imagesById = new Map(images.map((r) => [r.id, [...new Set(r.urls.filter(Boolean))]]));
+  const dropsById = new Map(drops.map((r) => [r.id, { from: r.from, at: r.at }]));
+  for (const hit of hits) {
+    hit.images = imagesById.get(hit.id) ?? hit.images;
+    hit.rentDrop = dropsById.get(hit.id) ?? null;
+  }
+  await attachOtherListings(sql, hits);
+}
+
+export async function listingsByIds(sql: Sql, ids: readonly string[], now: Date = new Date()): Promise<SearchHit[]> {
+  const valid = ids.filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+  if (!valid.length) return [];
+  const rows = await sql<Row[]>`
+    SELECT ${hitColumns(sql, null)}
+    FROM listings l
+    JOIN sources s ON s.id = l.source_id
+    WHERE l.id = ANY (${pgArray(valid)}::uuid[])`;
+  const order = new Map(valid.map((id, i) => [id.toLowerCase(), i]));
+  const hits = rows.map((r) => toHit(r, null)).sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  await enrichHits(sql, hits, now);
+  return hits;
 }
 
 async function attachOtherListings(sql: Sql, hits: SearchHit[]): Promise<void> {
@@ -231,7 +313,6 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   if (query.sources?.length) conditions.push(sql`s.slug = ANY (${pgArray(query.sources)}::text[])`);
 
   const where = conditions.reduce((acc, c) => sql`${acc} AND ${c}`);
-  const updated = sql`COALESCE(l.source_updated_at, l.posted_at, l.first_seen_at)`;
 
   const order =
     query.sort === 'rent_asc'
@@ -244,16 +325,9 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   const limit = relevance ? RELEVANCE_CANDIDATE_CAP : query.pageSize;
   const offset = relevance ? 0 : (query.page - 1) * query.pageSize;
 
-  const rows = await sql<Row[]>`
+  const rows = await sql<(Row & { total: number; distance_m: number })[]>`
     WITH matched AS (
-      SELECT l.id, l.property_id, COALESCE(l.property_id, l.id) AS group_id,
-             s.slug AS source, l.source_url, l.title, l.rent, l.deposit, l.maintenance,
-             l.bedrooms, l.is_1rk, l.bedrooms_plus, l.bathrooms, l.area_sqft,
-             l.property_type, l.furnishing, l.parking, l.listed_by,
-             l.locality, l.society_name, l.geo_accuracy, l.is_verified, l.amenities,
-             l.images -> 0 ->> 'url' AS image_url, jsonb_array_length(l.images) AS image_count,
-             l.available_from, l.posted_at, ${updated} AS updated_ts,
-             ST_Distance(l.location, ${point}) AS distance_m
+      SELECT COALESCE(l.property_id, l.id) AS group_id, ${hitColumns(sql, point)}
       FROM listings l
       JOIN sources s ON s.id = l.source_id
       WHERE ${where}
@@ -263,15 +337,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
       FROM matched
       ORDER BY group_id, rent ASC, updated_ts DESC, id
     )
-    SELECT id, property_id, source, source_url, title, rent, deposit, maintenance,
-           bedrooms, is_1rk, bedrooms_plus, bathrooms, area_sqft,
-           property_type, furnishing, parking, listed_by,
-           locality, society_name, geo_accuracy, is_verified, amenities, image_url, image_count,
-           available_from::text AS available_from,
-           to_char(posted_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS posted_at,
-           to_char(updated_ts AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS updated_at,
-           distance_m,
-           count(*) OVER ()::int AS total
+    SELECT *, count(*) OVER ()::int AS total
     FROM grouped
     ORDER BY ${order}
     LIMIT ${limit} OFFSET ${offset}`;
@@ -298,7 +364,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   } else {
     hits = rows.map((r) => toHit(r, null));
   }
-  await attachOtherListings(sql, hits);
+  await enrichHits(sql, hits, now);
 
   const rankedTotal = relevance ? Math.min(total, RELEVANCE_CANDIDATE_CAP) : total;
   return {

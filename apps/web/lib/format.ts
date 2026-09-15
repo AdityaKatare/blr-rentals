@@ -29,6 +29,14 @@ export function ago(iso: string | null, now: Date = new Date()): string | null {
   return `${Math.floor(days / 365)}y ago`;
 }
 
+export const NEW_LISTING_DAYS = 3;
+
+export function isNewListing(postedAt: string | null, now: Date = new Date()): boolean {
+  if (!postedAt) return false;
+  const age = now.getTime() - Date.parse(postedAt);
+  return age >= -86_400_000 && age <= NEW_LISTING_DAYS * 86_400_000;
+}
+
 export function availability(isoDate: string, now: Date = new Date()): string {
   const today = new Date(now.getTime() + 5.5 * 3600_000).toISOString().slice(0, 10);
   if (isoDate <= today) return 'Available now';
