@@ -1,10 +1,9 @@
-import { extractInlineJson } from '../inline-json';
-import { stripPii } from '../pii';
+import { isRecord } from '../shared/coerce';
+import { extractInlineJson } from '../shared/inline-json';
+import { stripPii } from '../shared/pii';
 import type { ParsedPage, RawListing } from '../types';
 
 export const NOBROKER_STATE_MARKER = /nb\.appState\s*=\s*/;
-
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 const isMonthlyRental = (p: Record<string, unknown>): boolean =>
   p.forLease !== true && typeof p.rent === 'number' && p.rent > 0;

@@ -1,3 +1,5 @@
+import { clamp01 } from '../utils/math';
+
 export interface DedupeFeatures {
   distanceM: number | null;
   rentRatio: number;
@@ -35,8 +37,6 @@ export const DEFAULT_DEDUPE_WEIGHTS: DedupeWeights = {
 };
 
 export const DEDUPE_THRESHOLD = 0.75;
-
-const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 export function scoreCandidate(f: DedupeFeatures, w: DedupeWeights = DEFAULT_DEDUPE_WEIGHTS): number {
   const bool = (b: boolean | null) => (b === null ? 0.5 : b ? 1 : 0);

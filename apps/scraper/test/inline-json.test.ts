@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractInlineJson } from '../src/sources/inline-json';
+import { extractInlineJson } from '../src/sources/shared/inline-json';
 
 const PAGE = `<html><script>
   window.nb = window.nb || {};

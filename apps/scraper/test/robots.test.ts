@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { RobotsDisallowedError, RobotsUnavailableError, createRobotsGate } from '../src/http/robots';
+import { RobotsDisallowedError, RobotsUnavailableError } from '../src/errors';
+import { createRobotsGate } from '../src/http/robots';
 
 const ROBOTS = 'User-agent: *\nDisallow: /api/\nDisallow: /private\nAllow: /\n';
 

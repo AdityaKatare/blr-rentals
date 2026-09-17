@@ -31,6 +31,9 @@ export type GeoAccuracy = (typeof GEO_ACCURACIES)[number];
 export const LISTING_STATUSES = ['active', 'stale', 'removed'] as const;
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
 
+export const SORT_OPTIONS = ['relevance', 'rent_asc', 'distance', 'newest'] as const;
+export type SortOption = (typeof SORT_OPTIONS)[number];
+
 export const AMENITIES = [
   'lift',
   'gym',

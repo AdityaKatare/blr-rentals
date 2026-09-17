@@ -3,7 +3,6 @@ import { loadEnv } from '@blr/db';
 export interface ScraperConfig {
   databaseUrl: string | undefined;
   userAgent: string;
-  contact: string;
   minDelayMs: number;
   jitterMs: number;
   timeoutMs: number;
@@ -22,7 +21,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ScraperConfig 
   return {
     databaseUrl: env.DATABASE_URL,
     userAgent: env.SCRAPER_USER_AGENT ?? `blr-rentals/0.1 (+${contact}) personal-use`,
-    contact,
     minDelayMs: positive(env.SCRAPER_MIN_DELAY_MS, 2500),
     jitterMs: positive(env.SCRAPER_JITTER_MS, 1000),
     timeoutMs: positive(env.SCRAPER_TIMEOUT_MS, 30_000),

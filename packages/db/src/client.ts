@@ -1,23 +1,32 @@
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema';
 
-export type Db = PostgresJsDatabase<typeof schema>;
+export type Sql = postgres.Sql;
 
 export interface DbHandle {
-  db: Db;
-  sql: postgres.Sql;
+  sql: Sql;
   close: () => Promise<void>;
+}
+
+const DATE_TIME_TYPE_OIDS = [1082, 1083, 1114, 1115, 1182, 1184, 1185, 1231];
+const JSON_TYPE_OIDS = [114, 3802];
+const passThrough = (value: unknown) => value;
+
+function keepDatesAsTextAndJsonPreEncoded(sql: Sql): void {
+  for (const oid of DATE_TIME_TYPE_OIDS) {
+    sql.options.parsers[oid] = passThrough;
+    sql.options.serializers[oid] = passThrough;
+  }
+  for (const oid of JSON_TYPE_OIDS) sql.options.serializers[oid] = passThrough;
 }
 
 export function createDb(url: string | undefined = process.env.DATABASE_URL): DbHandle {
   if (!url) {
     throw new Error('DATABASE_URL is not set. Copy .env.example to .env and start the database (pnpm db:up).');
   }
-  const client = postgres(url, { max: 5, prepare: false, onnotice: () => undefined });
+  const sql = postgres(url, { max: 5, prepare: false, onnotice: () => undefined });
+  keepDatesAsTextAndJsonPreEncoded(sql);
   return {
-    db: drizzle(client, { schema }),
-    sql: client,
-    close: () => client.end({ timeout: 5 }),
+    sql,
+    close: () => sql.end({ timeout: 5 }),
   };
 }

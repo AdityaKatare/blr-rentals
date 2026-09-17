@@ -18,6 +18,8 @@ export const ImageSchema = z.object({
 });
 export type Image = z.infer<typeof ImageSchema>;
 
+export const DESCRIPTION_MAX_LENGTH = 2000;
+
 const optInt = (min = 0) => z.number().int().min(min).nullable().default(null);
 
 export const NormalizedListingSchema = z
@@ -27,7 +29,7 @@ export const NormalizedListingSchema = z
     sourceUrl: z.string().url(),
 
     title: z.string().min(1).max(300),
-    description: z.string().max(2000).nullable().default(null),
+    description: z.string().max(DESCRIPTION_MAX_LENGTH).nullable().default(null),
     propertyType: z.enum(PROPERTY_TYPES),
     bedrooms: z.number().int().min(0).max(20),
     is1rk: z.boolean().default(false),

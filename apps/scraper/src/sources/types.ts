@@ -22,10 +22,9 @@ export interface NormalizeContext {
 export interface SourceAdapter {
   readonly slug: SourceSlug;
   readonly transport: 'http' | 'browser';
-  readonly supports: { radiusSearch: boolean; maxPages: number };
+  readonly supports: { maxPages: number };
   readonly slices: readonly string[];
   buildSearchUrl(area: SearchArea, page: number, slice: string): string;
   parseSearchPage(body: string, url: string): ParsedPage;
   normalize(raw: RawListing, ctx: NormalizeContext): NormalizedListingInput;
-  fetchDetail?(raw: RawListing): Promise<RawListing>;
 }

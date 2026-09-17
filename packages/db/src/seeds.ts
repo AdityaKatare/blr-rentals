@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { LatLng, SourceSlug } from '@blr/core';
+import type { SourceSlug } from '@blr/core';
+import type { ResolvedSearchArea } from './types';
 
 export interface SeedSource {
   slug: SourceSlug;
@@ -32,14 +33,6 @@ export interface SeedSearchArea {
   sourceOverrides?: Record<string, Record<string, unknown>>;
 }
 
-export interface ResolvedSearchArea {
-  id: number | null;
-  slug: string;
-  name: string;
-  center: LatLng;
-  radiusKm: number;
-  sourceOverrides: Record<string, Record<string, unknown>>;
-}
 
 const seedsDir = (): string => path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'seeds');
 

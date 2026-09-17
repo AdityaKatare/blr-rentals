@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPiiKey, redactContactText, stripPii } from '../src/sources/pii';
+import { isPiiKey, redactContactText, stripPii } from '../src/sources/shared/pii';
 
 describe('stripPii', () => {
   it('removes poster identity keys from every source shape but keeps listing data', () => {

@@ -4,6 +4,11 @@ export interface Bedrooms {
   bedroomsPlus: boolean;
 }
 
+export function formatBedrooms(b: Bedrooms): string {
+  if (b.is1rk) return '1 RK';
+  return `${b.bedrooms}${b.bedroomsPlus ? '+' : ''} BHK`;
+}
+
 export function parseBedrooms(input: unknown): Bedrooms | null {
   if (typeof input === 'number') {
     return Number.isInteger(input) && input >= 0 && input <= 20

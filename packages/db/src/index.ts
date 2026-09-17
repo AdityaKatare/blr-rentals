@@ -1,38 +1,14 @@
-export * from './schema';
-export { createDb, type Db, type DbHandle } from './client';
-export { parseEwkbPoint, toEwkbHex } from './ewkb';
+export { createDb, type DbHandle, type Sql } from './client';
 export { loadEnv } from './env';
-export {
-  loadSeedLocalities,
-  loadSeedSearchAreas,
-  loadSeedSources,
-  resolveSeedArea,
-  type ResolvedSearchArea,
-  type SeedLocality,
-  type SeedSearchArea,
-  type SeedSource,
-} from './seeds';
-export {
-  CARD_IMAGE_LIMIT,
-  findLocality,
-  listingsByIds,
-  listLocalities,
-  RELEVANCE_CANDIDATE_CAP,
-  RENT_DROP_WINDOW_DAYS,
-  searchListings,
-  type LocalityMatch,
-  type OtherListing,
-  type RentDrop,
-  type SearchHit,
-  type SearchResult,
-} from './search';
-export {
-  DEDUPE_AREA_TOLERANCE,
-  DEDUPE_RADIUS_M,
-  DEDUPE_RENT_TOLERANCE,
-  DEDUPE_SOCIETY_SIMILARITY,
-  dedupeListings,
-  refreshProperty,
-  type DedupeOptions,
-  type DedupeSummary,
-} from './dedupe';
+export { resolveSeedArea } from './seeds';
+export { geographyPoint, inTransaction, pgArray } from './sql';
+export { dedupeListings, refreshProperty } from './queries/dedupe';
+export { createListingStore } from './queries/listing-store';
+export { listingsByIds } from './queries/listings';
+export { findLocality, listLocalities } from './queries/localities';
+export { createRunRecorder, recentRuns } from './queries/scrape-runs';
+export { loadSearchArea } from './queries/search-areas';
+export { searchListings } from './queries/search';
+export { DEFAULT_REMOVE_DAYS, DEFAULT_STALE_DAYS, markStale } from './queries/stale';
+export { listingCounts, sourceOverview } from './queries/status';
+export type * from './types';

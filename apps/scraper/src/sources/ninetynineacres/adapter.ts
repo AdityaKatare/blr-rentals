@@ -6,7 +6,7 @@ export const NINETYNINEACRES_BASE = 'https://www.99acres.com';
 export const ninetynineacresAdapter: SourceAdapter = {
   slug: 'ninetynineacres',
   transport: 'browser',
-  supports: { radiusSearch: false, maxPages: 20 },
+  supports: { maxPages: 20 },
   slices: ['all'],
 
   buildSearchUrl(area, page) {

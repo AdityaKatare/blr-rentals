@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BlockedError, HttpError, createHttpClient } from '../src/http/client';
+import { BlockedError, HttpError } from '../src/errors';
+import { createHttpClient } from '../src/http/client';
 
 interface Scripted {
   status: number;
@@ -27,7 +28,6 @@ describe('http client', () => {
     expect(res.body).toBe('hello');
     expect(res.attempts).toBe(2);
     expect(calls).toHaveLength(2);
-    expect(client.stats()).toEqual({ requests: 2, retries: 1 });
   });
 
   it('sends the configured user-agent and never a browser UA', async () => {

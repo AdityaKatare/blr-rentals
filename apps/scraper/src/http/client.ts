@@ -1,22 +1,5 @@
 import type { Logger } from 'pino';
-
-export class HttpError extends Error {
-  constructor(
-    readonly status: number,
-    readonly url: string,
-    message?: string,
-  ) {
-    super(message ?? `HTTP ${status} for ${url}`);
-    this.name = 'HttpError';
-  }
-}
-
-export class BlockedError extends HttpError {
-  constructor(status: number, url: string) {
-    super(status, url, `Blocked with HTTP ${status} by ${new URL(url).host}; stopping (no retry, no evasion)`);
-    this.name = 'BlockedError';
-  }
-}
+import { BlockedError, HttpError } from '../errors';
 
 export interface HttpClientOptions {
   userAgent: string;
@@ -43,7 +26,6 @@ export interface HttpResponse {
 
 export interface HttpClient {
   get(url: string, init?: { accept?: string }): Promise<HttpResponse>;
-  stats(): { requests: number; retries: number };
 }
 
 const BLOCKED_STATUSES = new Set([401, 403, 406]);
@@ -66,11 +48,8 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
   } = opts;
 
   const hosts = new Map<string, { chain: Promise<unknown>; lastAt: number }>();
-  let requests = 0;
-  let retries = 0;
 
   async function once(url: string, accept: string) {
-    requests += 1;
     const res = await fetchImpl(url, {
       headers: { 'user-agent': userAgent, accept, 'accept-language': 'en-IN,en;q=0.9' },
       redirect: 'follow',
@@ -85,7 +64,6 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
     let lastError: unknown;
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
       if (attempt > 0) {
-        retries += 1;
         const backoff = Math.min(60_000, 2_000 * 2 ** (attempt - 1)) + random() * 1_000;
         logger?.warn({ url, attempt, backoffMs: Math.round(backoff) }, 'retrying');
         await sleep(backoff);
@@ -125,5 +103,5 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
     return run;
   }
 
-  return { get, stats: () => ({ requests, retries }) };
+  return { get };
 }

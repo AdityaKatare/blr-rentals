@@ -2,15 +2,15 @@
 
 One search box over Bangalore rental listings from several portals. MVP sources are **NoBroker** and **MagicBricks**; Housing.com and 99acres exist as disabled adapter stubs.
 
-**Status: scaffold.** The shape is here (schema, contracts, CLI, HTTP/robots plumbing, placeholder UI). No source is parsed yet.
+**Status: working MVP.** NoBroker and MagicBricks are scraped, normalised, deduplicated across sources and searchable by radius, with a shortlist and a `/status` page. Scheduling is not set up yet.
 
 ## Layout
 
 ```
-apps/web        Next.js — search UI, /api/search, /status   (this is the whole "backend")
-apps/scraper    Node CLI — sources/, pipeline/, http/         (runs on a schedule, writes to Postgres)
-packages/core   Zod contracts: NormalizedListing, SearchQuery, enums, normalizers, ranking, dedupe
-packages/db     Drizzle schema, SQL migrations, seeds (sources, localities, search areas)
+apps/web        Next.js — search, shortlist, /status   (server components query Postgres directly)
+apps/scraper    Node CLI — sources/, pipeline/, http/  (writes to Postgres)
+packages/core   Zod contracts: NormalizedListing, SearchQuery, enums, normalizers, ranking, dedupe scoring
+packages/db     SQL migrations, seeds, the postgres-js client and all search/dedupe queries
 ```
 
 One monorepo, two runtime processes, one PostGIS database. Nothing is deployed.

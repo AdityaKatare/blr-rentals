@@ -1,4 +1,5 @@
 import {
+  istDate,
   normalizeAmenities,
   normalizeFurnishing,
   parseBedrooms,
@@ -11,8 +12,9 @@ import {
   type PropertyType,
   type TenantPreference,
 } from '@blr/core';
-import { redactContactText } from '../pii';
-import { societyName } from '../society';
+import { int, iso, num, str } from '../shared/coerce';
+import { fallbackTitle, listingDescription, MAX_LISTING_IMAGES, plausibleMaintenance } from '../shared/listing';
+import { societyName } from '../shared/society';
 import type { NormalizeContext, RawListing } from '../types';
 
 const BASE = 'https://www.magicbricks.com';
@@ -109,27 +111,6 @@ const RAW_KEEP = [
 
 const CENTROID_TOLERANCE_DEG = 0.0003;
 
-const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
-
-const num = (v: unknown): number | null => {
-  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v.replace(/,/g, '')) : NaN;
-  return Number.isFinite(n) ? n : null;
-};
-
-const int = (v: unknown, min = 0): number | null => {
-  const n = num(v);
-  return n !== null && n >= min ? Math.round(n) : null;
-};
-
-const iso = (v: unknown): string | null => {
-  const s = str(v);
-  if (!s) return null;
-  const d = new Date(s);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
-};
-
-const istDate = (isoString: string): string => new Date(Date.parse(isoString) + 5.5 * 3600_000).toISOString().slice(0, 10);
-
 function propertyType(raw: RawListing): PropertyType {
   const label = str(raw.propTypeD);
   if (label) for (const [re, type] of TYPE_LABELS) if (re.test(label)) return type;
@@ -169,8 +150,7 @@ function maintenance(raw: RawListing): number | null {
   const period = str(raw.maintenanceD)?.toLowerCase().replace(/[-_]/g, ' ');
   const months = period ? MAINTENANCE_MONTHS[period] : 1;
   if (!months) return null;
-  const monthly = Math.round(amount / months);
-  return monthly >= 100 ? monthly : null;
+  return plausibleMaintenance(Math.round(amount / months));
 }
 
 function amenities(raw: RawListing): Amenity[] {
@@ -208,14 +188,14 @@ function images(raw: RawListing): Image[] {
   return urls
     .map(str)
     .filter((u): u is string => u !== null && /^https:\/\//.test(u))
-    .slice(0, 20)
+    .slice(0, MAX_LISTING_IMAGES)
     .map((url, i) => ({ url, isCover: i === 0 }));
 }
 
 function availableFrom(raw: RawListing, postedAt: string | null): string | null {
   const after = str(raw.avlAfter);
   if (after && /^\d{4}-\d{2}-\d{2}/.test(after)) return after.slice(0, 10);
-  if (/^immediate/i.test(str(raw.possStatusD) ?? '') && postedAt) return istDate(postedAt);
+  if (/^immediate/i.test(str(raw.possStatusD) ?? '') && postedAt) return istDate(Date.parse(postedAt));
   return null;
 }
 
@@ -229,7 +209,6 @@ export function normalizeMagicbricks(raw: RawListing, _ctx: NormalizeContext): N
   const bedrooms = type === 'studio' ? parseBedrooms('1rk') : parseBedrooms(str(raw.bedroomD));
   if (!bedrooms) throw new Error(`magicbricks ${id}: unrecognised bedrooms ${JSON.stringify(raw.bedroomD)}`);
 
-  const description = str(raw.dtldesc);
   const postedAt = iso(raw.postDateT);
   const carpetUnit = str(raw.carpAreaUnit);
   const carpetSqft = !carpetUnit || /sq\W*ft/i.test(carpetUnit) ? int(raw.carpetArea, 1) : null;
@@ -242,8 +221,8 @@ export function normalizeMagicbricks(raw: RawListing, _ctx: NormalizeContext): N
     sourceListingId: id,
     sourceUrl: new URL(`/propertyDetails/${path.replace(/^\/?(propertyDetails\/)?/, '')}`, BASE).toString(),
 
-    title: str(raw.propertyTitle) ?? `${bedrooms.is1rk ? '1 RK' : `${bedrooms.bedrooms} BHK`} for rent`,
-    description: description ? redactContactText(description).slice(0, 2000) : null,
+    title: str(raw.propertyTitle) ?? fallbackTitle(bedrooms),
+    description: listingDescription(str(raw.dtldesc)),
     propertyType: type,
     ...bedrooms,
     bathrooms: int(raw.bathD),

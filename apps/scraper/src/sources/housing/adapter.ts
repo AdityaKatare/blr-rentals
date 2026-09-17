@@ -6,7 +6,7 @@ export const HOUSING_BASE = 'https://housing.com';
 export const housingAdapter: SourceAdapter = {
   slug: 'housing',
   transport: 'browser',
-  supports: { radiusSearch: false, maxPages: 20 },
+  supports: { maxPages: 20 },
   slices: ['all'],
 
   buildSearchUrl(area, page) {

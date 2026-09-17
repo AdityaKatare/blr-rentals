@@ -1,5 +1,6 @@
 import type { ListedBy } from './enums';
 import type { SearchQuery } from './search-query';
+import { clamp01 } from './utils/math';
 
 export interface RankingWeights {
   distance: number;
@@ -27,8 +28,6 @@ export interface RankableListing {
   geoExact: boolean;
   listedBy: ListedBy;
 }
-
-const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 export function scoreListing(
   item: RankableListing,

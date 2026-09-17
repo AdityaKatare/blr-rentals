@@ -1,25 +1,6 @@
 import robotsParser from 'robots-parser';
 import type { Logger } from 'pino';
-
-export class RobotsDisallowedError extends Error {
-  constructor(
-    readonly url: string,
-    readonly userAgent: string,
-  ) {
-    super(`robots.txt disallows ${url} for "${userAgent}"`);
-    this.name = 'RobotsDisallowedError';
-  }
-}
-
-export class RobotsUnavailableError extends Error {
-  constructor(
-    readonly origin: string,
-    readonly status: number,
-  ) {
-    super(`robots.txt for ${origin} could not be fetched (status ${status}); refusing to crawl`);
-    this.name = 'RobotsUnavailableError';
-  }
-}
+import { RobotsDisallowedError, RobotsUnavailableError } from '../errors';
 
 export interface RobotsGateOptions {
   userAgent: string;

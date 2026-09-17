@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
+import type { ListingStore } from '@blr/db';
 import pino from 'pino';
 import { describe, expect, it, vi } from 'vitest';
-import { HttpError, type HttpClient } from '../src/http/client';
+import { HttpError } from '../src/errors';
+import type { HttpClient } from '../src/http/client';
 import type { RobotsGate } from '../src/http/robots';
 import { runScrape } from '../src/pipeline/run';
-import type { ListingStore } from '../src/pipeline/upsert';
 import { magicbricksAdapter } from '../src/sources/magicbricks/adapter';
 import { nobrokerAdapter } from '../src/sources/nobroker/adapter';
 

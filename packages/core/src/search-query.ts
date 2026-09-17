@@ -1,12 +1,14 @@
 import { z } from 'zod';
-import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SOURCE_SLUGS } from './enums';
+import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SORT_OPTIONS, SOURCE_SLUGS } from './enums';
+
+export const DEFAULT_RADIUS_KM = 5;
 
 export const SearchQuerySchema = z.object({
   center: z.union([
     z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
     z.object({ localityId: z.number().int().positive() }),
   ]),
-  radiusKm: z.number().min(0.5).max(25).default(5),
+  radiusKm: z.number().min(0.5).max(25).default(DEFAULT_RADIUS_KM),
   rent: z
     .object({
       min: z.number().int().nonnegative().optional(),
@@ -21,7 +23,7 @@ export const SearchQuerySchema = z.object({
   listedBy: z.enum(['any', 'owner']).default('any'),
   availableBy: z.string().date().optional(),
   sources: z.array(z.enum(SOURCE_SLUGS)).optional(),
-  sort: z.enum(['relevance', 'rent_asc', 'distance', 'newest']).default('relevance'),
+  sort: z.enum(SORT_OPTIONS).default('relevance'),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(100).default(25),
 });

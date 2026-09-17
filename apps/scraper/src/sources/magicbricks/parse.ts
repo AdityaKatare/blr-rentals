@@ -1,17 +1,11 @@
-import { extractInlineJson } from '../inline-json';
-import { stripPii } from '../pii';
+import { isRecord, wholeNumber } from '../shared/coerce';
+import { extractInlineJson } from '../shared/inline-json';
+import { stripPii } from '../shared/pii';
 import type { ParsedPage, RawListing } from '../types';
 
 export const MAGICBRICKS_STATE_MARKER = /window\.SERVER_PRELOADED_STATE_\s*=\s*/;
 
 export const RESIDENTIAL_TYPE_CODES = new Set(['10001', '10002', '10003', '10017', '10021', '10022']);
-
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-
-const toInt = (v: unknown): number | null => {
-  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
-  return Number.isInteger(n) ? n : null;
-};
 
 const isResidentialRental = (p: Record<string, unknown>): boolean =>
   (p.transType === undefined || p.transType === 'Rent') &&
@@ -34,20 +28,20 @@ export function parseMagicbricksSearchPage(body: string, url: string): ParsedPag
 
   const requestedPage = Number(/\/page-(\d+)(?:[/?#]|$)/.exec(new URL(url).pathname)?.[1] ?? 1);
   const searchBean = isRecord(state.searchBean) ? state.searchBean : {};
-  const pageNo = toInt(searchBean.pageNo) ?? toInt(form.page) ?? requestedPage;
+  const pageNo = wholeNumber(searchBean.pageNo) ?? wholeNumber(form.page) ?? requestedPage;
   if (pageNo !== requestedPage) {
     throw new Error(`magicbricks: asked for page ${requestedPage} but the page reports ${pageNo}`);
   }
 
   const listings = items.filter(isRecord);
   const rentals = listings.filter(isResidentialRental);
-  const pageCount = toInt(extra.pageCount);
+  const pageCount = wholeNumber(extra.pageCount);
 
   return {
     raw: rentals.map((l) => stripPii(l) as RawListing),
     skipped: listings.length - rentals.length,
     hasNext: pageCount !== null ? pageNo < pageCount : listings.length > 0,
-    total: toInt(extra.resultCount) ?? undefined,
+    total: wholeNumber(extra.resultCount) ?? undefined,
     pageSize: listings.length,
   };
 }

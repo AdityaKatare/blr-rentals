@@ -2,9 +2,9 @@ import { randomBytes } from 'node:crypto';
 import { SearchQuerySchema } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type DbHandle } from '../src/client';
-import { dedupeListings } from '../src/dedupe';
+import { dedupeListings } from '../src/queries/dedupe';
 import { loadEnv } from '../src/env';
-import { searchListings } from '../src/search';
+import { searchListings } from '../src/queries/search';
 
 loadEnv();
 

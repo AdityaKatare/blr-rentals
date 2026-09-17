@@ -3,7 +3,10 @@ import { SearchQuerySchema, type SearchQueryInput, type SourceSlug } from '@blr/
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type DbHandle } from '../src/client';
 import { loadEnv } from '../src/env';
-import { CARD_IMAGE_LIMIT, findLocality, listingsByIds, searchListings } from '../src/search';
+import { CARD_IMAGE_LIMIT } from '../src/queries/hits';
+import { listingsByIds } from '../src/queries/listings';
+import { findLocality } from '../src/queries/localities';
+import { searchListings } from '../src/queries/search';
 
 loadEnv();
 

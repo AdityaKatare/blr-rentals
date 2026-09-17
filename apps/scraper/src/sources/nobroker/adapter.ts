@@ -14,7 +14,7 @@ export const NOBROKER_SLICES = ['RK1', 'BHK1', 'BHK2', 'BHK3', 'BHK4', 'BHK4PLUS
 export const nobrokerAdapter: SourceAdapter = {
   slug: 'nobroker',
   transport: 'http',
-  supports: { radiusSearch: true, maxPages: 1 },
+  supports: { maxPages: 1 },
   slices: NOBROKER_SLICES,
 
   buildSearchUrl(area, page, slice) {

@@ -3,8 +3,6 @@ import {
   NormalizedListingSchema,
   SearchQuerySchema,
   amenitiesFromFlags,
-  haversineKm,
-  isInBengaluru,
   normalizeAmenities,
   normalizeFurnishing,
   parseBedrooms,
@@ -78,16 +76,6 @@ describe('normalizeAmenities', () => {
   });
   it('reads flag maps', () => {
     expect(amenitiesFromFlags({ LIFT: false, GYM: true, SERVANT: true, RWH: 'N' })).toEqual(['gym', 'servant_room']);
-  });
-});
-
-describe('geo', () => {
-  it('bbox and haversine', () => {
-    expect(isInBengaluru({ lat: 12.9352, lng: 77.6245 })).toBe(true);
-    expect(isInBengaluru({ lat: 19.076, lng: 72.8777 })).toBe(false);
-    const km = haversineKm({ lat: 12.9352, lng: 77.6245 }, { lat: 12.9784, lng: 77.6408 });
-    expect(km).toBeGreaterThan(4.5);
-    expect(km).toBeLessThan(5.5);
   });
 });
 

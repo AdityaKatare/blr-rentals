@@ -1,11 +1,12 @@
 import { NormalizedListingSchema, type NormalizedListing, type SourceSlug } from '@blr/core';
-import type { DedupeSummary } from '@blr/db';
+import type { DedupeSummary, ListingStore, RunRecorder, RunStatus, UpsertSummary } from '@blr/db';
 import type { Logger } from 'pino';
-import { BlockedError, HttpError, type HttpClient } from '../http/client';
+import { BlockedError, HttpError } from '../errors';
+import type { HttpClient } from '../http/client';
 import type { RobotsGate } from '../http/robots';
 import type { ParsedPage, SearchArea, SourceAdapter } from '../sources/types';
-import type { RunRecorder } from './runs';
-import type { ListingStore, UpsertSummary } from './upsert';
+
+const PARTIAL_RUN_PARSE_FAILURE_RATE = 0.2;
 
 export interface RunDeps {
   adapter: SourceAdapter;
@@ -28,7 +29,7 @@ export interface RunSummary {
   runId: number | null;
   source: SourceSlug;
   areaSlug: string;
-  status: 'ok' | 'partial' | 'failed';
+  status: RunStatus;
   pagesPlanned: string[];
   pagesFetched: number;
   listingsSeen: number;
@@ -114,7 +115,7 @@ async function collect(deps: RunDeps, opts: RunOptions, summary: RunSummary): Pr
     summary.errors.push(`${adapter.slug} has no search page for area "${opts.area.slug}"; check its source override`);
   }
 
-  if (summary.status === 'ok' && summary.listingsSeen > 0 && summary.parseFailures / summary.listingsSeen > 0.2) {
+  if (summary.status === 'ok' && summary.listingsSeen > 0 && summary.parseFailures / summary.listingsSeen > PARTIAL_RUN_PARSE_FAILURE_RATE) {
     summary.status = 'partial';
   }
 }

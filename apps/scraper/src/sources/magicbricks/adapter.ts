@@ -11,7 +11,7 @@ const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const magicbricksAdapter: SourceAdapter = {
   slug: 'magicbricks',
   transport: 'http',
-  supports: { radiusSearch: false, maxPages: 40 },
+  supports: { maxPages: 40 },
   slices: MAGICBRICKS_SLICES,
 
   buildSearchUrl(area, page, slice) {
