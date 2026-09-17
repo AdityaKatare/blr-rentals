@@ -6,6 +6,7 @@ import { parseNobrokerSearchPage } from '../src/sources/nobroker/parse';
 import type { SearchArea } from '../src/sources/types';
 
 const html = readFileSync(new URL('./fixtures/nobroker-search.html', import.meta.url), 'utf8');
+const nextHtml = readFileSync(new URL('./fixtures/nobroker-search-next.html', import.meta.url), 'utf8');
 
 const area: SearchArea = {
   id: 1,
@@ -70,9 +71,15 @@ describe('parseNobrokerSearchPage', () => {
     expect(JSON.stringify(parsed.raw)).not.toContain('9876543210');
   });
 
+  it('reads the same listings and total from the Next.js page variant', () => {
+    expect(nextHtml).not.toContain('nb.appState');
+    expect(parseNobrokerSearchPage(nextHtml, 'https://www.nobroker.in/x')).toEqual(parsed);
+  });
+
   it('fails loudly when the state blob changes shape', () => {
     expect(() => parseNobrokerSearchPage('<script>nb.appState = {"other":{}};</script>', 'u')).toThrow(/listPage missing/);
-    expect(() => parseNobrokerSearchPage('<html></html>', 'u')).toThrow();
+    expect(() => parseNobrokerSearchPage('<script>self.__next_f.push([1,"\\"initialProperties\\":{}"])</script>', 'u')).toThrow(/initialProperties is not an array/);
+    expect(() => parseNobrokerSearchPage('<html></html>', 'u')).toThrow(/neither nb.appState nor Next.js initialProperties/);
   });
 });
 
