@@ -22,6 +22,8 @@ export const SearchQuerySchema = z.object({
   parking: z.enum(['any', 'required']).default('any'),
   listedBy: z.enum(['any', 'owner']).default('any'),
   availableBy: z.string().date().optional(),
+  // keep in sync with NEAR_METRO_OPTIONS_M
+  nearMetroM: z.union([z.literal(500), z.literal(1000), z.literal(1500)]).optional(),
   sources: z.array(z.enum(SOURCE_SLUGS)).optional(),
   sort: z.enum(SORT_OPTIONS).default('relevance'),
   page: z.number().int().min(1).default(1),

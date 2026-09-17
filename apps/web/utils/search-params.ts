@@ -2,9 +2,11 @@ import {
   AMENITIES,
   DEFAULT_RADIUS_KM,
   FURNISHINGS,
+  NEAR_METRO_OPTIONS_M,
   PROPERTY_TYPES,
   SORT_OPTIONS,
   SOURCE_SLUGS,
+  type NearMetroM,
   type SearchQueryInput,
 } from '@blr/core';
 import { DEFAULT_LOCALITY, LARGEST_BHK_OPTION, MAX_SEARCH_BEDROOMS } from '@/constants/search';
@@ -57,6 +59,8 @@ export function parseParams(params: Params): ParsedParams {
   if (amenities.length) query.amenitiesAll = amenities;
   if (sources.length) query.sources = sources;
   if (availableBy && /^\d{4}-\d{2}-\d{2}$/.test(availableBy)) query.availableBy = availableBy;
+  const nearMetro = num(params.nearMetro);
+  if (nearMetro !== undefined && isNearMetroOption(nearMetro)) query.nearMetroM = nearMetro;
 
   return {
     localityText: localityText || (lat !== undefined && lng !== undefined ? '' : DEFAULT_LOCALITY),
@@ -64,6 +68,8 @@ export function parseParams(params: Params): ParsedParams {
     query,
   };
 }
+
+export const isNearMetroOption = (n: number): n is NearMetroM => (NEAR_METRO_OPTIONS_M as readonly number[]).includes(n);
 
 export function withLargerHomes(bedrooms: readonly number[]): number[] {
   if (!bedrooms.includes(LARGEST_BHK_OPTION)) return [...bedrooms];

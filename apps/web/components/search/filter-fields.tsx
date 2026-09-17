@@ -1,8 +1,16 @@
-import { AMENITIES, DEFAULT_RADIUS_KM, FURNISHINGS, PROPERTY_TYPES, SORT_OPTIONS, SOURCE_SLUGS } from '@blr/core';
+import {
+  AMENITIES,
+  DEFAULT_RADIUS_KM,
+  FURNISHINGS,
+  NEAR_METRO_OPTIONS_M,
+  PROPERTY_TYPES,
+  SORT_OPTIONS,
+  SOURCE_SLUGS,
+} from '@blr/core';
 import type { LocalityMatch } from '@blr/db';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChipCheckbox } from '@/components/ui/chip-checkbox';
-import { FURNISHING_LABELS, PROPERTY_TYPE_LABELS, SORT_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS, SORT_LABELS, SOURCE_LABELS } from '@/constants/labels';
 import { BHK_OPTIONS, RADIUS_OPTIONS_KM } from '@/constants/search';
 import { humanize } from '@/utils/format';
 import { first, list, type Params, type ParsedParams } from '@/utils/search-params';
@@ -111,6 +119,21 @@ export function FilterFields({ params, parsed, localities }: FilterFieldsProps) 
         <label className="flex items-center justify-between gap-2 pt-1 text-sm">
           Available by
           <input name="availableBy" type="date" defaultValue={first(params.availableBy) ?? ''} className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+        </label>
+        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
+          Near metro
+          <select
+            name="nearMetro"
+            defaultValue={parsed.query.nearMetroM ? String(parsed.query.nearMetroM) : ''}
+            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+          >
+            <option value="">Any distance</option>
+            {NEAR_METRO_OPTIONS_M.map((m) => (
+              <option key={m} value={m}>
+                Within {NEAR_METRO_LABELS[m]}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
 

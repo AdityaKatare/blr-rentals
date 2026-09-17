@@ -1,4 +1,4 @@
-import type { SortOption } from '@blr/core';
+import type { MetroLine, NearMetroM, SortOption } from '@blr/core';
 
 export const SOURCE_LABELS: Record<string, string> = {
   nobroker: 'NoBroker',
@@ -30,6 +30,28 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
   studio: 'Studio',
   pg: 'PG',
   other: 'Other',
+};
+
+export const NEAR_METRO_LABELS: Record<NearMetroM, string> = {
+  500: '500 m',
+  1000: '1 km',
+  1500: '1.5 km',
+};
+
+export const METRO_LINE_LABELS: Record<MetroLine, string> = {
+  purple: 'Purple Line',
+  green: 'Green Line',
+  yellow: 'Yellow Line',
+  pink: 'Pink Line',
+  blue: 'Blue Line',
+};
+
+export const METRO_LINE_STYLES: Record<MetroLine, string> = {
+  purple: 'bg-purple-600',
+  green: 'bg-green-600',
+  yellow: 'bg-yellow-400',
+  pink: 'bg-pink-500',
+  blue: 'bg-sky-600',
 };
 
 export const SORT_LABELS: Record<SortOption, string> = {

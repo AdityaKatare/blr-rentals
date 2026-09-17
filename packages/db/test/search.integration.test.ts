@@ -25,6 +25,9 @@ async function tryConnect(): Promise<DbHandle | null> {
 const handle = await tryConnect();
 const slug = `zz-search-${randomBytes(4).toString('hex')}` as SourceSlug;
 const CENTER = { lat: 12.9, lng: 77.9 };
+const metroPrefix = `zz-metro-${randomBytes(4).toString('hex')}`;
+const OPEN_STATION = { slug: `${metroPrefix}-open`, name: 'Test Open Station', km: 0.7 };
+const UPCOMING_STATION = { slug: `${metroPrefix}-upcoming`, name: 'Test Upcoming Station', km: 4 };
 
 const offsetLat = (km: number) => CENTER.lat + km / 111.2;
 
@@ -62,11 +65,21 @@ describe.runIf(handle)('searchListings against Postgres', () => {
                 ${`{${f.amenities.join(',')}}`}::text[], '[]'::jsonb, ${f.available}::date,
                 now() - make_interval(days => ${f.updatedDaysAgo}), 'h', ${f.status ?? 'active'}::listing_status)`;
     }
+    for (const [station, status] of [
+      [OPEN_STATION, 'open'],
+      [UPCOMING_STATION, 'upcoming'],
+    ] as const) {
+      await sql`
+        INSERT INTO metro_stations (slug, name, lines, status, location)
+        VALUES (${station.slug}, ${station.name}, '{purple}', ${status},
+                ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(station.km)}), 4326)::geography)`;
+    }
   });
 
   afterAll(async () => {
     await sql`DELETE FROM listings WHERE source_id = ${sourceId}`;
     await sql`DELETE FROM sources WHERE id = ${sourceId}`;
+    await sql`DELETE FROM metro_stations WHERE slug LIKE ${`${metroPrefix}-%`}`;
     await handle!.close();
   });
 
@@ -140,6 +153,36 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     expect(saved[0]).toMatchObject({ status: 'stale', distanceM: null, rentDrop: null, images: [] });
     expect(saved[1]!.rentDrop).toMatchObject({ from: 28000 });
     expect(await listingsByIds(sql, [])).toEqual([]);
+  });
+
+  it('filters by walking distance to open metro stations and annotates the nearest one', async () => {
+    const centroidId = 'centroid-near-metro';
+    await sql`
+      INSERT INTO listings (source_id, source_listing_id, source_url, title, property_type, bedrooms, is_1rk, rent,
+                            furnishing, parking, listed_by, location, geo_accuracy, amenities, images, raw_hash, status)
+      VALUES (${sourceId}, ${centroidId}, ${`https://example.com/${centroidId}`}, ${centroidId}, 'apartment', 2, false, 22000,
+              'semi', 'car', 'owner', ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(0.7)}), 4326)::geography,
+              'locality_centroid', '{}'::text[], '[]'::jsonb, 'h', 'active')`;
+    const known = new Set([...fixtures.map((f) => f.id), centroidId]);
+    const mine = async (nearMetroM: 500 | 1000 | 1500) =>
+      ids((await search({ radiusKm: 5, sort: 'distance', nearMetroM })).hits).filter((id) => known.has(id!));
+
+    expect(await mine(500)).toEqual(['near-2bhk', 'rk']);
+    expect(await mine(1500)).toEqual(['near-2bhk', 'rk', 'mid-2bhk-cheap']);
+
+    const r = await search({ radiusKm: 5, sort: 'distance' });
+    const byId = (id: string) => r.hits.find((h) => h.sourceUrl === `https://example.com/${id}`)!;
+    expect(byId('near-2bhk').nearestMetro).toMatchObject({ name: OPEN_STATION.name, lines: ['purple'] });
+    expect(byId('near-2bhk').nearestMetro!.distanceM).toBeGreaterThan(150);
+    expect(byId('near-2bhk').nearestMetro!.distanceM).toBeLessThan(250);
+    expect(byId('mid-2bhk-cheap').nearestMetro!.distanceM).toBeGreaterThan(1200);
+    expect(byId('far-3bhk').nearestMetro).toBeNull();
+    expect(byId(centroidId).nearestMetro).toBeNull();
+
+    const saved = await listingsByIds(sql, [byId('near-2bhk').id]);
+    expect(saved[0]!.nearestMetro).toMatchObject({ name: OPEN_STATION.name });
+
+    await sql`DELETE FROM listings WHERE source_id = ${sourceId} AND source_listing_id = ${centroidId}`;
   });
 
   it('centres on a locality by id and matches locality names loosely', async () => {

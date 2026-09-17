@@ -4,6 +4,7 @@ import {
   type GeoAccuracy,
   type ListedBy,
   type ListingStatus,
+  type MetroLine,
   type Parking,
   type PropertyType,
   type SourceSlug,
@@ -14,6 +15,7 @@ import type { OtherListing, SearchHit } from '../types';
 
 export const RENT_DROP_WINDOW_DAYS = 14;
 export const CARD_IMAGE_LIMIT = 12;
+export const NEAREST_METRO_MAX_M = 3000;
 
 export interface ListingRow {
   id: string;
@@ -83,6 +85,7 @@ export function toHit(r: ListingRow, score: number | null): SearchHit {
     propertyId: r.property_id,
     sources: [r.source],
     otherListings: [],
+    nearestMetro: null,
   };
 }
 
@@ -106,7 +109,7 @@ export async function enrichHits(sql: Sql, hits: SearchHit[], now: Date): Promis
   if (!hits.length) return;
   const ids = pgArray(hits.map((h) => h.id));
   const since = new Date(now.getTime() - RENT_DROP_WINDOW_DAYS * DAY_MS).toISOString();
-  const [images, drops] = await Promise.all([
+  const [images, drops, metro] = await Promise.all([
     sql<{ id: string; urls: string[] }[]>`
       SELECT l.id, COALESCE(array_agg(img.value ->> 'url' ORDER BY img.ordinality)
                             FILTER (WHERE img.ordinality <= ${CARD_IMAGE_LIMIT}), '{}') AS urls
@@ -125,12 +128,27 @@ export async function enrichHits(sql: Sql, hits: SearchHit[], now: Date): Promis
         AND jsonb_typeof(c.old_value) = 'number'
         AND (c.old_value #>> '{}')::int > l.rent
       ORDER BY c.listing_id, c.observed_at ASC`,
+    sql<{ id: string; name: string; lines: MetroLine[]; distance_m: number }[]>`
+      SELECT l.id, m.name, m.lines, m.distance_m
+      FROM listings l
+      CROSS JOIN LATERAL (
+        SELECT s.name, s.lines, ST_Distance(s.location, l.location) AS distance_m
+        FROM metro_stations s
+        WHERE s.status = 'open' AND ST_DWithin(s.location, l.location, ${NEAREST_METRO_MAX_M})
+        ORDER BY s.location <-> l.location
+        LIMIT 1
+      ) m
+      WHERE l.id = ANY (${ids}::uuid[])
+        AND l.location IS NOT NULL
+        AND l.geo_accuracy IN ('exact', 'approximate')`,
   ]);
   const imagesById = new Map(images.map((r) => [r.id, [...new Set(r.urls.filter(Boolean))]]));
   const dropsById = new Map(drops.map((r) => [r.id, { from: r.from, at: r.at }]));
+  const metroById = new Map(metro.map((r) => [r.id, { name: r.name, lines: r.lines, distanceM: Math.round(r.distance_m) }]));
   for (const hit of hits) {
     hit.images = imagesById.get(hit.id) ?? [];
     hit.rentDrop = dropsById.get(hit.id) ?? null;
+    hit.nearestMetro = metroById.get(hit.id) ?? null;
   }
   await attachOtherListings(sql, hits);
 }

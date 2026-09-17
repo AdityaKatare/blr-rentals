@@ -2,7 +2,7 @@
 
 One search box over Bangalore rental listings from several portals. MVP sources are **NoBroker** and **MagicBricks**; Housing.com and 99acres exist as disabled adapter stubs.
 
-**Status: working MVP.** NoBroker and MagicBricks are scraped, normalised, deduplicated across sources and searchable by radius, with a shortlist and a `/status` page. Scheduling is not set up yet.
+**Status: working MVP.** NoBroker and MagicBricks are scraped, normalised, deduplicated across sources and searchable by radius, with a shortlist and a `/status` page. Results can be filtered by straight-line distance to an open Namma Metro station and every card shows its nearest station (`docs/metro-stations.md`). Scheduling is not set up yet.
 
 ## Layout
 

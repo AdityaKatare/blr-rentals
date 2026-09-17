@@ -117,6 +117,13 @@ describe('SearchQuerySchema', () => {
   it('rejects nonsense', () => {
     expect(SearchQuerySchema.safeParse({ center: {}, radiusKm: 100 }).success).toBe(false);
   });
+
+  it('accepts only the fixed near-metro distances', () => {
+    const center = { lat: 12.93, lng: 77.62 };
+    expect(SearchQuerySchema.parse({ center, nearMetroM: 1000 }).nearMetroM).toBe(1000);
+    expect(SearchQuerySchema.parse({ center }).nearMetroM).toBeUndefined();
+    expect(SearchQuerySchema.safeParse({ center, nearMetroM: 700 }).success).toBe(false);
+  });
 });
 
 describe('ranking and dedupe scorers', () => {

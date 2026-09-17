@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { SourceSlug } from '@blr/core';
+import { METRO_LINES, METRO_STATION_STATUSES, type MetroLine, type MetroStationStatus, type SourceSlug } from '@blr/core';
 import type { ResolvedSearchArea } from './types';
 
 export interface SeedSource {
@@ -24,6 +24,17 @@ export interface SeedLocality {
   accuracy?: 'exact' | 'approximate';
 }
 
+export interface SeedMetroStation {
+  slug: string;
+  name: string;
+  lines: MetroLine[];
+  status: MetroStationStatus;
+  lat: number;
+  lng: number;
+  openedOn?: string;
+  refs?: Record<string, string>;
+}
+
 export interface SeedSearchArea {
   slug: string;
   name: string;
@@ -43,6 +54,18 @@ async function loadJson<T>(file: string): Promise<T> {
 export const loadSeedSources = (): Promise<SeedSource[]> => loadJson('sources.json');
 export const loadSeedLocalities = (): Promise<SeedLocality[]> => loadJson('localities.json');
 export const loadSeedSearchAreas = (): Promise<SeedSearchArea[]> => loadJson('search_areas.json');
+
+export async function loadSeedMetroStations(): Promise<SeedMetroStation[]> {
+  const rows = await loadJson<SeedMetroStation[]>('metro_stations.json');
+  for (const r of rows) {
+    const badLine = r.lines.find((l) => !(METRO_LINES as readonly string[]).includes(l));
+    if (r.lines.length === 0 || badLine) throw new Error(`metro station "${r.slug}" has invalid lines: ${r.lines.join(',')}`);
+    if (!(METRO_STATION_STATUSES as readonly string[]).includes(r.status)) {
+      throw new Error(`metro station "${r.slug}" has invalid status: ${r.status}`);
+    }
+  }
+  return rows;
+}
 
 export async function resolveSeedArea(slug: string): Promise<ResolvedSearchArea | null> {
   const [areas, localities] = await Promise.all([loadSeedSearchAreas(), loadSeedLocalities()]);

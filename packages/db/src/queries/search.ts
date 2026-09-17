@@ -43,6 +43,12 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
     conditions.push(sql`(l.available_from IS NULL OR l.available_from <= ${query.availableBy}::date)`);
   }
   if (query.sources?.length) conditions.push(sql`s.slug = ANY (${pgArray(query.sources)}::text[])`);
+  if (query.nearMetroM !== undefined) {
+    conditions.push(sql`l.geo_accuracy IN ('exact', 'approximate')`);
+    conditions.push(sql`EXISTS (
+      SELECT 1 FROM metro_stations m
+      WHERE m.status = 'open' AND ST_DWithin(m.location, l.location, ${query.nearMetroM}))`);
+  }
 
   const where = conditions.reduce((acc, c) => sql`${acc} AND ${c}`);
 

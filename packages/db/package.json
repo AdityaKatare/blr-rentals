@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "migrate": "tsx src/scripts/migrate.ts",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/scripts/seed.ts",
+    "build-metro-seed": "tsx src/scripts/build-metro-seed.ts"
   },
   "dependencies": {
     "@blr/core": "workspace:*",

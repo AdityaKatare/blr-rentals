@@ -1,6 +1,6 @@
 import { formatBedrooms } from '@blr/core';
 import type { SearchHit } from '@blr/db';
-import { FURNISHING_LABELS, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import { FURNISHING_LABELS, METRO_LINE_LABELS, METRO_LINE_STYLES, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
 import { availability, formatDistance, timeAgo } from '@/utils/format';
 import { AlsoListed } from './also-listed';
 import { ListingBadges } from './listing-badges';
@@ -58,6 +58,18 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
           {hit.distanceM !== null && (
             <span>
               {formatDistance(hit.distanceM)} away{hit.geoAccuracy !== 'exact' ? ' (approx.)' : ''}
+            </span>
+          )}
+          {hit.nearestMetro && (
+            <span
+              className="inline-flex items-center gap-1"
+              title={`Straight-line distance · ${hit.nearestMetro.lines.map((l) => METRO_LINE_LABELS[l]).join(' / ')}`}
+            >
+              {hit.nearestMetro.lines.map((l) => (
+                <span key={l} aria-hidden className={`inline-block h-2 w-2 rounded-full ${METRO_LINE_STYLES[l]}`} />
+              ))}
+              {formatDistance(hit.nearestMetro.distanceM)} to {hit.nearestMetro.name} metro
+              {hit.geoAccuracy !== 'exact' ? ' (approx.)' : ''}
             </span>
           )}
           {updated && <span>Updated {updated}</span>}

@@ -6,6 +6,7 @@ export { dedupeListings, refreshProperty } from './queries/dedupe';
 export { createListingStore } from './queries/listing-store';
 export { listingsByIds } from './queries/listings';
 export { findLocality, listLocalities } from './queries/localities';
+export { listMetroStations } from './queries/metro';
 export { createRunRecorder, recentRuns } from './queries/scrape-runs';
 export { loadSearchArea } from './queries/search-areas';
 export { searchListings } from './queries/search';

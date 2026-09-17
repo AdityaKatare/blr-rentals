@@ -1,7 +1,7 @@
-import { FURNISHING_LABELS, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
 import { BHK_OPTIONS, FILTERS_KEPT_ON_CLEAR } from '@/constants/search';
 import { humanize, rupees, shortDate } from './format';
-import { first, list, withParams, type Params } from './search-params';
+import { first, isNearMetroOption, list, withParams, type Params } from './search-params';
 
 export interface ActiveFilter {
   key: string;
@@ -44,6 +44,14 @@ export function activeFilters(params: Params): ActiveFilter[] {
   if (availableBy) {
     const label = `Available by ${shortDate(availableBy) ?? availableBy}`;
     chips.push({ key: 'availableBy', label, href: withParams(params, { availableBy: null, page: null }) });
+  }
+  const nearMetro = Number(first(params.nearMetro));
+  if (isNearMetroOption(nearMetro)) {
+    chips.push({
+      key: 'nearMetro',
+      label: `Metro within ${NEAR_METRO_LABELS[nearMetro]}`,
+      href: withParams(params, { nearMetro: null, page: null }),
+    });
   }
   multi('amenities', (v) => humanize(v));
   multi('sources', (v) => SOURCE_LABELS[v] ?? v);

@@ -4,6 +4,8 @@ import type {
   LatLng,
   ListedBy,
   ListingStatus,
+  MetroLine,
+  MetroStationStatus,
   NormalizedListing,
   Parking,
   PropertyType,
@@ -52,6 +54,23 @@ export interface SearchHit {
   propertyId: string | null;
   sources: SourceSlug[];
   otherListings: OtherListing[];
+  nearestMetro: NearestMetro | null;
+}
+
+export interface NearestMetro {
+  name: string;
+  lines: MetroLine[];
+  distanceM: number;
+}
+
+export interface MetroStation {
+  id: number;
+  slug: string;
+  name: string;
+  lines: MetroLine[];
+  status: MetroStationStatus;
+  lat: number;
+  lng: number;
 }
 
 export interface RentDrop {

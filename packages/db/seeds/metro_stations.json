@@ -1,0 +1,1690 @@
+[
+  {
+    "slug": "attiguppe",
+    "name": "Attiguppe",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.96189,
+    "lng": 77.53358,
+    "refs": {
+      "osm": "node/6400857563"
+    }
+  },
+  {
+    "slug": "baiyappanahalli",
+    "name": "Baiyappanahalli",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.99076,
+    "lng": 77.65236,
+    "refs": {
+      "osm": "node/6400857549"
+    }
+  },
+  {
+    "slug": "banashankari",
+    "name": "Banashankari",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.91522,
+    "lng": 77.5736,
+    "refs": {
+      "osm": "node/6432710294"
+    }
+  },
+  {
+    "slug": "benniganahalli",
+    "name": "Benniganahalli",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.99652,
+    "lng": 77.66846,
+    "openedOn": "2023-10-09",
+    "refs": {
+      "osm": "node/5760197766"
+    }
+  },
+  {
+    "slug": "beratena-agrahara",
+    "name": "Beratena Agrahara",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.86388,
+    "lng": 77.6579,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198153"
+    }
+  },
+  {
+    "slug": "biocon-hebbagodi",
+    "name": "Biocon Hebbagodi",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.82903,
+    "lng": 77.68137,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/11521199307"
+    }
+  },
+  {
+    "slug": "bommanahalli",
+    "name": "Bommanahalli",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.91062,
+    "lng": 77.62648,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198202"
+    }
+  },
+  {
+    "slug": "btm-layout",
+    "name": "BTM Layout",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.91659,
+    "lng": 77.60812,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198226"
+    }
+  },
+  {
+    "slug": "central-silk-board",
+    "name": "Central Silk Board",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.91658,
+    "lng": 77.62057,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198212"
+    }
+  },
+  {
+    "slug": "challaghatta",
+    "name": "Challaghatta",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.89735,
+    "lng": 77.46129,
+    "openedOn": "2023-10-09",
+    "refs": {
+      "osm": "node/9919570131"
+    }
+  },
+  {
+    "slug": "chickpete",
+    "name": "Chickpete",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.9669,
+    "lng": 77.57456,
+    "refs": {
+      "osm": "node/6432710301"
+    }
+  },
+  {
+    "slug": "chikkabidarakallu",
+    "name": "Chikkabidarakallu",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.05236,
+    "lng": 77.48792,
+    "openedOn": "2024-11-07",
+    "refs": {
+      "osm": "node/1576973954"
+    }
+  },
+  {
+    "slug": "cubbon-park",
+    "name": "Cubbon Park",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.98096,
+    "lng": 77.59758,
+    "refs": {
+      "osm": "node/6400857555"
+    }
+  },
+  {
+    "slug": "dasarahalli",
+    "name": "Dasarahalli",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.04326,
+    "lng": 77.51255,
+    "refs": {
+      "osm": "node/5960788724"
+    }
+  },
+  {
+    "slug": "deepanjali-nagar",
+    "name": "Deepanjali Nagar",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.95206,
+    "lng": 77.53701,
+    "refs": {
+      "osm": "node/6400857564"
+    }
+  },
+  {
+    "slug": "delta-electronics-bommasandra",
+    "name": "Delta Electronics Bommasandra",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.81939,
+    "lng": 77.68835,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760197806"
+    }
+  },
+  {
+    "slug": "doddakallasandra",
+    "name": "Doddakallasandra",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.88464,
+    "lng": 77.55275,
+    "refs": {
+      "osm": "node/9919651776"
+    }
+  },
+  {
+    "slug": "dr-b-r-ambedkar-station-vidhana-soudha",
+    "name": "Dr. B. R. Ambedkar Station, Vidhana Soudha",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97874,
+    "lng": 77.59164,
+    "refs": {
+      "osm": "node/6400857556"
+    }
+  },
+  {
+    "slug": "electronic-city",
+    "name": "Electronic City",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.85651,
+    "lng": 77.66352,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198145"
+    }
+  },
+  {
+    "slug": "garudacharpalya",
+    "name": "Garudacharpalya",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.99345,
+    "lng": 77.70368,
+    "refs": {
+      "osm": "node/5760197762"
+    }
+  },
+  {
+    "slug": "halasuru",
+    "name": "Halasuru",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.9765,
+    "lng": 77.62669,
+    "refs": {
+      "osm": "node/6400857552"
+    }
+  },
+  {
+    "slug": "hongasandra",
+    "name": "Hongasandra",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.9017,
+    "lng": 77.63199,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198198"
+    }
+  },
+  {
+    "slug": "hoodi",
+    "name": "Hoodi",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.9888,
+    "lng": 77.71133,
+    "refs": {
+      "osm": "node/5760197761"
+    }
+  },
+  {
+    "slug": "hopefarm-channasandra",
+    "name": "Hopefarm Channasandra",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.9873,
+    "lng": 77.75388,
+    "refs": {
+      "osm": "node/5760197745"
+    }
+  },
+  {
+    "slug": "hosa-road",
+    "name": "Hosa Road",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.87075,
+    "lng": 77.65245,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198162"
+    }
+  },
+  {
+    "slug": "huskur-road",
+    "name": "Huskur Road",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.83916,
+    "lng": 77.67737,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198122"
+    }
+  },
+  {
+    "slug": "indiranagar",
+    "name": "Indiranagar",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97833,
+    "lng": 77.63866,
+    "refs": {
+      "osm": "node/6400857551"
+    }
+  },
+  {
+    "slug": "infosys-foundation-konappana-agrahara",
+    "name": "Infosys Foundation Konappana Agrahara",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.84644,
+    "lng": 77.67119,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198133"
+    }
+  },
+  {
+    "slug": "jalahalli",
+    "name": "Jalahalli",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.03941,
+    "lng": 77.51974,
+    "refs": {
+      "osm": "node/5960788725"
+    }
+  },
+  {
+    "slug": "jaya-prakash-nagar",
+    "name": "Jaya Prakash Nagar",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.90747,
+    "lng": 77.57313,
+    "refs": {
+      "osm": "node/6432710293"
+    }
+  },
+  {
+    "slug": "jayadeva-hospital",
+    "name": "Jayadeva Hospital",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.91673,
+    "lng": 77.59997,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/3302642058"
+    }
+  },
+  {
+    "slug": "jayanagar",
+    "name": "Jayanagar",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.92951,
+    "lng": 77.58014,
+    "refs": {
+      "osm": "node/6432710296"
+    }
+  },
+  {
+    "slug": "jnanabharathi",
+    "name": "Jnanabharathi",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.93544,
+    "lng": 77.51241,
+    "refs": {
+      "osm": "node/9049846515"
+    }
+  },
+  {
+    "slug": "kadugodi-tree-park",
+    "name": "Kadugodi Tree Park",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.98565,
+    "lng": 77.74701,
+    "refs": {
+      "osm": "node/11941186870"
+    }
+  },
+  {
+    "slug": "kengeri",
+    "name": "Kengeri",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.90791,
+    "lng": 77.47658,
+    "refs": {
+      "osm": "node/9051405243"
+    }
+  },
+  {
+    "slug": "kengeri-bus-terminal",
+    "name": "Kengeri Bus Terminal",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.91469,
+    "lng": 77.48786,
+    "refs": {
+      "osm": "node/9051395755"
+    }
+  },
+  {
+    "slug": "konanakunte-cross",
+    "name": "Konanakunte Cross",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.88897,
+    "lng": 77.56267,
+    "refs": {
+      "osm": "node/9919651777"
+    }
+  },
+  {
+    "slug": "krantivira-sangolli-rayanna-railway-station",
+    "name": "Krantivira Sangolli Rayanna Railway Station",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97588,
+    "lng": 77.56538,
+    "refs": {
+      "osm": "node/6400857559"
+    }
+  },
+  {
+    "slug": "krishna-rajendra-market",
+    "name": "Krishna Rajendra Market",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.96088,
+    "lng": 77.57466,
+    "refs": {
+      "osm": "node/6432710300"
+    }
+  },
+  {
+    "slug": "krishnarajapura",
+    "name": "Krishnarajapura",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.9999,
+    "lng": 77.67767,
+    "refs": {
+      "osm": "node/5760197765"
+    }
+  },
+  {
+    "slug": "kudlu-gate",
+    "name": "Kudlu Gate",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.88993,
+    "lng": 77.63922,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198187"
+    }
+  },
+  {
+    "slug": "kundalahalli",
+    "name": "Kundalahalli",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97759,
+    "lng": 77.71556,
+    "refs": {
+      "osm": "node/5760197755"
+    }
+  },
+  {
+    "slug": "lalbagh",
+    "name": "Lalbagh",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.94653,
+    "lng": 77.58002,
+    "refs": {
+      "osm": "node/6432710298"
+    }
+  },
+  {
+    "slug": "madavara",
+    "name": "Madavara",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.05742,
+    "lng": 77.47281,
+    "openedOn": "2024-11-07",
+    "refs": {
+      "osm": "node/1576973953"
+    }
+  },
+  {
+    "slug": "magadi-road",
+    "name": "Magadi Road",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97563,
+    "lng": 77.55535,
+    "refs": {
+      "osm": "node/6400857560"
+    }
+  },
+  {
+    "slug": "mahakavi-kuvempu-road",
+    "name": "Mahakavi Kuvempu Road",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.99853,
+    "lng": 77.5569,
+    "refs": {
+      "osm": "node/6410706689"
+    }
+  },
+  {
+    "slug": "mahalakshmi",
+    "name": "Mahalakshmi",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.00805,
+    "lng": 77.54881,
+    "refs": {
+      "osm": "node/6410706691"
+    }
+  },
+  {
+    "slug": "mahatma-gandhi-road",
+    "name": "Mahatma Gandhi Road",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97553,
+    "lng": 77.60679,
+    "openedOn": "2011-10-20",
+    "refs": {
+      "osm": "node/6400857554"
+    }
+  },
+  {
+    "slug": "manjunathanagara",
+    "name": "Manjunathanagara",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.05009,
+    "lng": 77.49445,
+    "openedOn": "2024-11-07",
+    "refs": {
+      "osm": "node/1576973980"
+    }
+  },
+  {
+    "slug": "mantri-square-sampige-road",
+    "name": "Mantri Square Sampige Road",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.99046,
+    "lng": 77.57073,
+    "refs": {
+      "osm": "node/6410706688"
+    }
+  },
+  {
+    "slug": "mysore-road",
+    "name": "Mysore Road",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.94672,
+    "lng": 77.53016,
+    "refs": {
+      "osm": "node/6400857565"
+    }
+  },
+  {
+    "slug": "nadaprabhu-kempegowda-station-majestic",
+    "name": "Nadaprabhu Kempegowda Station, Majestic",
+    "lines": [
+      "purple",
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.97571,
+    "lng": 77.57288,
+    "refs": {
+      "osm": "node/6400857558"
+    }
+  },
+  {
+    "slug": "nagasandra",
+    "name": "Nagasandra",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.04795,
+    "lng": 77.50014,
+    "refs": {
+      "osm": "node/11941173068"
+    }
+  },
+  {
+    "slug": "nallurahalli",
+    "name": "Nallurahalli",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97664,
+    "lng": 77.72488,
+    "refs": {
+      "osm": "node/5760197754"
+    }
+  },
+  {
+    "slug": "national-college",
+    "name": "National College",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.95053,
+    "lng": 77.57369,
+    "refs": {
+      "osm": "node/6432710299"
+    }
+  },
+  {
+    "slug": "pantharapalya-nayandahalli",
+    "name": "Pantharapalya - Nayandahalli",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.94167,
+    "lng": 77.52512,
+    "refs": {
+      "osm": "node/9050797592"
+    }
+  },
+  {
+    "slug": "pattanagere",
+    "name": "Pattanagere",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.92425,
+    "lng": 77.49835,
+    "refs": {
+      "osm": "node/9051417969"
+    }
+  },
+  {
+    "slug": "pattandur-agrahara",
+    "name": "Pattandur Agrahara",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.98764,
+    "lng": 77.73777,
+    "refs": {
+      "osm": "node/5760197749"
+    }
+  },
+  {
+    "slug": "peenya",
+    "name": "Peenya",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.03302,
+    "lng": 77.5332,
+    "refs": {
+      "osm": "node/6410706695"
+    }
+  },
+  {
+    "slug": "peenya-industry",
+    "name": "Peenya Industry",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.03632,
+    "lng": 77.52549,
+    "refs": {
+      "osm": "node/6410706696"
+    }
+  },
+  {
+    "slug": "ragigudda",
+    "name": "Ragigudda",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.91708,
+    "lng": 77.5883,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198239"
+    }
+  },
+  {
+    "slug": "rajajinagar",
+    "name": "Rajajinagar",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.00052,
+    "lng": 77.54966,
+    "refs": {
+      "osm": "node/6410706690"
+    }
+  },
+  {
+    "slug": "rajarajeshwari-nagar",
+    "name": "Rajarajeshwari Nagar",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.9366,
+    "lng": 77.51968,
+    "refs": {
+      "osm": "node/9051410519"
+    }
+  },
+  {
+    "slug": "rashtreeya-vidyalaya-road",
+    "name": "Rashtreeya Vidyalaya Road",
+    "lines": [
+      "green",
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.92158,
+    "lng": 77.5802,
+    "refs": {
+      "osm": "node/6432710295"
+    }
+  },
+  {
+    "slug": "sandal-soap-factory",
+    "name": "Sandal Soap Factory",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.01465,
+    "lng": 77.55398,
+    "refs": {
+      "osm": "node/6410706692"
+    }
+  },
+  {
+    "slug": "seetharampalya",
+    "name": "Seetharampalya",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.98086,
+    "lng": 77.70879,
+    "refs": {
+      "osm": "node/5760197757"
+    }
+  },
+  {
+    "slug": "silk-institute",
+    "name": "Silk Institute",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.86173,
+    "lng": 77.52995,
+    "refs": {
+      "osm": "node/9919651773"
+    }
+  },
+  {
+    "slug": "singasandra",
+    "name": "Singasandra",
+    "lines": [
+      "yellow"
+    ],
+    "status": "open",
+    "lat": 12.88082,
+    "lng": 77.64485,
+    "openedOn": "2025-08-10",
+    "refs": {
+      "osm": "node/5760198182"
+    }
+  },
+  {
+    "slug": "singayyanapalya",
+    "name": "Singayyanapalya",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.99654,
+    "lng": 77.69272,
+    "refs": {
+      "osm": "node/5760197764"
+    }
+  },
+  {
+    "slug": "sir-m-visvesvaraya-stn-central-college",
+    "name": "Sir M. Visvesvaraya Stn., Central College",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97452,
+    "lng": 77.58422,
+    "refs": {
+      "osm": "node/6400857557"
+    }
+  },
+  {
+    "slug": "south-end-circle",
+    "name": "South End Circle",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.93826,
+    "lng": 77.58006,
+    "refs": {
+      "osm": "node/6432710297"
+    }
+  },
+  {
+    "slug": "sri-balagangadharanatha-swamiji-station-hosahalli",
+    "name": "Sri Balagangadharanatha Swamiji Station, Hosahalli",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97429,
+    "lng": 77.54562,
+    "refs": {
+      "osm": "node/6400857561"
+    }
+  },
+  {
+    "slug": "sri-sathya-sai-hospital",
+    "name": "Sri Sathya Sai Hospital",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.98119,
+    "lng": 77.72754,
+    "refs": {
+      "osm": "node/5760197751"
+    }
+  },
+  {
+    "slug": "srirampura",
+    "name": "Srirampura",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.99653,
+    "lng": 77.5632,
+    "refs": {
+      "osm": "node/5960788726"
+    }
+  },
+  {
+    "slug": "swami-vivekananda-road",
+    "name": "Swami Vivekananda Road",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.98593,
+    "lng": 77.6449,
+    "refs": {
+      "osm": "node/6400857550"
+    }
+  },
+  {
+    "slug": "thalaghattapura",
+    "name": "Thalaghattapura",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.87141,
+    "lng": 77.5384,
+    "refs": {
+      "osm": "node/9919651774"
+    }
+  },
+  {
+    "slug": "trinity",
+    "name": "Trinity",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97302,
+    "lng": 77.61702,
+    "refs": {
+      "osm": "node/6400857553"
+    }
+  },
+  {
+    "slug": "vajarahalli",
+    "name": "Vajarahalli",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.87744,
+    "lng": 77.54474,
+    "refs": {
+      "osm": "node/9919651775"
+    }
+  },
+  {
+    "slug": "vijayanagar",
+    "name": "Vijayanagar",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.97096,
+    "lng": 77.5374,
+    "refs": {
+      "osm": "node/6400857562"
+    }
+  },
+  {
+    "slug": "whitefield-kadugodi",
+    "name": "Whitefield (Kadugodi)",
+    "lines": [
+      "purple"
+    ],
+    "status": "open",
+    "lat": 12.99574,
+    "lng": 77.75795,
+    "refs": {
+      "osm": "node/5760197744"
+    }
+  },
+  {
+    "slug": "yelachenahalli",
+    "name": "Yelachenahalli",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 12.89605,
+    "lng": 77.57012,
+    "refs": {
+      "osm": "node/6432710292"
+    }
+  },
+  {
+    "slug": "yeshwantpur",
+    "name": "Yeshwantpur",
+    "lines": [
+      "green"
+    ],
+    "status": "open",
+    "lat": 13.02327,
+    "lng": 77.54988,
+    "refs": {
+      "osm": "node/11941186869"
+    }
+  },
+  {
+    "slug": "agara-lake",
+    "name": "Agara Lake",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.92068,
+    "lng": 77.64373,
+    "refs": {
+      "osm": "node/9918955261"
+    }
+  },
+  {
+    "slug": "airport-city",
+    "name": "Airport City",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.19835,
+    "lng": 77.68699,
+    "refs": {
+      "osm": "node/9919741625"
+    }
+  },
+  {
+    "slug": "bagalur-cross",
+    "name": "Bagalur Cross",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.11936,
+    "lng": 77.60982,
+    "refs": {
+      "osm": "node/9919741628"
+    }
+  },
+  {
+    "slug": "bagmane-drdo-sports-complex",
+    "name": "Bagmane DRDO Sports Complex",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.98592,
+    "lng": 77.69076,
+    "refs": {
+      "osm": "node/9918955253"
+    }
+  },
+  {
+    "slug": "cantonment",
+    "name": "Cantonment",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.99179,
+    "lng": 77.60622,
+    "refs": {
+      "osm": "node/13800769520"
+    }
+  },
+  {
+    "slug": "central-silk-board-upcoming",
+    "name": "Central Silk Board",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.9174,
+    "lng": 77.62347,
+    "refs": {
+      "osm": "node/9953937121"
+    }
+  },
+  {
+    "slug": "dairy-circle",
+    "name": "Dairy Circle",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.94122,
+    "lng": 77.60243,
+    "refs": {
+      "osm": "node/4969383807"
+    }
+  },
+  {
+    "slug": "doddajala",
+    "name": "Doddajala",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.18838,
+    "lng": 77.64463,
+    "refs": {
+      "osm": "node/9919741626"
+    }
+  },
+  {
+    "slug": "doddanakundi",
+    "name": "Doddanakundi",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.97561,
+    "lng": 77.69703,
+    "refs": {
+      "osm": "node/9918955254"
+    }
+  },
+  {
+    "slug": "embassy-tech-village-kadubeesanahalli",
+    "name": "Embassy Tech Village Kadubeesanahalli",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.93221,
+    "lng": 77.68755,
+    "refs": {
+      "osm": "node/9918955258"
+    }
+  },
+  {
+    "slug": "hbr-layout",
+    "name": "HBR Layout",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.03252,
+    "lng": 77.62982,
+    "refs": {
+      "osm": "node/9919651245"
+    }
+  },
+  {
+    "slug": "hebbal",
+    "name": "Hebbal",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.04395,
+    "lng": 77.59316,
+    "refs": {
+      "osm": "node/9919651220"
+    }
+  },
+  {
+    "slug": "horamavu",
+    "name": "Horamavu",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.01739,
+    "lng": 77.65956,
+    "refs": {
+      "osm": "node/9919651248"
+    }
+  },
+  {
+    "slug": "hrbr-layout",
+    "name": "HRBR Layout",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.02257,
+    "lng": 77.64737,
+    "refs": {
+      "osm": "node/9919651247"
+    }
+  },
+  {
+    "slug": "hsr-layout",
+    "name": "HSR Layout",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.91646,
+    "lng": 77.63315,
+    "refs": {
+      "osm": "node/9918955262"
+    }
+  },
+  {
+    "slug": "hulimavu",
+    "name": "Hulimavu",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.88084,
+    "lng": 77.59585,
+    "refs": {
+      "osm": "node/9906325549"
+    }
+  },
+  {
+    "slug": "ibbaluru",
+    "name": "Ibbaluru",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.92103,
+    "lng": 77.66315,
+    "refs": {
+      "osm": "node/9918955260"
+    }
+  },
+  {
+    "slug": "iimb",
+    "name": "IIMB",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.89582,
+    "lng": 77.59962,
+    "refs": {
+      "osm": "node/9906325550"
+    }
+  },
+  {
+    "slug": "isro",
+    "name": "ISRO",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.96898,
+    "lng": 77.70112,
+    "refs": {
+      "osm": "node/9918955255"
+    }
+  },
+  {
+    "slug": "jakkur-cross",
+    "name": "Jakkur Cross",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.07005,
+    "lng": 77.59312,
+    "refs": {
+      "osm": "node/11023074908"
+    }
+  },
+  {
+    "slug": "jayadeva-interchange",
+    "name": "Jayadeva Interchange",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.91693,
+    "lng": 77.59993,
+    "refs": {
+      "osm": "node/9919576946"
+    }
+  },
+  {
+    "slug": "jp-nagar-4th-phase",
+    "name": "JP Nagar 4th Phase",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.90985,
+    "lng": 77.60009,
+    "refs": {
+      "osm": "node/9906325547"
+    }
+  },
+  {
+    "slug": "kadugundanahalli",
+    "name": "Kadugundanahalli",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 13.02996,
+    "lng": 77.62073,
+    "refs": {
+      "osm": "node/1579059710"
+    }
+  },
+  {
+    "slug": "kalena-agrahara",
+    "name": "Kalena Agrahara",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.87148,
+    "lng": 77.59368,
+    "refs": {
+      "osm": "node/9906325548"
+    }
+  },
+  {
+    "slug": "kalyan-nagar",
+    "name": "Kalyan Nagar",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.02621,
+    "lng": 77.63807,
+    "refs": {
+      "osm": "node/9919651246"
+    }
+  },
+  {
+    "slug": "kasturinagara",
+    "name": "Kasturinagara",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.00803,
+    "lng": 77.66263,
+    "refs": {
+      "osm": "node/9919651249"
+    }
+  },
+  {
+    "slug": "kempapura",
+    "name": "Kempapura",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.0437,
+    "lng": 77.60516,
+    "refs": {
+      "osm": "node/9919651242"
+    }
+  },
+  {
+    "slug": "kial-terminals",
+    "name": "KIAL Terminals",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.19818,
+    "lng": 77.71291,
+    "refs": {
+      "osm": "node/9919741624"
+    }
+  },
+  {
+    "slug": "kodibisanahalli",
+    "name": "Kodibisanahalli",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.94521,
+    "lng": 77.69811,
+    "refs": {
+      "osm": "node/9918955257"
+    }
+  },
+  {
+    "slug": "kodigehalli",
+    "name": "Kodigehalli",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.05674,
+    "lng": 77.59368,
+    "refs": {
+      "osm": "node/9919741631"
+    }
+  },
+  {
+    "slug": "krishnarajapuram",
+    "name": "Krishnarajapuram",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.00008,
+    "lng": 77.67737,
+    "refs": {
+      "osm": "node/4548677812"
+    }
+  },
+  {
+    "slug": "lakkasandra",
+    "name": "Lakkasandra",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.94949,
+    "lng": 77.60304,
+    "refs": {
+      "osm": "node/1578382496"
+    }
+  },
+  {
+    "slug": "langford-town",
+    "name": "Langford Town",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.95623,
+    "lng": 77.60586,
+    "refs": {
+      "osm": "node/4969391953"
+    }
+  },
+  {
+    "slug": "mahatma-gandhi-road-upcoming",
+    "name": "Mahatma Gandhi Road",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.97624,
+    "lng": 77.60838,
+    "refs": {
+      "osm": "node/4698518654"
+    }
+  },
+  {
+    "slug": "marathahalli",
+    "name": "Marathahalli",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.95796,
+    "lng": 77.70133,
+    "refs": {
+      "osm": "node/9918955256"
+    }
+  },
+  {
+    "slug": "nagawara",
+    "name": "Nagawara",
+    "lines": [
+      "pink",
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.04122,
+    "lng": 77.62502,
+    "refs": {
+      "osm": "node/4975616695,node/9919651244"
+    }
+  },
+  {
+    "slug": "pottery-town",
+    "name": "Pottery Town",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 13.00065,
+    "lng": 77.60943,
+    "refs": {
+      "osm": "node/13800769513"
+    }
+  },
+  {
+    "slug": "prestige-bellandur",
+    "name": "Prestige Bellandur",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.9278,
+    "lng": 77.68036,
+    "refs": {
+      "osm": "node/9918955259"
+    }
+  },
+  {
+    "slug": "rashtriya-military-school-metro-station",
+    "name": "Rashtriya Military School Metro Station",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.96528,
+    "lng": 77.60695,
+    "refs": {
+      "osm": "node/1578382785"
+    }
+  },
+  {
+    "slug": "saraswathi-nagar",
+    "name": "Saraswathi Nagar",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 12.99371,
+    "lng": 77.6855,
+    "refs": {
+      "osm": "node/9918955252"
+    }
+  },
+  {
+    "slug": "shivajinagar",
+    "name": "Shivajinagar",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.98385,
+    "lng": 77.60204,
+    "refs": {
+      "osm": "node/1579059716"
+    }
+  },
+  {
+    "slug": "tannery-road",
+    "name": "Tannery Road",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 13.00959,
+    "lng": 77.61395,
+    "refs": {
+      "osm": "node/1578382143"
+    }
+  },
+  {
+    "slug": "tavarekere",
+    "name": "Tavarekere",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 12.9295,
+    "lng": 77.6005,
+    "refs": {
+      "osm": "node/9906325542"
+    }
+  },
+  {
+    "slug": "veerannapalya",
+    "name": "Veerannapalya",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.041,
+    "lng": 77.61805,
+    "refs": {
+      "osm": "node/9919651243"
+    }
+  },
+  {
+    "slug": "venkateshapura",
+    "name": "Venkateshapura",
+    "lines": [
+      "pink"
+    ],
+    "status": "upcoming",
+    "lat": 13.01731,
+    "lng": 77.61802,
+    "refs": {
+      "osm": "node/1579059713"
+    }
+  },
+  {
+    "slug": "yelahanka",
+    "name": "Yelahanka",
+    "lines": [
+      "blue"
+    ],
+    "status": "upcoming",
+    "lat": 13.10185,
+    "lng": 77.60021,
+    "refs": {
+      "osm": "node/9919741629"
+    }
+  }
+]

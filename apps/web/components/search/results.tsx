@@ -4,7 +4,7 @@ import { DatabaseErrorNotice, Notice } from '@/components/ui/notice';
 import { SORT_LABELS } from '@/constants/labels';
 import type { SearchOutcome } from '@/server/search';
 import { clearFiltersHref, type ActiveFilter } from '@/utils/filters';
-import type { Params } from '@/utils/search-params';
+import { first, isNearMetroOption, type Params } from '@/utils/search-params';
 import { ActiveFilterChips } from './active-filter-chips';
 import { Pagination } from './pagination';
 
@@ -42,6 +42,7 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
 
   const { result } = outcome;
   const near = result.center.locality?.name ?? `${result.center.lat.toFixed(4)}, ${result.center.lng.toFixed(4)}`;
+  const metroFiltered = isNearMetroOption(Number(first(params.nearMetro)));
 
   return (
     <>
@@ -53,6 +54,13 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
           {SORT_LABELS[sort]} · {result.tookMs} ms
         </p>
       </div>
+
+      {metroFiltered && (
+        <p className="text-xs text-zinc-500">
+          Metro distance is measured in a straight line from open Namma Metro stations. Listings placed only at their
+          locality centre cannot match this filter and are left out.
+        </p>
+      )}
 
       <ActiveFilterChips chips={chips} clearAllHref={clearFiltersHref(params)} />
 
