@@ -47,6 +47,8 @@ export interface SearchHit {
   availableFrom: string | null;
   postedAt: string | null;
   updatedAt: string | null;
+  lat: number | null;
+  lng: number | null;
   distanceM: number | null;
   score: number | null;
   status: ListingStatus;
@@ -87,7 +89,7 @@ export interface OtherListing {
 }
 
 export interface SearchResult {
-  center: { lat: number; lng: number; locality: LocalityMatch | null };
+  center: { lat: number; lng: number; locality: LocalityMatch | null; nearest: LocalityMatch | null };
   total: number;
   page: number;
   pageSize: number;

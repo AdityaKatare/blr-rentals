@@ -11,6 +11,15 @@ export function rupees(n: number): string {
   return `₹${inr.format(n)}`;
 }
 
+export function shortRupees(n: number): string {
+  if (n >= 100_000) {
+    const lakhs = n / 100_000;
+    return `${lakhs.toFixed(lakhs >= 10 ? 0 : 1).replace(/\.0$/, '')}L`;
+  }
+  if (n >= 1000) return `${Math.round(n / 1000)}K`;
+  return String(n);
+}
+
 export function formatDistance(meters: number): string {
   return meters < 1000 ? `${Math.round(meters / 10) * 10} m` : `${(meters / 1000).toFixed(1)} km`;
 }

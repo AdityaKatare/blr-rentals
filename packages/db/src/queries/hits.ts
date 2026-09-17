@@ -45,6 +45,8 @@ export interface ListingRow {
   posted_at: string | null;
   updated_at: string | null;
   status: ListingStatus;
+  lat: number | null;
+  lng: number | null;
   distance_m: number | null;
 }
 
@@ -78,6 +80,8 @@ export function toHit(r: ListingRow, score: number | null): SearchHit {
     availableFrom: r.available_from,
     postedAt: r.posted_at,
     updatedAt: r.updated_at,
+    lat: r.lat,
+    lng: r.lng,
     distanceM: r.distance_m === null ? null : Math.round(r.distance_m),
     score,
     status: r.status,
@@ -102,6 +106,7 @@ export function hitColumns(sql: Sql, point: Fragment | null) {
     ${updated} AS updated_ts,
     ${utcIso(sql, updated)} AS updated_at,
     l.status,
+    ST_Y(l.location::geometry) AS lat, ST_X(l.location::geometry) AS lng,
     ${point ? sql`ST_Distance(l.location, ${point})` : sql`NULL::float8`} AS distance_m`;
 }
 

@@ -1,11 +1,14 @@
 import type { SortOption } from '@blr/core';
 import { ListingCard } from '@/components/listing/listing-card';
+import { ResultsMap } from '@/components/map/results-map';
 import { DatabaseErrorNotice, Notice } from '@/components/ui/notice';
 import { SORT_LABELS } from '@/constants/labels';
 import type { SearchOutcome } from '@/server/search';
 import { clearFiltersHref, type ActiveFilter } from '@/utils/filters';
+import { pinsFromHits } from '@/utils/map';
 import { first, isNearMetroOption, type Params } from '@/utils/search-params';
 import { ActiveFilterChips } from './active-filter-chips';
+import { ActiveListingProvider } from './active-listing';
 import { Pagination } from './pagination';
 
 interface ResultsProps {
@@ -41,11 +44,13 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
   }
 
   const { result } = outcome;
-  const near = result.center.locality?.name ?? `${result.center.lat.toFixed(4)}, ${result.center.lng.toFixed(4)}`;
+  const { lat, lng, locality, nearest } = result.center;
+  const near = locality?.name ?? (nearest ? `your map pin near ${nearest.name}` : `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+  const { pins, approxOnly } = pinsFromHits(result.hits);
   const metroFiltered = isNearMetroOption(Number(first(params.nearMetro)));
 
   return (
-    <>
+    <ActiveListingProvider>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-lg font-semibold">
           {result.total.toLocaleString('en-IN')} {result.total === 1 ? 'rental' : 'rentals'} within {radiusKm} km of {near}
@@ -64,6 +69,17 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
 
       <ActiveFilterChips chips={chips} clearAllHref={clearFiltersHref(params)} />
 
+      <ResultsMap
+        center={{ lat, lng }}
+        radiusKm={radiusKm}
+        pins={pins}
+        approxOnly={approxOnly}
+        page={result.page}
+        pages={result.pages}
+        total={result.total}
+        near={near}
+      />
+
       {result.hits.length === 0 ? (
         <Notice tone="zinc" title="Nothing matches these filters yet">
           Widen the radius, raise the rent limit or clear some filters. Only areas the scraper has visited have listings.
@@ -77,6 +93,6 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
       )}
 
       <Pagination params={params} page={result.page} pages={result.pages} />
-    </>
+    </ActiveListingProvider>
   );
 }

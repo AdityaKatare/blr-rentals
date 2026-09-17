@@ -92,6 +92,8 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     const near = r.hits.find((h) => h.sourceUrl.endsWith('near-2bhk'))!;
     expect(near.distanceM).toBeGreaterThan(450);
     expect(near.distanceM).toBeLessThan(550);
+    expect(near.lat).toBeCloseTo(offsetLat(0.5), 4);
+    expect(near.lng).toBeCloseTo(CENTER.lng, 4);
   });
 
   it('applies rent, bedroom, furnishing, type, amenity, parking and availability filters', async () => {
@@ -194,5 +196,13 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     expect(r.center.locality?.name).toBe('Koramangala');
     expect(r.hits.every((h) => !h.sourceUrl.startsWith('https://example.com/'))).toBe(true);
     await expect(search({ center: { localityId: 999_999 } })).rejects.toThrow(/unknown locality/);
+  });
+
+  it('reports the nearest locality for an explicit centre', async () => {
+    const r = await search({ center: { lat: 12.937, lng: 77.6245 }, radiusKm: 1 });
+    expect(r.center.locality).toBeNull();
+    expect(r.center.nearest?.name).toBe('Koramangala');
+    const byId = await search({ center: { localityId: r.center.nearest!.id }, radiusKm: 1 });
+    expect(byId.center.nearest?.id).toBe(byId.center.locality?.id);
   });
 });

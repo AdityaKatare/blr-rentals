@@ -1,4 +1,5 @@
 import type { Sql } from '../client';
+import { geographyPoint } from '../sql';
 import type { LocalityMatch } from '../types';
 
 const localityColumns = (sql: Sql) =>
@@ -29,5 +30,14 @@ export async function localityById(sql: Sql, id: number): Promise<LocalityMatch 
   const [row] = await sql<LocalityMatch[]>`
     SELECT ${localityColumns(sql)}
     FROM localities WHERE id = ${id}`;
+  return row ?? null;
+}
+
+export async function nearestLocality(sql: Sql, lat: number, lng: number): Promise<LocalityMatch | null> {
+  const [row] = await sql<LocalityMatch[]>`
+    SELECT ${localityColumns(sql)}
+    FROM localities
+    ORDER BY centroid <-> ${geographyPoint(sql, lat, lng)}
+    LIMIT 1`;
   return row ?? null;
 }

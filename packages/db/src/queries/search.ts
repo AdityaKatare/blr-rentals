@@ -3,7 +3,7 @@ import type { Sql } from '../client';
 import { geographyPoint, pgArray } from '../sql';
 import type { LocalityMatch, SearchHit, SearchResult } from '../types';
 import { enrichHits, hitColumns, toHit, type ListingRow } from './hits';
-import { localityById } from './localities';
+import { localityById, nearestLocality } from './localities';
 
 export const RELEVANCE_CANDIDATE_CAP = 1000;
 
@@ -63,22 +63,25 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   const limit = relevance ? RELEVANCE_CANDIDATE_CAP : query.pageSize;
   const offset = relevance ? 0 : (query.page - 1) * query.pageSize;
 
-  const rows = await sql<(ListingRow & { total: number; distance_m: number })[]>`
-    WITH matched AS (
-      SELECT COALESCE(l.property_id, l.id) AS group_id, ${hitColumns(sql, point)}
-      FROM listings l
-      JOIN sources s ON s.id = l.source_id
-      WHERE ${where}
-    ),
-    grouped AS (
-      SELECT DISTINCT ON (group_id) *
-      FROM matched
-      ORDER BY group_id, rent ASC, updated_ts DESC, id
-    )
-    SELECT *, count(*) OVER ()::int AS total
-    FROM grouped
-    ORDER BY ${order}
-    LIMIT ${limit} OFFSET ${offset}`;
+  const [rows, nearest] = await Promise.all([
+    sql<(ListingRow & { total: number; distance_m: number })[]>`
+      WITH matched AS (
+        SELECT COALESCE(l.property_id, l.id) AS group_id, ${hitColumns(sql, point)}
+        FROM listings l
+        JOIN sources s ON s.id = l.source_id
+        WHERE ${where}
+      ),
+      grouped AS (
+        SELECT DISTINCT ON (group_id) *
+        FROM matched
+        ORDER BY group_id, rent ASC, updated_ts DESC, id
+      )
+      SELECT *, count(*) OVER ()::int AS total
+      FROM grouped
+      ORDER BY ${order}
+      LIMIT ${limit} OFFSET ${offset}`,
+    locality ? Promise.resolve(locality) : nearestLocality(sql, lat, lng),
+  ]);
 
   const total = rows[0]?.total ?? 0;
   let hits: SearchHit[];
@@ -106,7 +109,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
 
   const rankedTotal = relevance ? Math.min(total, RELEVANCE_CANDIDATE_CAP) : total;
   return {
-    center: { lat, lng, locality },
+    center: { lat, lng, locality, nearest },
     total,
     page: query.page,
     pageSize: query.pageSize,

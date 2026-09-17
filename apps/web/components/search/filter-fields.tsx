@@ -7,21 +7,24 @@ import {
   SORT_OPTIONS,
   SOURCE_SLUGS,
 } from '@blr/core';
-import type { LocalityMatch } from '@blr/db';
+import type { LocalityMatch, SearchResult } from '@blr/db';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChipCheckbox } from '@/components/ui/chip-checkbox';
 import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS, SORT_LABELS, SOURCE_LABELS } from '@/constants/labels';
 import { BHK_OPTIONS, RADIUS_OPTIONS_KM } from '@/constants/search';
 import { humanize } from '@/utils/format';
+import { formatCoord } from '@/utils/map';
 import { first, list, type Params, type ParsedParams } from '@/utils/search-params';
+import { CenterPicker, MapPinChip } from './center-picker';
 
 interface FilterFieldsProps {
   params: Params;
   parsed: ParsedParams;
   localities: LocalityMatch[] | null;
+  center: SearchResult['center'] | null;
 }
 
-export function FilterFields({ params, parsed, localities }: FilterFieldsProps) {
+export function FilterFields({ params, parsed, localities, center }: FilterFieldsProps) {
   const bedrooms = list(params.bedrooms);
   const furnishing = list(params.furnishing);
   const propertyTypes = list(params.propertyTypes);
@@ -30,13 +33,24 @@ export function FilterFields({ params, parsed, localities }: FilterFieldsProps) 
   const sort = parsed.query.sort ?? 'relevance';
   const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
   const radii = RADIUS_OPTIONS_KM.includes(radiusKm) ? RADIUS_OPTIONS_KM : [...RADIUS_OPTIONS_KM, radiusKm].sort((a, b) => a - b);
+  const explicitCenter = parsed.explicitCenter;
+  const nearestName = center?.nearest?.name ?? null;
 
   return (
     <>
       <div>
-        <label htmlFor="locality" className="text-sm font-medium">
-          Near
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="locality" className="text-sm font-medium">
+            Near
+          </label>
+          <CenterPicker
+            localities={localities ?? []}
+            center={center ? { lat: center.lat, lng: center.lng } : explicitCenter}
+            radiusKm={radiusKm}
+            nearestName={nearestName}
+            explicit={explicitCenter !== null}
+          />
+        </div>
         <input
           id="locality"
           name="locality"
@@ -46,6 +60,9 @@ export function FilterFields({ params, parsed, localities }: FilterFieldsProps) 
           className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
           autoComplete="off"
         />
+        <input type="hidden" name="lat" defaultValue={explicitCenter ? formatCoord(explicitCenter.lat) : ''} />
+        <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
+        {explicitCenter && <MapPinChip point={explicitCenter} nearestName={nearestName} />}
         {localities && (
           <datalist id="localities">
             {localities.map((l) => (

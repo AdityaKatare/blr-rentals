@@ -5,9 +5,9 @@ import { createPortal } from 'react-dom';
 import { ChevronIcon } from '@/components/ui/chevron-icon';
 import { CloseIcon } from '@/components/ui/close-icon';
 import { useModalSheet } from '@/hooks/use-modal-sheet';
+import { keepFocusInside } from '@/utils/focus';
 
 const SWIPE_THRESHOLD_PX = 50;
-const FOCUSABLE = 'a[href], button:not([disabled])';
 
 interface PhotoLightboxProps {
   images: string[];
@@ -175,19 +175,4 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
     </div>,
     document.body,
   );
-}
-
-function keepFocusInside(e: KeyboardEvent, container: HTMLElement | null): void {
-  if (!container) return;
-  const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE));
-  const first = focusable[0];
-  const lastFocusable = focusable[focusable.length - 1];
-  if (!first || !lastFocusable) return;
-  if (e.shiftKey && document.activeElement === first) {
-    e.preventDefault();
-    lastFocusable.focus();
-  } else if (!e.shiftKey && document.activeElement === lastFocusable) {
-    e.preventDefault();
-    first.focus();
-  }
 }

@@ -4,6 +4,7 @@ import { FURNISHING_LABELS, METRO_LINE_LABELS, METRO_LINE_STYLES, PROPERTY_TYPE_
 import { availability, formatDistance, timeAgo } from '@/utils/format';
 import { AlsoListed } from './also-listed';
 import { ListingBadges } from './listing-badges';
+import { ListingCardFrame } from './listing-card-frame';
 import { ListingPrice } from './listing-price';
 import { PhotoCarousel } from './photo-carousel';
 import { ShortlistButton } from './shortlist-button';
@@ -23,9 +24,7 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
   ].filter(Boolean);
 
   return (
-    <article
-      className={`group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md sm:flex-row ${hit.status === 'active' ? '' : 'opacity-70'}`}
-    >
+    <ListingCardFrame id={hit.id} dimmed={hit.status !== 'active'}>
       <div className="relative aspect-[4/3] w-full shrink-0 bg-zinc-100 sm:aspect-auto sm:min-h-44 sm:w-60">
         <PhotoCarousel
           images={hit.images}
@@ -86,6 +85,6 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
           </a>
         </div>
       </div>
-    </article>
+    </ListingCardFrame>
   );
 }

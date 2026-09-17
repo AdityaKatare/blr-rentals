@@ -19,7 +19,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     <SearchShell
       activeCount={chips.length}
       total={outcome.kind === 'ok' ? outcome.result.total : null}
-      fields={<FilterFields params={params} parsed={parsed} localities={'localities' in outcome ? outcome.localities : null} />}
+      fields={
+        <FilterFields
+          params={params}
+          parsed={parsed}
+          localities={'localities' in outcome ? outcome.localities : null}
+          center={outcome.kind === 'ok' ? outcome.result.center : null}
+        />
+      }
     >
       <Results
         outcome={outcome}

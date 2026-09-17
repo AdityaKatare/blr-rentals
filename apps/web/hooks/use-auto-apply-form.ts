@@ -41,6 +41,7 @@ export function useAutoApplyForm() {
     const form = e.currentTarget;
     const target = e.target as HTMLInputElement | HTMLSelectElement;
     if (target instanceof HTMLInputElement && target.name === 'locality') {
+      if (target.value.trim() !== '') clearFields(form, ['lat', 'lng']);
       const inputType = (e.nativeEvent as InputEvent).inputType;
       if (inputType === undefined || inputType === 'insertReplacementText') apply(form);
       return;
@@ -65,4 +66,11 @@ export function useAutoApplyForm() {
   }
 
   return { formKey, pending, apply, formHandlers: { onInput, onKeyDown, onBlur } };
+}
+
+function clearFields(form: HTMLFormElement, names: string[]): void {
+  for (const name of names) {
+    const field = form.elements.namedItem(name);
+    if (field instanceof HTMLInputElement) field.value = '';
+  }
 }
