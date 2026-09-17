@@ -11,6 +11,8 @@ import { SourceBadges } from './source-badges';
 
 export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) {
   const place = [hit.societyName, hit.locality].filter(Boolean).join(', ');
+  const heading = `${formatBedrooms(hit)} ${place ? `in ${place}` : ''}`.trim();
+  const sourceLabel = SOURCE_LABELS[hit.source] ?? hit.source;
   const updated = timeAgo(hit.updatedAt);
   const perSqft = hit.areaSqft ? Math.round(hit.rent / hit.areaSqft) : null;
   const facts = [
@@ -25,7 +27,13 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
       className={`group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md sm:flex-row ${hit.status === 'active' ? '' : 'opacity-70'}`}
     >
       <div className="relative aspect-[4/3] w-full shrink-0 bg-zinc-100 sm:aspect-auto sm:min-h-44 sm:w-60">
-        <PhotoCarousel images={hit.images} total={hit.imageCount} />
+        <PhotoCarousel
+          images={hit.images}
+          total={hit.imageCount}
+          title={heading}
+          sourceUrl={hit.sourceUrl}
+          sourceLabel={sourceLabel}
+        />
         <div className="absolute right-2 top-2">
           <ShortlistButton id={hit.id} saved={saved} />
         </div>
@@ -39,7 +47,7 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
         </div>
 
         <h2 className="truncate font-medium" title={hit.title}>
-          {formatBedrooms(hit)} {place ? `in ${place}` : ''}
+          {heading}
         </h2>
 
         <p className="text-sm text-zinc-600">{facts.join(' · ')}</p>
@@ -62,7 +70,7 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
             rel="noopener noreferrer"
             className="ml-auto rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
           >
-            Open on {SOURCE_LABELS[hit.source] ?? hit.source} ↗
+            Open on {sourceLabel} ↗
           </a>
         </div>
       </div>
