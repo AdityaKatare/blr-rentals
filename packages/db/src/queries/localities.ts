@@ -3,7 +3,7 @@ import { geographyPoint } from '../sql';
 import type { LocalityMatch } from '../types';
 
 const localityColumns = (sql: Sql) =>
-  sql`id, slug, name, ST_Y(centroid::geometry) AS lat, ST_X(centroid::geometry) AS lng`;
+  sql`id, slug, name, aliases, ST_Y(centroid::geometry) AS lat, ST_X(centroid::geometry) AS lng`;
 
 export async function listLocalities(sql: Sql): Promise<LocalityMatch[]> {
   return sql<LocalityMatch[]>`

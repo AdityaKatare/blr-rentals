@@ -19,6 +19,7 @@ export interface LocalityMatch {
   id: number;
   slug: string;
   name: string;
+  aliases: string[];
   lat: number;
   lng: number;
 }

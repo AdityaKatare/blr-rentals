@@ -25,6 +25,7 @@ import { humanize } from '@/utils/format';
 import { formatCoord } from '@/utils/map';
 import { first, list, type Params, type ParsedParams } from '@/utils/search-params';
 import { CenterPicker, MapPinChip } from './center-picker';
+import { SearchCombobox } from './search-combobox';
 
 interface FilterFieldsProps {
   params: Params;
@@ -60,25 +61,20 @@ export function FilterFields({ params, parsed, localities, center }: FilterField
             explicit={explicitCenter !== null}
           />
         </div>
-        <input
-          id="locality"
-          name="locality"
-          list="localities"
-          defaultValue={parsed.explicitCenter ? '' : parsed.localityText}
-          placeholder="Koramangala, HSR, Whitefield…"
-          className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-          autoComplete="off"
-        />
+        <div className="mt-1">
+          <SearchCombobox
+            id="locality"
+            name="locality"
+            label="Localities"
+            defaultValue={parsed.explicitCenter ? '' : parsed.localityText}
+            placeholder="Koramangala, HSR, Whitefield…"
+            options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
+            clearFields={['lat', 'lng']}
+          />
+        </div>
         <input type="hidden" name="lat" defaultValue={explicitCenter ? formatCoord(explicitCenter.lat) : ''} />
         <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
         {explicitCenter && <MapPinChip point={explicitCenter} nearestName={nearestName} />}
-        {localities && (
-          <datalist id="localities">
-            {localities.map((l) => (
-              <option key={l.id} value={l.name} />
-            ))}
-          </datalist>
-        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
