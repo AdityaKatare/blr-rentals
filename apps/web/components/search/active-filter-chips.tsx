@@ -7,25 +7,26 @@ interface ActiveFilterChipsProps {
 }
 
 export function ActiveFilterChips({ chips, clearAllHref }: ActiveFilterChipsProps) {
-  if (chips.length === 0) return null;
+  if (chips.length === 0) return <span className="label">No filters</span>;
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="label">Active</span>
       {chips.map((c) => (
         <Link
           key={c.key}
           href={c.href}
           scroll={false}
           aria-label={`Remove filter ${c.label}`}
-          className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white py-0.5 pl-2.5 pr-1.5 text-xs hover:border-zinc-500"
+          className="inline-flex items-center gap-2 border border-rule bg-sheet px-2 py-1 text-[12px] hover:border-ink"
         >
           {c.label}
-          <span aria-hidden className="text-zinc-400">
-            ✕
+          <span aria-hidden className="text-muted">
+            &#10005;
           </span>
         </Link>
       ))}
       {chips.length > 1 && (
-        <Link href={clearAllHref} scroll={false} className="px-1.5 text-xs text-zinc-600 underline underline-offset-2">
+        <Link href={clearAllHref} scroll={false} className="label underline underline-offset-4 hover:text-warn">
           Clear all
         </Link>
       )}

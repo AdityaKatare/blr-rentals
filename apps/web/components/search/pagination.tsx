@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { buttonClass } from '@/components/ui/button';
 import { withParams, type Params } from '@/utils/search-params';
 
 interface PaginationProps {
@@ -11,23 +12,23 @@ interface PaginationProps {
 export function Pagination({ params, page, pages, basePath = '/' }: PaginationProps) {
   if (pages <= 1) return null;
   return (
-    <nav className="flex items-center justify-between pt-2 text-sm">
+    <nav className="flex items-center justify-between gap-4 py-5 font-mono text-[11px] tracking-[0.08em] uppercase">
       {page > 1 ? (
-        <Link href={withParams(params, { page: String(page - 1) }, basePath)} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
-          ← Previous
+        <Link href={withParams(params, { page: String(page - 1) }, basePath)} className={buttonClass('outline', 'sm')}>
+          &larr; Previous
         </Link>
       ) : (
-        <span />
+        <span className="text-muted">&larr; Previous</span>
       )}
-      <span className="text-zinc-500">
+      <span className="tabular text-muted">
         Page {page} of {pages}
       </span>
       {page < pages ? (
-        <Link href={withParams(params, { page: String(page + 1) }, basePath)} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-50">
-          Next →
+        <Link href={withParams(params, { page: String(page + 1) }, basePath)} className={buttonClass('outline', 'sm')}>
+          Next &rarr;
         </Link>
       ) : (
-        <span />
+        <span className="text-muted">Next &rarr;</span>
       )}
     </nav>
   );

@@ -18,19 +18,21 @@ export function ListingPrice({ hit }: { hit: SearchHit }) {
 
   return (
     <div className="min-w-0">
-      <p className="text-xl font-semibold tracking-tight">
-        {hit.rentDrop && <span className="mr-1.5 text-sm font-normal text-zinc-400 line-through">{rupees(hit.rentDrop.from)}</span>}
+      <p className="tabular font-display text-[28px] leading-none @3xl:text-[32px]">
+        {hit.rentDrop && (
+          <span className="mr-2 font-sans text-[14px] text-muted line-through">{rupees(hit.rentDrop.from)}</span>
+        )}
         {rupees(hit.rent)}
-        <span className="text-sm font-normal text-zinc-500"> /month</span>
+        <span className="font-sans text-[13px] text-muted"> /mo</span>
       </p>
 
-      <dl className="mt-1 space-y-0.5 text-xs text-zinc-500">
-        <Row label="Maintenance" value={hit.maintenance ? `${rupees(hit.maintenance)} /month` : null} />
+      <dl className="tabular mt-3 font-mono text-[11px] leading-[1.8]">
+        <Row label="Maint" value={hit.maintenance ? `${rupees(hit.maintenance)} /mo` : null} />
         <Row
           label="Deposit"
-          value={hit.deposit ? `${rupees(hit.deposit)}${months !== null ? ` · ${months} ${months === 1 ? 'month' : 'months'}` : ''}` : null}
+          value={hit.deposit ? `${rupees(hit.deposit)}${months !== null ? ` · ${months} mo` : ''}` : null}
         />
-        <Row label="To move in" value={cost ? rupees(cost.total) : null} title={breakdown} strong />
+        <Row label="Move in" value={cost ? rupees(cost.total) : null} title={breakdown} strong />
       </dl>
     </div>
   );
@@ -44,10 +46,14 @@ interface RowProps {
 }
 
 function Row({ label, value, title, strong }: RowProps) {
+  const emphasis = value === null ? 'text-muted' : strong ? 'font-medium' : '';
   return (
-    <div className="flex gap-1.5" title={title ?? undefined}>
-      <dt>{label}</dt>
-      <dd className={value === null ? 'text-zinc-400' : strong ? 'font-medium text-zinc-900' : 'font-medium text-zinc-700'}>
+    <div className="flex gap-2">
+      <dt className="w-16 shrink-0 tracking-[0.08em] text-muted uppercase">{label}</dt>
+      <dd
+        title={title ?? undefined}
+        className={`${emphasis} ${strong && value ? 'border-b border-dotted border-ink' : ''}`}
+      >
         {value ?? 'not listed'}
       </dd>
     </div>

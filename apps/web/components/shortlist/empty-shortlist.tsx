@@ -1,8 +1,8 @@
 export function EmptyShortlist() {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600">
-      <p className="font-medium text-zinc-900">Nothing saved yet</p>
-      <p className="mt-1">Tap the heart on a listing to keep it here while you compare.</p>
+    <div className="border border-hair border-l-4 bg-sheet p-8 text-center text-sm">
+      <p className="font-display text-[22px] leading-none">Nothing saved yet</p>
+      <p className="mt-2 text-second">Use Save on a listing to keep it here while you compare.</p>
     </div>
   );
 }

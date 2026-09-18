@@ -4,6 +4,9 @@ import { useCallback, useRef, useState } from 'react';
 import { ChevronIcon } from '@/components/ui/chevron-icon';
 import { PhotoLightbox } from './photo-lightbox';
 
+const ARROW =
+  'pointer-events-none absolute top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center border border-ink bg-paper text-ink opacity-0 transition-opacity group-hover/photos:pointer-events-auto group-hover/photos:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 disabled:!opacity-0';
+
 interface PhotoCarouselProps {
   images: string[];
   total: number;
@@ -24,7 +27,7 @@ export function PhotoCarousel({ images, total, title, sourceUrl, sourceLabel }: 
   }, []);
 
   if (images.length === 0) {
-    return <div className="absolute inset-0 flex items-center justify-center text-xs text-zinc-400">No photo</div>;
+    return <div className="label absolute inset-0 flex items-center justify-center">No photo</div>;
   }
 
   const go = (delta: number) => {
@@ -71,7 +74,7 @@ export function PhotoCarousel({ images, total, title, sourceUrl, sourceLabel }: 
             aria-label="Previous photo"
             onClick={() => go(-1)}
             disabled={index === 0}
-            className="absolute left-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow disabled:opacity-0 group-hover/photos:flex"
+            className={`${ARROW} left-1.5`}
           >
             <ChevronIcon direction="left" className="h-4 w-4" />
           </button>
@@ -80,11 +83,11 @@ export function PhotoCarousel({ images, total, title, sourceUrl, sourceLabel }: 
             aria-label="Next photo"
             onClick={() => go(1)}
             disabled={index >= images.length - 1}
-            className="absolute right-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow disabled:opacity-0 group-hover/photos:flex"
+            className={`${ARROW} right-1.5`}
           >
             <ChevronIcon direction="right" className="h-4 w-4" />
           </button>
-          <span className="pointer-events-none absolute bottom-2 right-2 rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white">
+          <span className="tabular pointer-events-none absolute right-1.5 bottom-1.5 bg-ink px-1.5 py-0.5 font-mono text-[10px] text-paper">
             {Math.min(index + 1, images.length)} / {images.length}
             {more > 0 && index === images.length - 1 ? ` · ${more} more on site` : ''}
           </span>

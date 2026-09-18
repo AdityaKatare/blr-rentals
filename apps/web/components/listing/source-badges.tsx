@@ -1,14 +1,14 @@
 import type { SourceSlug } from '@blr/core';
-import { SOURCE_LABELS, SOURCE_STYLES } from '@/constants/labels';
+import { SOURCE_LABELS } from '@/constants/labels';
 
 export function SourceBadges({ sources }: { sources: SourceSlug[] }) {
   return (
-    <div className="flex shrink-0 flex-wrap justify-end gap-1">
+    <p className="flex shrink-0 flex-wrap gap-2 font-mono text-[11px] text-muted">
       {sources.map((s) => (
-        <span key={s} className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_STYLES[s] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-200'}`}>
+        <span key={s} className="border border-rule px-2 py-0.5">
           {SOURCE_LABELS[s] ?? s}
         </span>
       ))}
-    </div>
+    </p>
   );
 }

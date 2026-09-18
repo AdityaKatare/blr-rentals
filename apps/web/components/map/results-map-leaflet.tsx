@@ -20,7 +20,7 @@ export interface ResultsMapProps {
   near: string;
 }
 
-const AREA_STYLE: L.CircleMarkerOptions = { color: '#18181b', weight: 1, opacity: 0.5, fillColor: '#18181b', fillOpacity: 0.05, interactive: false };
+const AREA_STYLE: L.CircleMarkerOptions = { color: '#141414', weight: 1, opacity: 0.6, fillColor: '#141414', fillOpacity: 0.04, interactive: false };
 const FIT_PADDING: L.PointTuple = [12, 12];
 
 function scrollToCard(id: string): void {
@@ -119,15 +119,13 @@ export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pa
     <div
       role="region"
       aria-label={`Map of rentals within ${radiusKm} km of ${near}`}
-      className="relative isolate h-56 overflow-hidden rounded-xl border border-zinc-200 sm:h-64"
+      className="relative isolate h-full min-h-56 overflow-hidden"
     >
       <div ref={ref} className="blr-map absolute inset-0" />
-      <div className="pointer-events-none absolute bottom-1 left-1 z-[1001] flex flex-col items-start gap-0.5 text-[11px] text-zinc-700">
-        <span className="rounded bg-white/85 px-1.5 py-0.5">{caption}</span>
+      <div className="pointer-events-none absolute bottom-1 left-1 z-[1001] flex flex-col items-start gap-1 font-mono text-[10px] text-second">
+        <span className="border border-rule bg-paper px-1.5 py-0.5">{caption}</span>
         {approxOnly > 0 && (
-          <span className="rounded bg-white/85 px-1.5 py-0.5">
-            +{approxOnly} located to locality only, not pinned
-          </span>
+          <span className="border border-rule bg-paper px-1.5 py-0.5">+{approxOnly} located to locality only, not pinned</span>
         )}
       </div>
     </div>

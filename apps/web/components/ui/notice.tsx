@@ -1,27 +1,28 @@
 import type { ReactNode } from 'react';
 
 interface NoticeProps {
-  tone: 'amber' | 'zinc';
+  tone: 'alert' | 'plain';
   title: string;
   children?: ReactNode;
 }
 
 export function Notice({ tone, title, children }: NoticeProps) {
-  const styles = tone === 'amber' ? 'border-amber-300 bg-amber-50' : 'border-zinc-200 bg-white';
+  const frame = tone === 'alert' ? 'border-l-4 border-ink' : 'border-l-4 border-hair';
   return (
-    <div className={`rounded-xl border p-5 text-sm ${styles}`}>
+    <div className={`border-y border-r border-hair bg-sheet p-4 text-sm sm:p-5 ${frame}`}>
       <p className="font-medium">{title}</p>
-      {children && <div className="mt-1 text-zinc-600">{children}</div>}
+      {children && <div className="mt-1 text-second">{children}</div>}
     </div>
   );
 }
 
 export function DatabaseErrorNotice({ message }: { message: string }) {
   return (
-    <Notice tone="amber" title="Database unreachable">
+    <Notice tone="alert" title="Database unreachable">
       <p>{message}</p>
       <p className="mt-2">
-        Start it with <code>pnpm db:up</code>, then <code>pnpm db:migrate &amp;&amp; pnpm db:seed</code>.
+        Start it with <code className="font-mono">pnpm db:up</code>, then{' '}
+        <code className="font-mono">pnpm db:migrate &amp;&amp; pnpm db:seed</code>.
       </p>
     </Notice>
   );

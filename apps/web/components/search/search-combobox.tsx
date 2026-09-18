@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { INPUT_CLASS } from '@/components/ui/text-input';
 
 export interface ComboOption {
   value: string;
@@ -16,6 +17,9 @@ interface SearchComboboxProps {
   options: ComboOption[];
   clearFields?: string[];
   limit?: number;
+  inputClassName?: string;
+  wrapperClassName?: string;
+  autoSize?: boolean;
 }
 
 const SUGGESTION_LIMIT = 10;
@@ -46,6 +50,9 @@ export function SearchCombobox({
   options,
   clearFields = [],
   limit = SUGGESTION_LIMIT,
+  inputClassName = INPUT_CLASS,
+  wrapperClassName = 'relative',
+  autoSize = false,
 }: SearchComboboxProps) {
   const listId = `${useId()}-list`;
   const input = useRef<HTMLInputElement>(null);
@@ -117,7 +124,7 @@ export function SearchCombobox({
   };
 
   return (
-    <div className="relative">
+    <div className={wrapperClassName}>
       <input
         ref={input}
         id={id}
@@ -129,6 +136,7 @@ export function SearchCombobox({
         aria-autocomplete="list"
         aria-activedescendant={open && active >= 0 ? `${listId}-${active}` : undefined}
         autoComplete="off"
+        size={autoSize ? Math.max(placeholder.length, value.length + 1) : undefined}
         placeholder={placeholder}
         value={value}
         onChange={(e) => {
@@ -141,14 +149,14 @@ export function SearchCombobox({
         onPointerDown={show}
         onBlur={close}
         onKeyDown={onKeyDown}
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+        className={inputClassName}
       />
       {open && matches.length > 0 && (
         <ul
           id={listId}
           role="listbox"
           aria-label={label}
-          className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border border-zinc-300 bg-white py-1 shadow-lg"
+          className="absolute left-0 top-full z-30 mt-1 max-h-72 w-max min-w-full max-w-[min(90vw,26rem)] overflow-y-auto overscroll-contain border border-ink bg-sheet font-sans text-[13px] font-normal tracking-normal text-ink shadow-sheet"
         >
           {matches.map((option, i) => (
             <li
@@ -161,12 +169,14 @@ export function SearchCombobox({
                 e.preventDefault();
                 choose(option.value);
               }}
-              className={`flex cursor-pointer items-baseline justify-between gap-2 px-3 py-1.5 text-sm ${
-                i === active ? 'bg-zinc-100' : ''
+              className={`flex cursor-pointer items-baseline justify-between gap-3 px-3 py-2 ${
+                i === active ? 'bg-ink text-paper' : ''
               }`}
             >
               <span className="truncate">{option.value}</span>
-              {option.hint && <span className="shrink-0 text-xs text-zinc-500">{option.hint}</span>}
+              {option.hint && (
+                <span className={`shrink-0 font-mono text-[11px] ${i === active ? 'text-paper/70' : 'text-muted'}`}>{option.hint}</span>
+              )}
             </li>
           ))}
         </ul>

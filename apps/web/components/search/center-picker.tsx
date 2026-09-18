@@ -56,7 +56,7 @@ export function CenterPicker({ localities, center, radiusKm, nearestName, explic
         disabled={!initial}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="text-xs text-zinc-600 underline underline-offset-2 hover:text-zinc-900 disabled:no-underline disabled:opacity-50"
+        className="font-mono text-[11px] uppercase tracking-[0.08em] underline underline-offset-4 hover:text-warn disabled:no-underline disabled:opacity-50"
       >
         Pick on map
       </button>
@@ -87,11 +87,11 @@ export function MapPinChip({ point, nearestName }: MapPinChipProps) {
   };
 
   return (
-    <div className="mt-1.5 flex items-center gap-2 text-xs text-zinc-600">
-      <span className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-2 py-0.5">
+    <div className="flex items-center gap-2 font-mono text-[11px] text-second">
+      <span className="inline-flex items-center border border-rule bg-sheet px-2 py-1">
         Map pin {formatCoord(point.lat)}, {formatCoord(point.lng)}
       </span>
-      <button ref={button} type="button" onClick={clear} className="underline underline-offset-2 hover:text-zinc-900">
+      <button ref={button} type="button" onClick={clear} className="uppercase tracking-[0.08em] underline underline-offset-4 hover:text-warn">
         Clear
       </button>
     </div>
