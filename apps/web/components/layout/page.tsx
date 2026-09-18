@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 export const GUTTER = 'px-4 sm:px-6 lg:px-10';
-export const PAGE_WIDTH = 'mx-auto w-full max-w-[1600px]';
+export const PAGE_WIDTH = 'mx-auto w-full max-w-[1280px]';
 
 interface PageShellProps {
   width?: 'full' | 'reading';
@@ -9,7 +9,7 @@ interface PageShellProps {
 }
 
 export function PageShell({ width = 'full', children }: PageShellProps) {
-  const cap = width === 'reading' ? 'max-w-4xl' : 'max-w-[1600px]';
+  const cap = width === 'reading' ? 'max-w-4xl' : 'max-w-[1280px]';
   return <div className={`mx-auto w-full ${cap} ${GUTTER} py-6 lg:py-8`}>{children}</div>;
 }
 

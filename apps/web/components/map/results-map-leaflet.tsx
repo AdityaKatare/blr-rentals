@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useActiveListing } from '@/components/search/active-listing';
 import { RESULTS_MAX_ZOOM, RESULTS_ZOOM } from '@/constants/map';
 import { useLeafletMap } from '@/hooks/use-leaflet-map';
-import { prefersReducedMotion } from '@/utils/focus';
+import { prefersReducedMotion, scrollToListing } from '@/utils/focus';
 import type { LatLng, MapPin } from '@/utils/map';
 import { centerPin, rentPin } from './pin-icons';
 
@@ -18,21 +18,18 @@ export interface ResultsMapProps {
   pages: number;
   total: number;
   near: string;
+  onPick?: (id: string) => void;
 }
 
 const AREA_STYLE: L.CircleMarkerOptions = { color: '#141414', weight: 1, opacity: 0.6, fillColor: '#141414', fillOpacity: 0.04, interactive: false };
 const FIT_PADDING: L.PointTuple = [12, 12];
-
-function scrollToCard(id: string): void {
-  document.getElementById(`listing-${id}`)?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-}
 
 function markActive(marker: L.Marker, active: boolean): void {
   marker.getElement()?.toggleAttribute('data-active', active);
   marker.setZIndexOffset(active ? 1000 : 0);
 }
 
-export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pages, total, near }: ResultsMapProps) {
+export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pages, total, near, onPick }: ResultsMapProps) {
   const area = useRef<{ circle: L.Circle; marker: L.Marker } | null>(null);
   const fitToArea = useCallback((m: L.Map) => {
     if (!area.current) return;
@@ -86,7 +83,8 @@ export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pa
       const marker = L.marker([pin.lat, pin.lng], { icon: rentPin(pin.label, pin.accuracy), keyboard: true, title: pin.title }).addTo(layer);
       const select = () => {
         setActive(pin.id);
-        scrollToCard(pin.id);
+        if (onPick) onPick(pin.id);
+        else scrollToListing(pin.id);
       };
       marker.on('mouseover', () => setActive(pin.id));
       marker.on('mouseout', () => setActive(null));
@@ -106,7 +104,7 @@ export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pa
       markActive(marker, pin.id === activeRef.current);
       markers.current.set(pin.id, marker);
     }
-  }, [map, pins, setActive]);
+  }, [map, pins, setActive, onPick]);
 
   useEffect(() => {
     for (const [id, marker] of markers.current) markActive(marker, id === activeId);

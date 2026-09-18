@@ -16,3 +16,7 @@ export function keepFocusInside(e: KeyboardEvent, container: HTMLElement | null)
 }
 
 export const prefersReducedMotion = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+export function scrollToListing(id: string): void {
+  document.getElementById(`listing-${id}`)?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+}
