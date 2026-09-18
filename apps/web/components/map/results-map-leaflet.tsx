@@ -1,7 +1,7 @@
 'use client';
 
 import * as L from 'leaflet';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useActiveListing } from '@/components/search/active-listing';
 import { RESULTS_MAX_ZOOM, RESULTS_ZOOM } from '@/constants/map';
 import { useLeafletMap } from '@/hooks/use-leaflet-map';
@@ -21,6 +21,7 @@ export interface ResultsMapProps {
 }
 
 const AREA_STYLE: L.CircleMarkerOptions = { color: '#18181b', weight: 1, opacity: 0.5, fillColor: '#18181b', fillOpacity: 0.05, interactive: false };
+const FIT_PADDING: L.PointTuple = [12, 12];
 
 function scrollToCard(id: string): void {
   document.getElementById(`listing-${id}`)?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
@@ -32,11 +33,19 @@ function markActive(marker: L.Marker, active: boolean): void {
 }
 
 export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pages, total, near }: ResultsMapProps) {
-  const { ref, map } = useLeafletMap({ center, zoom: RESULTS_ZOOM });
+  const area = useRef<{ circle: L.Circle; marker: L.Marker } | null>(null);
+  const fitToArea = useCallback((m: L.Map) => {
+    if (!area.current) return;
+    m.fitBounds(area.current.circle.getBounds(), {
+      padding: FIT_PADDING,
+      maxZoom: RESULTS_MAX_ZOOM,
+      animate: false,
+    });
+  }, []);
+  const { ref, map } = useLeafletMap({ center, zoom: RESULTS_ZOOM, onResize: fitToArea });
   const { activeId, setActive } = useActiveListing();
   const activeRef = useRef(activeId);
   activeRef.current = activeId;
-  const area = useRef<{ circle: L.Circle; marker: L.Marker } | null>(null);
   const pinLayer = useRef<L.LayerGroup | null>(null);
   const markers = useRef(new Map<string, L.Marker>());
 
@@ -55,7 +64,11 @@ export function ResultsMapLeaflet({ center, radiusKm, pins, approxOnly, page, pa
         marker: L.marker(position, { icon: centerPin(), interactive: false, keyboard: false, zIndexOffset: 500 }).addTo(map),
       };
     }
-    map.fitBounds(area.current.circle.getBounds(), { padding: [12, 12], maxZoom: RESULTS_MAX_ZOOM, animate: !prefersReducedMotion() });
+    map.fitBounds(area.current.circle.getBounds(), {
+      padding: FIT_PADDING,
+      maxZoom: RESULTS_MAX_ZOOM,
+      animate: !prefersReducedMotion(),
+    });
   }, [map, center.lat, center.lng, radiusKm]);
 
   useEffect(() => {

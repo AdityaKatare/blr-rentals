@@ -13,12 +13,15 @@ interface LeafletMapOptions {
   maxBounds?: L.LatLngBoundsLiteral;
   scrollWheelZoom?: boolean;
   minZoom?: number;
+  onResize?: (map: L.Map) => void;
 }
 
 export function useLeafletMap(options: LeafletMapOptions): { ref: RefObject<HTMLDivElement | null>; map: L.Map | null } {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<L.Map | null>(null);
   const initial = useRef(options);
+  const latest = useRef(options);
+  latest.current = options;
 
   useEffect(() => {
     const el = ref.current;
@@ -36,22 +39,44 @@ export function useLeafletMap(options: LeafletMapOptions): { ref: RefObject<HTML
       fadeAnimation: animate,
       markerZoomAnimation: animate,
     });
-    L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: TILE_MAX_ZOOM }).addTo(instance);
+    const tiles = L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: TILE_MAX_ZOOM }).addTo(instance);
 
     let disposed = false;
-    let frame = 0;
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        if (!disposed) instance.invalidateSize({ animate: false });
+    const frames = new Set<number>();
+
+    const onNextFrame = (work: () => void) => {
+      const id = requestAnimationFrame(() => {
+        frames.delete(id);
+        if (!disposed) work();
       });
+      frames.add(id);
+    };
+
+    const resize = () => {
+      const before = instance.getSize();
+      instance.invalidateSize({ animate: false });
+      if (!instance.getSize().equals(before)) latest.current.onResize?.(instance);
+    };
+
+    onNextFrame(() => {
+      resize();
+      onNextFrame(resize);
     });
+    tiles.once('load', () => {
+      if (!disposed) resize();
+    });
+
+    const onWindowLoad = () => onNextFrame(resize);
+    if (document.readyState !== 'complete') window.addEventListener('load', onWindowLoad, { once: true });
+
+    const observer = new ResizeObserver(() => onNextFrame(resize));
     observer.observe(el);
     setMap(instance);
 
     return () => {
       disposed = true;
-      cancelAnimationFrame(frame);
+      for (const id of frames) cancelAnimationFrame(id);
+      window.removeEventListener('load', onWindowLoad);
       observer.disconnect();
       instance.remove();
       setMap(null);
