@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { useModalSheet } from '@/hooks/use-modal-sheet';
@@ -31,7 +31,7 @@ export function MapDialog({ map }: { map: MapData }) {
 interface MapDialogPanelProps {
   map: MapData;
   onClose: () => void;
-  returnTo: React.RefObject<HTMLButtonElement | null>;
+  returnTo: RefObject<HTMLButtonElement | null>;
 }
 
 function MapDialogPanel({ map, onClose, returnTo }: MapDialogPanelProps) {
@@ -45,8 +45,8 @@ function MapDialogPanel({ map, onClose, returnTo }: MapDialogPanelProps) {
     closeButton.current?.focus();
     return () => {
       const id = picked.current;
+      returnTo.current?.focus({ preventScroll: true });
       if (id) requestAnimationFrame(() => scrollToListing(id));
-      else returnTo.current?.focus({ preventScroll: true });
     };
   }, [returnTo]);
 

@@ -12,8 +12,9 @@ export const metadata = { title: 'Shortlist' };
 
 export default async function ShortlistPage() {
   const shortlist = await loadShortlist(await readShortlistIds());
+  const saved = 'error' in shortlist ? 0 : shortlist.active.length + shortlist.gone.length;
   const counts =
-    'error' in shortlist
+    'error' in shortlist || saved === 0
       ? null
       : `${shortlist.active.length} saved ${shortlist.active.length === 1 ? 'listing' : 'listings'}${
           shortlist.gone.length > 0 ? `, ${shortlist.gone.length} no longer listed` : ''
@@ -36,7 +37,7 @@ export default async function ShortlistPage() {
         <div className="py-6">
           <DatabaseErrorNotice message={shortlist.error} />
         </div>
-      ) : shortlist.active.length + shortlist.gone.length === 0 ? (
+      ) : saved === 0 ? (
         <div className="py-6">
           <EmptyShortlist />
         </div>

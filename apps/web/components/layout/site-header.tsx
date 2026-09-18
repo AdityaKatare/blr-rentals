@@ -12,8 +12,10 @@ export function SiteHeader({ savedCount }: { savedCount: number }) {
 
   return (
     <header className="border-b border-ink bg-paper">
-      <div className={`${PAGE_WIDTH} ${GUTTER} flex h-14 items-center justify-between gap-4`}>
-        <Link href="/" className="font-display text-[22px] leading-none sm:text-[26px]">
+      <div
+        className={`${PAGE_WIDTH} ${GUTTER} flex flex-col items-start gap-1 py-2 sm:h-14 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0`}
+      >
+        <Link href="/" className="font-display text-[22px] leading-none whitespace-nowrap sm:text-[26px]">
           blr-rentals
         </Link>
         <NavLinks links={links} />

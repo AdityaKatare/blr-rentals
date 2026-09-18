@@ -22,7 +22,7 @@ export function SocietiesTable({ societies }: { societies: SocietySummary[] }) {
         <tbody>
           {societies.map((society) => (
             <tr key={society.slug} className="hover:bg-shade">
-              <th scope="row" className={`${TD} font-medium whitespace-normal`}>
+              <th scope="row" className={`${TD} text-left font-medium`}>
                 <Link href={`/societies/${society.slug}`} className="underline decoration-rule underline-offset-4 hover:decoration-ink">
                   {society.name}
                 </Link>
