@@ -17,7 +17,8 @@ interface SearchHeadlineProps {
 }
 
 const FIELD = 'relative inline-flex items-baseline border-b-2 border-ink pr-[0.7em] align-baseline';
-const NATIVE = 'cursor-pointer appearance-none bg-transparent font-display text-[inherit] leading-none';
+const INHERIT = 'bg-transparent font-display text-[inherit] leading-none';
+const NATIVE = `cursor-pointer appearance-none ${INHERIT}`;
 
 export function SearchHeadline({ parsed, localities, center, total, near }: SearchHeadlineProps) {
   const sort = parsed.query.sort ?? 'relevance';
@@ -53,7 +54,7 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
             options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
             clearFields={['lat', 'lng']}
             wrapperClassName="relative inline-block max-w-full align-baseline"
-            inputClassName={`max-w-full border-0 border-b-2 border-ink bg-transparent p-0 font-display text-[inherit] leading-none placeholder:text-muted ${NATIVE}`}
+            inputClassName={`max-w-full border-0 border-b-2 border-ink p-0 placeholder:text-muted ${INHERIT}`}
             autoSize
           />
           <input type="hidden" name="lat" defaultValue={explicitCenter ? formatCoord(explicitCenter.lat) : ''} />

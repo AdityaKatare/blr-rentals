@@ -28,7 +28,7 @@ export function ShortlistButton({ id, saved: initiallySaved }: { id: string; sav
       aria-pressed={saved}
       aria-label={label}
       title={label}
-      className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-ink px-3 font-mono text-[11px] tracking-[0.08em] uppercase @3xl:min-h-10 @3xl:flex-none ${
+      className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-ink px-3 font-mono text-[11px] tracking-[0.04em] uppercase @3xl:min-h-10 @3xl:flex-none ${
         saved ? 'bg-ink text-paper' : 'bg-sheet text-ink hover:bg-shade'
       }`}
     >

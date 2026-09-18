@@ -6,7 +6,7 @@ import { formatDistance } from '@/utils/format';
 export function NearestMetroLabel({ metro }: { metro: NearestMetro }) {
   return (
     <span
-      className="inline-flex items-center gap-1"
+      className="[&>span:first-child]:mr-1.5"
       title={`Straight-line distance from the middle of the apartment · ${metro.lines
         .map((l) => METRO_LINE_LABELS[l])
         .join(' / ')}`}

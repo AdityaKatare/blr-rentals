@@ -29,7 +29,6 @@ export function ListingRow({ hit, saved }: { hit: SearchHit; saved: boolean }) {
   const societyHref = hit.societySlug ? `/societies/${hit.societySlug}` : null;
   const sourceLabel = SOURCE_LABELS[hit.source] ?? hit.source;
   const updated = timeAgo(hit.updatedAt);
-  const perSqft = hit.areaSqft ? Math.round(hit.rent / hit.areaSqft) : null;
 
   const details: RowDetail[] = [];
   if (hit.nearestMetro) {
@@ -53,14 +52,10 @@ export function ListingRow({ hit, saved }: { hit: SearchHit; saved: boolean }) {
     details.push({ key: 'rent-drop', node: <span className="text-warn">Rent cut {timeAgo(hit.rentDrop.at)}</span> });
   }
   if (hit.availableFrom) details.push({ key: 'available', node: <span>{availability(hit.availableFrom)}</span> });
-  details.push({
-    key: 'sources',
-    node: <span className="text-muted">{hit.sources.map((s) => SOURCE_LABELS[s] ?? s).join(' · ')}</span>,
-  });
 
   const facts = [
     PROPERTY_TYPE_LABELS[hit.propertyType],
-    hit.areaSqft ? `${hit.areaSqft.toLocaleString('en-IN')} sqft · ₹${perSqft}/sqft` : null,
+    hit.areaSqft ? `${hit.areaSqft.toLocaleString('en-IN')} sqft` : null,
     FURNISHING_LABELS[hit.furnishing] || null,
     hit.bathrooms ? `${hit.bathrooms} bath` : null,
     TENANT_PREFERENCE_LABELS[hit.tenantPreference] || null,
@@ -68,7 +63,7 @@ export function ListingRow({ hit, saved }: { hit: SearchHit; saved: boolean }) {
 
   return (
     <ListingRowFrame id={hit.id} dimmed={hit.status !== 'active'}>
-      <div className="relative aspect-[4/3] w-full self-start bg-shade @md:col-start-1 @md:row-span-3 @3xl:row-span-1">
+      <div className="relative aspect-[3/2] w-full self-start bg-shade @md:col-start-1 @md:row-span-3 @3xl:row-span-1">
         <PhotoCarousel
           images={hit.images}
           total={hit.imageCount}
@@ -102,21 +97,28 @@ export function ListingRow({ hit, saved }: { hit: SearchHit; saved: boolean }) {
 
         <AlsoListed hit={hit} />
 
-        <p className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 font-mono text-[11px] text-second">
-          {details.map((detail) => (
-            <Fragment key={detail.key}>{detail.node}</Fragment>
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 font-mono text-[11px] text-second">
+          {details.map((detail, i) => (
+            <Fragment key={detail.key}>
+              {i > 0 && (
+                <span aria-hidden className="text-rule">
+                  ·
+                </span>
+              )}
+              {detail.node}
+            </Fragment>
           ))}
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 @md:col-start-2 @md:row-start-3 @3xl:col-start-4 @3xl:row-start-1 @3xl:flex-col @3xl:content-start">
+      <div className="flex flex-wrap gap-2 @md:col-start-2 @md:row-start-3 @3xl:col-start-4 @3xl:row-start-1 @3xl:flex-col @3xl:self-center">
         <a
           href={hit.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 flex-1 items-center justify-center border border-ink bg-ink px-3 font-mono text-[11px] tracking-[0.08em] text-paper uppercase hover:bg-second @3xl:min-h-10 @3xl:flex-none"
+          className="inline-flex min-h-11 flex-1 items-center justify-center border border-ink bg-ink px-3 text-center font-mono text-[11px] leading-tight tracking-[0.04em] text-paper uppercase hover:bg-second @3xl:min-h-10 @3xl:flex-none"
         >
-          Open on {sourceLabel} ↗
+          Open on {sourceLabel}&nbsp;↗
         </a>
         <ShortlistButton id={hit.id} saved={saved} />
       </div>
