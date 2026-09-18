@@ -3,7 +3,7 @@
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { TILE_ATTRIBUTION, TILE_MAX_ZOOM, TILE_URL } from '@/constants/map';
+import { TILE_ATTRIBUTION, TILE_MAX_ZOOM, TILE_URL, WHEEL_PX_PER_ZOOM_LEVEL } from '@/constants/map';
 import { prefersReducedMotion } from '@/utils/focus';
 import type { LatLng } from '@/utils/map';
 
@@ -57,6 +57,23 @@ export function useLeafletMap(options: LeafletMapOptions): { ref: RefObject<HTML
       setMap(null);
     };
   }, []);
+
+  useEffect(() => {
+    if (!map) return;
+    const el = map.getContainer();
+
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      if (map.scrollWheelZoom.enabled()) return;
+      const at = map.containerPointToLatLng(map.mouseEventToContainerPoint(e));
+      const step = Math.max(-1, Math.min(1, -e.deltaY / WHEEL_PX_PER_ZOOM_LEVEL));
+      map.setZoomAround(at, map.getZoom() + step, { animate: false });
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [map]);
 
   return { ref, map };
 }

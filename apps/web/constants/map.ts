@@ -13,3 +13,4 @@ export const RESULTS_ZOOM = 13;
 export const RESULTS_MAX_ZOOM = 16;
 export const LOCALITY_LABEL_MIN_ZOOM = 12;
 export const COORD_DECIMALS = 5;
+export const WHEEL_PX_PER_ZOOM_LEVEL = 60;
