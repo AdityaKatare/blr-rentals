@@ -1,31 +1,36 @@
 import type { SourceOverview } from '@blr/db';
+import { TABLE, TABLE_HEAD, TABLE_WRAP, TD, TD_NUM, TH } from '@/components/ui/data-table';
 
 export function SourcesTable({ sources }: { sources: SourceOverview[] }) {
   return (
     <section>
-      <h1 className="text-base font-semibold">Sources</h1>
-      <table className="mt-2 w-full border-collapse bg-white">
-        <thead className="text-left text-zinc-600">
-          <tr>
-            <th className="border-b p-2">source</th>
-            <th className="border-b p-2">enabled</th>
-            <th className="border-b p-2">transport</th>
-            <th className="border-b p-2">interval (min)</th>
-            <th className="border-b p-2">active listings</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sources.map((s) => (
-            <tr key={s.slug}>
-              <td className="border-b p-2 font-medium">{s.slug}</td>
-              <td className="border-b p-2">{s.enabled ? 'yes' : 'no'}</td>
-              <td className="border-b p-2">{s.transport}</td>
-              <td className="border-b p-2">{s.crawlIntervalMin}</td>
-              <td className="border-b p-2">{s.activeListings}</td>
+      <h2 className="mb-3 font-display text-[22px] leading-none">Sources</h2>
+      <div className={TABLE_WRAP}>
+        <table className={TABLE}>
+          <thead className={TABLE_HEAD}>
+            <tr>
+              <th className={TH}>Source</th>
+              <th className={TH}>Enabled</th>
+              <th className={TH}>Transport</th>
+              <th className={TH}>Interval (min)</th>
+              <th className={TH}>Active listings</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sources.map((s) => (
+              <tr key={s.slug}>
+                <th scope="row" className={`${TD} text-left font-medium`}>
+                  {s.slug}
+                </th>
+                <td className={TD}>{s.enabled ? 'yes' : 'no'}</td>
+                <td className={TD}>{s.transport}</td>
+                <td className={TD_NUM}>{s.crawlIntervalMin}</td>
+                <td className={TD_NUM}>{s.activeListings}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

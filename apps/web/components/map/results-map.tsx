@@ -10,9 +10,7 @@ const ResultsMapLeaflet = dynamic(() => import('./results-map-leaflet').then((m)
 
 function MapPlaceholder() {
   return (
-    <div className="flex h-56 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-100 text-xs text-zinc-500 sm:h-64">
-      Loading map…
-    </div>
+    <div className="label flex h-full min-h-56 items-center justify-center bg-shade">Loading map</div>
   );
 }
 

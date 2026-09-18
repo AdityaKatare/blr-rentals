@@ -1,5 +1,5 @@
 import { formatBedrooms } from '@blr/core';
-import type { SearchHit } from '@blr/db';
+import type { SearchHit, SearchResult } from '@blr/db';
 import { COORD_DECIMALS } from '@/constants/map';
 import { rupees, shortRupees } from './format';
 
@@ -39,3 +39,9 @@ export function pinsFromHits(hits: SearchHit[]): { pins: MapPin[]; approxOnly: n
 }
 
 export const formatCoord = (n: number): string => n.toFixed(COORD_DECIMALS);
+
+export function centerLabel(center: SearchResult['center']): string {
+  if (center.locality) return center.locality.name;
+  if (center.nearest) return `your map pin near ${center.nearest.name}`;
+  return `${formatCoord(center.lat)}, ${formatCoord(center.lng)}`;
+}

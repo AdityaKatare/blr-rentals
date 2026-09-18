@@ -7,13 +7,6 @@ export const SOURCE_LABELS: Record<string, string> = {
   ninetynineacres: '99acres',
 };
 
-export const SOURCE_STYLES: Record<string, string> = {
-  nobroker: 'bg-rose-50 text-rose-700 ring-rose-200',
-  magicbricks: 'bg-red-50 text-red-800 ring-red-200',
-  housing: 'bg-violet-50 text-violet-700 ring-violet-200',
-  ninetynineacres: 'bg-sky-50 text-sky-700 ring-sky-200',
-};
-
 export const FURNISHING_LABELS: Record<string, string> = {
   full: 'Fully furnished',
   semi: 'Semi-furnished',

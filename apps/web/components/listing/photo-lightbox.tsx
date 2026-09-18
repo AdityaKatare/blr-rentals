@@ -86,12 +86,12 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
       aria-modal="true"
       aria-label={`Photos of ${title}`}
       onClick={closeOnBackdrop}
-      className="fixed inset-0 z-50 flex flex-col bg-black/90 text-white"
+      className="fixed inset-0 z-50 flex flex-col bg-ink/95 text-paper"
     >
       <div className="flex items-center justify-between gap-4 px-4 py-3">
-        <p className="min-w-0 truncate text-sm">{title}</p>
+        <p className="min-w-0 truncate text-[13px]">{title}</p>
         <div className="flex shrink-0 items-center gap-3">
-          <span className="text-sm tabular-nums text-white/70">
+          <span className="font-mono text-[11px] tabular-nums text-paper/70">
             {index + 1} / {images.length}
           </span>
           <button
@@ -99,7 +99,7 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
             type="button"
             aria-label="Close photos"
             onClick={close}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10"
+            className="flex h-11 w-11 items-center justify-center border border-paper/40 hover:bg-paper/10"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
@@ -119,7 +119,7 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
           alt={`Photo ${index + 1} of ${images.length}`}
           referrerPolicy="no-referrer"
           draggable={false}
-          className="max-h-full max-w-full select-none rounded object-contain"
+          className="max-h-full max-w-full select-none object-contain"
         />
         {images.length > 1 && (
           <>
@@ -128,7 +128,7 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
               aria-label="Previous photo"
               onClick={() => go(-1)}
               disabled={index === 0}
-              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 hover:bg-white/25 disabled:invisible sm:left-4"
+              className="absolute top-1/2 left-2 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-paper/40 bg-ink/60 hover:bg-paper/20 disabled:invisible sm:left-4"
             >
               <ChevronIcon direction="left" className="h-6 w-6" />
             </button>
@@ -137,7 +137,7 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
               aria-label="Next photo"
               onClick={() => go(1)}
               disabled={index === last}
-              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 hover:bg-white/25 disabled:invisible sm:right-4"
+              className="absolute top-1/2 right-2 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-paper/40 bg-ink/60 hover:bg-paper/20 disabled:invisible sm:right-4"
             >
               <ChevronIcon direction="right" className="h-6 w-6" />
             </button>
@@ -156,7 +156,7 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
                 aria-label={`Show photo ${i + 1}`}
                 aria-current={i === index}
                 onClick={() => setIndex(i)}
-                className={`h-14 w-20 shrink-0 overflow-hidden rounded border-2 ${i === index ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                className={`h-14 w-20 shrink-0 overflow-hidden border-2 ${i === index ? 'border-paper' : 'border-transparent opacity-60 hover:opacity-100'}`}
               >
                 <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" draggable={false} className="h-full w-full object-cover" />
               </button>
@@ -164,9 +164,9 @@ export function PhotoLightbox({ images, startIndex, total, title, sourceUrl, sou
           </div>
         )}
         {more > 0 && (
-          <p className="text-xs text-white/70">
+          <p className="font-mono text-[11px] text-paper/70">
             {more} more {more === 1 ? 'photo' : 'photos'} on{' '}
-            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">
+            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-paper">
               {sourceLabel} ↗
             </a>
           </p>

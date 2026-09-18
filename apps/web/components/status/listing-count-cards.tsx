@@ -8,11 +8,11 @@ export function ListingCountCards({ counts }: { counts: ListingCounts }) {
     ['Awaiting dedupe', counts.ungrouped],
   ];
   return (
-    <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <section className="grid grid-cols-2 border-t border-l border-ink sm:grid-cols-4">
       {cards.map(([label, value]) => (
-        <div key={label} className="rounded-lg border border-zinc-200 bg-white p-3">
-          <p className="text-2xl font-semibold">{value}</p>
-          <p className="text-xs text-zinc-500">{label}</p>
+        <div key={label} className="border-r border-b border-ink bg-sheet p-4">
+          <p className="tabular font-display text-[32px] leading-none">{value.toLocaleString('en-IN')}</p>
+          <p className="label mt-2">{label}</p>
         </div>
       ))}
     </section>

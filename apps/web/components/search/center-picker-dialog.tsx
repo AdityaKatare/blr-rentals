@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { centerPin, localityDot } from '@/components/map/pin-icons';
+import { Button } from '@/components/ui/button';
 import { BENGALURU_BOUNDS, LOCALITY_LABEL_MIN_ZOOM, PICKER_MIN_ZOOM, PICKER_ZOOM } from '@/constants/map';
 import { useLeafletMap } from '@/hooks/use-leaflet-map';
 import { useModalSheet } from '@/hooks/use-modal-sheet';
@@ -23,7 +24,7 @@ interface CenterPickerDialogProps {
   onConfirm: (selection: CenterSelection) => void;
 }
 
-const AREA_STYLE: L.CircleMarkerOptions = { color: '#e11d48', weight: 1, opacity: 0.6, fillColor: '#e11d48', fillOpacity: 0.06, interactive: false };
+const AREA_STYLE: L.CircleMarkerOptions = { color: '#b91c1c', weight: 1, opacity: 0.7, fillColor: '#b91c1c', fillOpacity: 0.06, interactive: false };
 
 export function CenterPickerDialog({ localities, initial, radiusKm, onCancel, onConfirm }: CenterPickerDialogProps) {
   const [selection, setSelection] = useState<CenterSelection>(initial);
@@ -118,40 +119,31 @@ export function CenterPickerDialog({ localities, initial, radiusKm, onCancel, on
       aria-modal="true"
       aria-labelledby="center-picker-title"
       onClick={closeOnBackdrop}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 sm:p-4"
     >
-      <div className="flex h-full w-full flex-col bg-white sm:h-[560px] sm:max-h-full sm:w-[640px] sm:max-w-full sm:rounded-xl sm:shadow-xl">
-        <div className="flex items-baseline justify-between gap-3 border-b border-zinc-200 px-4 py-3">
-          <h2 id="center-picker-title" className="font-semibold">
+      <div className="flex h-full w-full flex-col border-ink bg-paper sm:h-[560px] sm:max-h-full sm:w-[640px] sm:max-w-full sm:border sm:shadow-sheet">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-ink px-4 py-3">
+          <h2 id="center-picker-title" className="font-display text-[22px] leading-none">
             Pick a search centre
           </h2>
-          <p className="text-xs text-zinc-500">Tap the map or a locality, or drag the pin</p>
+          <p className="label">Tap the map or a locality, or drag the pin</p>
         </div>
 
         <div className="relative isolate min-h-0 flex-1 overflow-hidden">
           <div ref={ref} className="blr-map absolute inset-0" />
         </div>
 
-        <div className="flex items-center gap-2 border-t border-zinc-200 px-4 py-3">
-          <p className="min-w-0 flex-1 truncate text-sm" aria-live="polite">
+        <div className="flex items-center gap-2 border-t border-ink px-4 py-3">
+          <p className="min-w-0 flex-1 truncate text-[13px]" aria-live="polite">
             {summary}
-            <span className="text-zinc-500"> · {radiusKm} km radius</span>
+            <span className="text-muted"> · {radiusKm} km radius</span>
           </p>
-          <button
-            ref={cancelButton}
-            type="button"
-            onClick={onCancel}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
-          >
+          <Button ref={cancelButton} onClick={onCancel}>
             Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => onConfirm(selection)}
-            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-          >
+          </Button>
+          <Button variant="solid" onClick={() => onConfirm(selection)}>
             Use this point
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

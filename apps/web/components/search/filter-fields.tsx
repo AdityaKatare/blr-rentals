@@ -1,213 +1,184 @@
 import {
   AMENITIES,
-  DEFAULT_RADIUS_KM,
   DEPOSIT_MONTHS_OPTIONS,
   FURNISHINGS,
   NEAR_METRO_OPTIONS_M,
   PROPERTY_TYPES,
-  SORT_OPTIONS,
   SOURCE_SLUGS,
   TENANT_FILTERS,
 } from '@blr/core';
-import type { LocalityMatch, SearchResult } from '@blr/db';
+import type { ReactNode } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChipCheckbox } from '@/components/ui/chip-checkbox';
+import { PopoverFilter } from '@/components/ui/popover-filter';
+import { Select } from '@/components/ui/select';
+import { TextInput } from '@/components/ui/text-input';
+import { ToggleChip } from '@/components/ui/toggle-chip';
 import {
   FURNISHING_LABELS,
   NEAR_METRO_LABELS,
   PROPERTY_TYPE_LABELS,
-  SORT_LABELS,
   SOURCE_LABELS,
   TENANT_FILTER_LABELS,
 } from '@/constants/labels';
-import { BHK_OPTIONS, RADIUS_OPTIONS_KM } from '@/constants/search';
-import { humanize } from '@/utils/format';
-import { formatCoord } from '@/utils/map';
+import { BHK_OPTIONS, DEPOSIT_FILTER_NOTE, METRO_FILTER_NOTE } from '@/constants/search';
+import { humanize, shortDate } from '@/utils/format';
 import { first, list, type Params, type ParsedParams } from '@/utils/search-params';
-import { CenterPicker, MapPinChip } from './center-picker';
-import { SearchCombobox } from './search-combobox';
 
 interface FilterFieldsProps {
   params: Params;
   parsed: ParsedParams;
-  localities: LocalityMatch[] | null;
-  center: SearchResult['center'] | null;
 }
 
-export function FilterFields({ params, parsed, localities, center }: FilterFieldsProps) {
+export function FilterFields({ params, parsed }: FilterFieldsProps) {
   const bedrooms = list(params.bedrooms);
   const furnishing = list(params.furnishing);
   const propertyTypes = list(params.propertyTypes);
   const amenities = list(params.amenities);
   const sources = list(params.sources);
-  const sort = parsed.query.sort ?? 'relevance';
-  const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
-  const radii = RADIUS_OPTIONS_KM.includes(radiusKm) ? RADIUS_OPTIONS_KM : [...RADIUS_OPTIONS_KM, radiusKm].sort((a, b) => a - b);
-  const explicitCenter = parsed.explicitCenter;
-  const nearestName = center?.nearest?.name ?? null;
+  const availableBy = first(params.availableBy) ?? '';
 
   return (
     <>
-      <div>
-        <div className="flex items-center justify-between gap-2">
-          <label htmlFor="locality" className="text-sm font-medium">
-            Near
-          </label>
-          <CenterPicker
-            localities={localities ?? []}
-            center={center ? { lat: center.lat, lng: center.lng } : explicitCenter}
-            radiusKm={radiusKm}
-            nearestName={nearestName}
-            explicit={explicitCenter !== null}
+      <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-8 lg:gap-y-3">
+        <Group label="Rent">
+          <TextInput
+            name="minRent"
+            type="number"
+            min={0}
+            step={1000}
+            placeholder="Min"
+            aria-label="Minimum rent per month"
+            defaultValue={first(params.minRent) ?? ''}
+            className="w-full lg:w-24"
           />
-        </div>
-        <div className="mt-1">
-          <SearchCombobox
-            id="locality"
-            name="locality"
-            label="Localities"
-            defaultValue={parsed.explicitCenter ? '' : parsed.localityText}
-            placeholder="Koramangala, HSR, Whitefield…"
-            options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
-            clearFields={['lat', 'lng']}
+          <span aria-hidden className="text-muted">
+            –
+          </span>
+          <TextInput
+            name="maxRent"
+            type="number"
+            min={0}
+            step={1000}
+            placeholder="Max"
+            aria-label="Maximum rent per month"
+            defaultValue={first(params.maxRent) ?? ''}
+            className="w-full lg:w-24"
           />
-        </div>
-        <input type="hidden" name="lat" defaultValue={explicitCenter ? formatCoord(explicitCenter.lat) : ''} />
-        <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
-        {explicitCenter && <MapPinChip point={explicitCenter} nearestName={nearestName} />}
-      </div>
+        </Group>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="text-sm font-medium">
-          Within
-          <select name="radiusKm" defaultValue={String(radiusKm)} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
-            {radii.map((r) => (
-              <option key={r} value={r}>
-                {r} km
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-medium">
-          Sort
-          <select name="sort" defaultValue={sort} className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-2 text-sm font-normal">
-            {SORT_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {SORT_LABELS[s]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <fieldset>
-        <legend className="text-sm font-medium">Rent (₹/month)</legend>
-        <div className="mt-1 grid grid-cols-2 gap-3">
-          <input name="minRent" type="number" min={0} step={1000} placeholder="Min" defaultValue={first(params.minRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
-          <input name="maxRent" type="number" min={0} step={1000} placeholder="Max" defaultValue={first(params.maxRent) ?? ''} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend className="text-sm font-medium">Size</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <Group label="Size">
           {BHK_OPTIONS.map((o) => (
-            <ChipCheckbox key={o.value} name="bedrooms" value={o.value} label={o.label} checked={bedrooms.includes(o.value)} />
+            <ToggleChip key={o.value} name="bedrooms" value={o.value} label={o.label} checked={bedrooms.includes(o.value)} />
           ))}
-        </div>
-      </fieldset>
+        </Group>
 
-      <fieldset>
-        <legend className="text-sm font-medium">Furnishing</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <Group label="Furnishing">
           {FURNISHINGS.filter((f) => f !== 'unknown').map((f) => (
-            <ChipCheckbox key={f} name="furnishing" value={f} label={FURNISHING_LABELS[f] ?? f} checked={furnishing.includes(f)} />
+            <ToggleChip
+              key={f}
+              name="furnishing"
+              value={f}
+              label={FURNISHING_LABELS[f] ?? f}
+              checked={furnishing.includes(f)}
+            />
           ))}
-        </div>
-      </fieldset>
+        </Group>
 
-      <fieldset>
-        <legend className="text-sm font-medium">Property type</legend>
-        <div className="mt-2 grid grid-cols-2 gap-1.5">
-          {PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
-            <Checkbox key={t} name="propertyTypes" value={t} label={PROPERTY_TYPE_LABELS[t] ?? t} checked={propertyTypes.includes(t)} />
-          ))}
-        </div>
-      </fieldset>
-
-      <div className="space-y-1.5">
-        <Checkbox name="parking" value="required" label="Has parking" checked={first(params.parking) === 'required'} />
-        <Checkbox name="ownerOnly" value="on" label="Owner listings only" checked={first(params.ownerOnly) === 'on'} />
-        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
-          Available by
-          <input name="availableBy" type="date" defaultValue={first(params.availableBy) ?? ''} className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
-        </label>
-        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
-          Tenants
-          <select
-            name="tenants"
-            defaultValue={parsed.query.tenantPreference ?? ''}
-            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-          >
-            <option value="">Anyone</option>
-            {TENANT_FILTERS.map((t) => (
-              <option key={t} value={t}>
-                {TENANT_FILTER_LABELS[t]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
-          Deposit
-          <select
-            name="depositMonths"
-            defaultValue={parsed.query.depositMaxMonths ? String(parsed.query.depositMaxMonths) : ''}
-            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-          >
-            <option value="">Any size</option>
-            {DEPOSIT_MONTHS_OPTIONS.map((m) => (
-              <option key={m} value={m}>
-                Up to {m} {m === 1 ? 'month' : 'months'}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
-          Near metro
-          <select
-            name="nearMetro"
-            defaultValue={parsed.query.nearMetroM ? String(parsed.query.nearMetroM) : ''}
-            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-          >
-            <option value="">Any distance</option>
-            {NEAR_METRO_OPTIONS_M.map((m) => (
-              <option key={m} value={m}>
-                Within {NEAR_METRO_LABELS[m]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <a
+          href="/"
+          className="label self-start underline underline-offset-4 hover:text-warn lg:ml-auto lg:self-auto"
+        >
+          Reset all filters
+        </a>
       </div>
 
-      <details open={amenities.length > 0}>
-        <summary className="cursor-pointer text-sm font-medium">
-          Amenities{amenities.length ? ` (${amenities.length})` : ''}
-        </summary>
-        <div className="mt-2 grid grid-cols-2 gap-1.5">
-          {AMENITIES.map((a) => (
-            <Checkbox key={a} name="amenities" value={a} label={humanize(a)} checked={amenities.includes(a)} />
-          ))}
-        </div>
-      </details>
+      <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-2 lg:border-t lg:border-hair lg:pt-3">
+        <PopoverFilter label="Type" summary={propertyTypes.length ? String(propertyTypes.length) : null}>
+          <div className="grid grid-cols-2 gap-x-4">
+            {PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
+              <Checkbox
+                key={t}
+                name="propertyTypes"
+                value={t}
+                label={PROPERTY_TYPE_LABELS[t] ?? t}
+                checked={propertyTypes.includes(t)}
+              />
+            ))}
+          </div>
+        </PopoverFilter>
 
-      <fieldset>
-        <legend className="text-sm font-medium">Sources</legend>
-        <div className="mt-2 grid grid-cols-2 gap-1.5">
-          {SOURCE_SLUGS.map((s) => (
-            <Checkbox key={s} name="sources" value={s} label={SOURCE_LABELS[s] ?? s} checked={sources.includes(s)} />
-          ))}
+        <Select
+          name="tenants"
+          label="Tenants"
+          defaultValue={parsed.query.tenantPreference ?? ''}
+          options={[{ value: '', label: 'Anyone' }, ...TENANT_FILTERS.map((t) => ({ value: t, label: TENANT_FILTER_LABELS[t] }))]}
+        />
+
+        <Select
+          name="depositMonths"
+          label="Deposit"
+          title={DEPOSIT_FILTER_NOTE}
+          defaultValue={parsed.query.depositMaxMonths ? String(parsed.query.depositMaxMonths) : ''}
+          options={[
+            { value: '', label: 'Any size' },
+            ...DEPOSIT_MONTHS_OPTIONS.map((m) => ({ value: String(m), label: `Up to ${m} ${m === 1 ? 'month' : 'months'}` })),
+          ]}
+        />
+
+        <Select
+          name="nearMetro"
+          label="Metro"
+          title={METRO_FILTER_NOTE}
+          defaultValue={parsed.query.nearMetroM ? String(parsed.query.nearMetroM) : ''}
+          options={[
+            { value: '', label: 'Any distance' },
+            ...NEAR_METRO_OPTIONS_M.map((m) => ({ value: String(m), label: `Within ${NEAR_METRO_LABELS[m]}` })),
+          ]}
+        />
+
+        <PopoverFilter label="Available by" summary={availableBy ? shortDate(availableBy) ?? availableBy : null} width="lg:w-56">
+          <TextInput name="availableBy" type="date" aria-label="Available by" defaultValue={availableBy} />
+        </PopoverFilter>
+
+        <div className="flex flex-wrap gap-2">
+          <ToggleChip name="parking" value="required" label="Parking" checked={first(params.parking) === 'required'} />
+          <ToggleChip name="ownerOnly" value="on" label="Owner only" checked={first(params.ownerOnly) === 'on'} />
         </div>
-      </fieldset>
+
+        <PopoverFilter
+          label="Amenities"
+          summary={amenities.length ? String(amenities.length) : null}
+          width="lg:w-[22rem]"
+          note="A listing must have every amenity you tick."
+        >
+          <div className="grid grid-cols-2 gap-x-4">
+            {AMENITIES.map((a) => (
+              <Checkbox key={a} name="amenities" value={a} label={humanize(a)} checked={amenities.includes(a)} />
+            ))}
+          </div>
+        </PopoverFilter>
+
+        <PopoverFilter label="Sources" summary={sources.length ? String(sources.length) : null} width="lg:w-56">
+          <div className="grid grid-cols-1 gap-x-4">
+            {SOURCE_SLUGS.map((s) => (
+              <Checkbox key={s} name="sources" value={s} label={SOURCE_LABELS[s] ?? s} checked={sources.includes(s)} />
+            ))}
+          </div>
+        </PopoverFilter>
+
+        <span className="label hidden lg:ml-auto lg:inline" aria-live="polite">
+          Applies as you change
+        </span>
+      </div>
     </>
+  );
+}
+
+function Group({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
+      <span className="label">{label}</span>
+      <div className="flex flex-wrap items-center gap-2">{children}</div>
+    </div>
   );
 }

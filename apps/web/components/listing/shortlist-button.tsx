@@ -28,9 +28,12 @@ export function ShortlistButton({ id, saved: initiallySaved }: { id: string; sav
       aria-pressed={saved}
       aria-label={label}
       title={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow transition hover:scale-105"
+      className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-ink px-3 font-mono text-[11px] tracking-[0.08em] uppercase @3xl:min-h-10 @3xl:flex-none ${
+        saved ? 'bg-ink text-paper' : 'bg-sheet text-ink hover:bg-shade'
+      }`}
     >
-      <HeartIcon className={`h-5 w-5 ${saved ? 'fill-rose-600 stroke-rose-600' : 'fill-none stroke-zinc-700'}`} strokeWidth={2} />
+      <HeartIcon className={`h-3.5 w-3.5 ${saved ? 'fill-paper' : 'fill-none stroke-ink'}`} strokeWidth={2} />
+      {saved ? 'Saved' : 'Save'}
     </button>
   );
 }
