@@ -1,6 +1,8 @@
+import { Fragment, type ReactNode } from 'react';
 import { formatBedrooms } from '@blr/core';
 import type { SearchHit } from '@blr/db';
-import { FURNISHING_LABELS, METRO_LINE_LABELS, METRO_LINE_STYLES, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import { MetroLinesIcon } from '@/components/ui/metro-lines-icon';
+import { FURNISHING_LABELS, METRO_LINE_LABELS, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
 import { availability, formatDistance, timeAgo } from '@/utils/format';
 import { AlsoListed } from './also-listed';
 import { ListingBadges } from './listing-badges';
@@ -10,12 +12,37 @@ import { PhotoCarousel } from './photo-carousel';
 import { ShortlistButton } from './shortlist-button';
 import { SourceBadges } from './source-badges';
 
+interface CardDetail {
+  key: string;
+  node: ReactNode;
+}
+
 export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) {
   const place = [hit.societyName, hit.locality].filter(Boolean).join(', ');
   const heading = `${formatBedrooms(hit)} ${place ? `in ${place}` : ''}`.trim();
   const sourceLabel = SOURCE_LABELS[hit.source] ?? hit.source;
   const updated = timeAgo(hit.updatedAt);
   const perSqft = hit.areaSqft ? Math.round(hit.rent / hit.areaSqft) : null;
+  const details: CardDetail[] = [];
+  if (hit.nearestMetro) {
+    details.push({
+      key: 'metro',
+      node: (
+        <span
+          className="inline-flex items-center gap-1"
+          title={`Straight-line distance · ${hit.nearestMetro.lines.map((l) => METRO_LINE_LABELS[l]).join(' / ')}`}
+        >
+          <MetroLinesIcon lines={hit.nearestMetro.lines} />
+          {formatDistance(hit.nearestMetro.distanceM)} to {hit.nearestMetro.name} metro
+        </span>
+      ),
+    });
+  }
+  if (updated) details.push({ key: 'updated', node: <span>Updated {updated}</span> });
+  if (hit.rentDrop) {
+    details.push({ key: 'rent-drop', node: <span className="text-amber-700">Rent cut {timeAgo(hit.rentDrop.at)}</span> });
+  }
+  if (hit.availableFrom) details.push({ key: 'available', node: <span>{availability(hit.availableFrom)}</span> });
   const facts = [
     PROPERTY_TYPE_LABELS[hit.propertyType],
     hit.areaSqft ? `${hit.areaSqft.toLocaleString('en-IN')} sqft · ₹${perSqft}/sqft` : null,
@@ -53,28 +80,13 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
 
         <AlsoListed hit={hit} />
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-zinc-500">
-          {hit.distanceM !== null && (
-            <span>
-              {formatDistance(hit.distanceM)} away{hit.geoAccuracy !== 'exact' ? ' (approx.)' : ''}
-            </span>
-          )}
-          {hit.nearestMetro && (
-            <span
-              className="inline-flex items-center gap-1"
-              title={`Straight-line distance · ${hit.nearestMetro.lines.map((l) => METRO_LINE_LABELS[l]).join(' / ')}`}
-            >
-              {hit.nearestMetro.lines.map((l) => (
-                <span key={l} aria-hidden className={`inline-block h-2 w-2 rounded-full ${METRO_LINE_STYLES[l]}`} />
-              ))}
-              {formatDistance(hit.nearestMetro.distanceM)} to {hit.nearestMetro.name} metro
-              {hit.geoAccuracy !== 'exact' ? ' (approx.)' : ''}
-            </span>
-          )}
-          {updated && <span>Updated {updated}</span>}
-          {hit.rentDrop && <span className="text-amber-700">Rent cut {timeAgo(hit.rentDrop.at)}</span>}
-          {hit.availableFrom && <span>{availability(hit.availableFrom)}</span>}
-          {hit.listedBy === 'owner' && <span className="text-emerald-700">Owner</span>}
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-xs text-zinc-500">
+          {details.map((detail, i) => (
+            <Fragment key={detail.key}>
+              {i > 0 && <span aria-hidden className="font-bold text-zinc-400">·</span>}
+              {detail.node}
+            </Fragment>
+          ))}
           <a
             href={hit.sourceUrl}
             target="_blank"

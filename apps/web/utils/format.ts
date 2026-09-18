@@ -21,7 +21,8 @@ export function shortRupees(n: number): string {
 }
 
 export function formatDistance(meters: number): string {
-  return meters < 1000 ? `${Math.round(meters / 10) * 10} m` : `${(meters / 1000).toFixed(1)} km`;
+  const rounded = Math.max(10, Math.round(meters / 10) * 10);
+  return rounded < 1000 ? `${rounded} m` : `${(rounded / 1000).toFixed(1)} km`;
 }
 
 export function timeAgo(iso: string | null, now: Date = new Date()): string | null {
