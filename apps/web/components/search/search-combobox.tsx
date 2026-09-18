@@ -57,9 +57,16 @@ export function SearchCombobox({
   const listId = `${useId()}-list`;
   const input = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(defaultValue);
+  const [applied, setApplied] = useState(defaultValue);
   const [typing, setTyping] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+
+  if (defaultValue !== applied) {
+    setApplied(defaultValue);
+    setValue(defaultValue);
+    setTyping(false);
+  }
 
   const matches = useMemo(() => {
     const q = value.trim().toLowerCase();
