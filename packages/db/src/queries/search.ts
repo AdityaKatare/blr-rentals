@@ -2,10 +2,17 @@ import { DAY_MS, rankListings, type SearchQuery } from '@blr/core';
 import type { Sql } from '../client';
 import { geographyPoint, pgArray } from '../sql';
 import type { LocalityMatch, SearchHit, SearchResult } from '../types';
-import { enrichHits, hitColumns, toHit, type ListingRow } from './hits';
+import { enrichHits, hitColumns, plausibleDeposit, toHit, type ListingRow } from './hits';
 import { localityById, nearestLocality } from './localities';
 
 export const RELEVANCE_CANDIDATE_CAP = 1000;
+
+export function orderBy(sql: Sql, sort: SearchQuery['sort']) {
+  if (sort === 'rent_asc') return sql`rent ASC, distance_m ASC, id`;
+  if (sort === 'movein_asc') return sql`move_in_cost ASC NULLS LAST, rent ASC, id`;
+  if (sort === 'newest') return sql`updated_ts DESC, id`;
+  return sql`distance_m ASC, id`;
+}
 
 export async function searchListings(sql: Sql, query: SearchQuery, now: Date = new Date()): Promise<SearchResult> {
   const started = performance.now();
@@ -43,6 +50,12 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
     conditions.push(sql`(l.available_from IS NULL OR l.available_from <= ${query.availableBy}::date)`);
   }
   if (query.sources?.length) conditions.push(sql`s.slug = ANY (${pgArray(query.sources)}::text[])`);
+  if (query.tenantPreference) {
+    conditions.push(sql`l.tenant_preference IN (${query.tenantPreference}::tenant_preference, 'any')`);
+  }
+  if (query.depositMaxMonths !== undefined) {
+    conditions.push(sql`${plausibleDeposit(sql)} AND l.deposit <= l.rent * ${query.depositMaxMonths}`);
+  }
   if (query.nearMetroM !== undefined) {
     conditions.push(sql`l.geo_accuracy IN ('exact', 'approximate')`);
     conditions.push(sql`EXISTS (
@@ -52,12 +65,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
 
   const where = conditions.reduce((acc, c) => sql`${acc} AND ${c}`);
 
-  const order =
-    query.sort === 'rent_asc'
-      ? sql`rent ASC, distance_m ASC, id`
-      : query.sort === 'newest'
-        ? sql`updated_ts DESC, id`
-        : sql`distance_m ASC, id`;
+  const order = orderBy(sql, query.sort);
 
   const relevance = query.sort === 'relevance';
   const limit = relevance ? RELEVANCE_CANDIDATE_CAP : query.pageSize;

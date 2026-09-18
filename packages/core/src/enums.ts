@@ -22,6 +22,12 @@ export type Parking = (typeof PARKINGS)[number];
 export const TENANT_PREFERENCES = ['family', 'bachelor', 'company', 'any', 'unknown'] as const;
 export type TenantPreference = (typeof TENANT_PREFERENCES)[number];
 
+export const TENANT_FILTERS = ['family', 'bachelor', 'company'] as const;
+export type TenantFilter = (typeof TENANT_FILTERS)[number];
+
+export const DEPOSIT_MONTHS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
+export type DepositMonths = (typeof DEPOSIT_MONTHS_OPTIONS)[number];
+
 export const LISTED_BY = ['owner', 'broker', 'builder', 'unknown'] as const;
 export type ListedBy = (typeof LISTED_BY)[number];
 
@@ -31,7 +37,7 @@ export type GeoAccuracy = (typeof GEO_ACCURACIES)[number];
 export const LISTING_STATUSES = ['active', 'stale', 'removed'] as const;
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
 
-export const SORT_OPTIONS = ['relevance', 'rent_asc', 'distance', 'newest'] as const;
+export const SORT_OPTIONS = ['relevance', 'rent_asc', 'movein_asc', 'distance', 'newest'] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
 export const AMENITIES = [

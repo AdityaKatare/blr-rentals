@@ -1,5 +1,8 @@
 import {
   DAY_MS,
+  DEPOSIT_MAX_PLAUSIBLE_MONTHS,
+  DEPOSIT_MIN_PLAUSIBLE_MONTHS,
+  moveInCost,
   type Furnishing,
   type GeoAccuracy,
   type ListedBy,
@@ -8,6 +11,7 @@ import {
   type Parking,
   type PropertyType,
   type SourceSlug,
+  type TenantPreference,
 } from '@blr/core';
 import type { Sql } from '../client';
 import { pgArray, utcIso, type Fragment } from '../sql';
@@ -37,6 +41,8 @@ export interface ListingRow {
   listed_by: ListedBy;
   locality: string | null;
   society_name: string | null;
+  society_slug: string | null;
+  tenant_preference: TenantPreference;
   geo_accuracy: GeoAccuracy;
   is_verified: boolean;
   amenities: string[];
@@ -51,6 +57,17 @@ export interface ListingRow {
 }
 
 const lastUpdatedAt = (sql: Sql) => sql`COALESCE(l.source_updated_at, l.posted_at, l.first_seen_at)`;
+
+export const plausibleDeposit = (sql: Sql) => sql`(
+    l.deposit IS NOT NULL
+    AND l.deposit >= l.rent * ${DEPOSIT_MIN_PLAUSIBLE_MONTHS}::numeric
+    AND l.deposit <= l.rent * ${DEPOSIT_MAX_PLAUSIBLE_MONTHS}::numeric
+  )`;
+
+export const moveInCostColumn = (sql: Sql) => sql`CASE
+    WHEN NOT ${plausibleDeposit(sql)} THEN NULL
+    ELSE l.rent + l.deposit + COALESCE(l.maintenance, 0) + CASE WHEN l.listed_by = 'broker' THEN l.rent ELSE 0 END
+  END`;
 
 export function toHit(r: ListingRow, score: number | null): SearchHit {
   return {
@@ -72,6 +89,9 @@ export function toHit(r: ListingRow, score: number | null): SearchHit {
     listedBy: r.listed_by,
     locality: r.locality,
     societyName: r.society_name,
+    societySlug: r.society_slug,
+    tenantPreference: r.tenant_preference,
+    moveInCost: moveInCost({ rent: r.rent, deposit: r.deposit, maintenance: r.maintenance, listedBy: r.listed_by }),
     geoAccuracy: r.geo_accuracy,
     isVerified: r.is_verified,
     amenities: r.amenities,
@@ -99,7 +119,8 @@ export function hitColumns(sql: Sql, point: Fragment | null) {
     l.id, l.property_id, s.slug AS source, l.source_url, l.title, l.rent, l.deposit, l.maintenance,
     l.bedrooms, l.is_1rk, l.bedrooms_plus, l.bathrooms, l.area_sqft,
     l.property_type, l.furnishing, l.parking, l.listed_by,
-    l.locality, l.society_name, l.geo_accuracy, l.is_verified, l.amenities,
+    l.locality, l.society_name, l.society_slug, l.tenant_preference, l.geo_accuracy, l.is_verified, l.amenities,
+    ${moveInCostColumn(sql)} AS move_in_cost,
     jsonb_array_length(l.images) AS image_count,
     l.available_from::text AS available_from,
     ${utcIso(sql, sql`l.posted_at`)} AS posted_at,

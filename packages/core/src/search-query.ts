@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SORT_OPTIONS, SOURCE_SLUGS } from './enums';
+import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SORT_OPTIONS, SOURCE_SLUGS, TENANT_FILTERS } from './enums';
 
 export const DEFAULT_RADIUS_KM = 5;
 
@@ -22,6 +22,10 @@ export const SearchQuerySchema = z.object({
   parking: z.enum(['any', 'required']).default('any'),
   listedBy: z.enum(['any', 'owner']).default('any'),
   availableBy: z.string().date().optional(),
+  tenantPreference: z.enum(TENANT_FILTERS).optional(),
+  depositMaxMonths: z
+    .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)])
+    .optional(),
   // keep in sync with NEAR_METRO_OPTIONS_M
   nearMetroM: z.union([z.literal(500), z.literal(1000), z.literal(1500)]).optional(),
   sources: z.array(z.enum(SOURCE_SLUGS)).optional(),

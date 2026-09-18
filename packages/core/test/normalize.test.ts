@@ -118,6 +118,20 @@ describe('SearchQuerySchema', () => {
     expect(SearchQuerySchema.safeParse({ center: {}, radiusKm: 100 }).success).toBe(false);
   });
 
+  it('accepts only the searchable tenant preferences', () => {
+    const center = { lat: 12.93, lng: 77.62 };
+    expect(SearchQuerySchema.parse({ center, tenantPreference: 'bachelor' }).tenantPreference).toBe('bachelor');
+    expect(SearchQuerySchema.safeParse({ center, tenantPreference: 'any' }).success).toBe(false);
+    expect(SearchQuerySchema.safeParse({ center, tenantPreference: 'unknown' }).success).toBe(false);
+  });
+
+  it('accepts only whole-month deposit caps up to six', () => {
+    const center = { lat: 12.93, lng: 77.62 };
+    expect(SearchQuerySchema.parse({ center, depositMaxMonths: 3 }).depositMaxMonths).toBe(3);
+    expect(SearchQuerySchema.safeParse({ center, depositMaxMonths: 7 }).success).toBe(false);
+    expect(SearchQuerySchema.safeParse({ center, depositMaxMonths: 2.5 }).success).toBe(false);
+  });
+
   it('accepts only the fixed near-metro distances', () => {
     const center = { lat: 12.93, lng: 77.62 };
     expect(SearchQuerySchema.parse({ center, nearMetroM: 1000 }).nearMetroM).toBe(1000);

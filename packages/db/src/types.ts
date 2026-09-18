@@ -6,10 +6,13 @@ import type {
   ListingStatus,
   MetroLine,
   MetroStationStatus,
+  MoveInCost,
   NormalizedListing,
   Parking,
   PropertyType,
+  SortOption,
   SourceSlug,
+  TenantPreference,
 } from '@blr/core';
 
 export interface LocalityMatch {
@@ -39,6 +42,9 @@ export interface SearchHit {
   listedBy: ListedBy;
   locality: string | null;
   societyName: string | null;
+  societySlug: string | null;
+  tenantPreference: TenantPreference;
+  moveInCost: MoveInCost | null;
   geoAccuracy: GeoAccuracy;
   isVerified: boolean;
   amenities: string[];
@@ -73,6 +79,43 @@ export interface MetroStation {
   status: MetroStationStatus;
   lat: number;
   lng: number;
+}
+
+export interface SocietySummary {
+  slug: string;
+  name: string;
+  locality: string | null;
+  units: number;
+  rentMin: number;
+  rentMax: number;
+  sources: SourceSlug[];
+  nearestMetro: NearestMetro | null;
+}
+
+export interface SocietyBedroomStat {
+  bedrooms: number;
+  units: number;
+  rentMin: number;
+  rentMedian: number;
+  rentMax: number;
+}
+
+export interface SocietyDetail extends SocietySummary {
+  localities: string[];
+  byBedrooms: SocietyBedroomStat[];
+  center: LatLng | null;
+  lastUpdatedAt: string | null;
+}
+
+export interface SocietyListings {
+  society: SocietyDetail;
+  hits: SearchHit[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+  sort: SortOption;
+  tookMs: number;
 }
 
 export interface RentDrop {

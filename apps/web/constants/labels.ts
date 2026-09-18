@@ -1,4 +1,4 @@
-import type { MetroLine, NearMetroM, SortOption } from '@blr/core';
+import type { MetroLine, NearMetroM, SortOption, TenantFilter, TenantPreference } from '@blr/core';
 
 export const SOURCE_LABELS: Record<string, string> = {
   nobroker: 'NoBroker',
@@ -57,6 +57,27 @@ export const METRO_LINE_STYLES: Record<MetroLine, string> = {
 export const SORT_LABELS: Record<SortOption, string> = {
   relevance: 'Best match',
   rent_asc: 'Rent: low to high',
+  movein_asc: 'Move-in cost: low to high',
   distance: 'Nearest',
   newest: 'Recently updated',
+};
+
+export const TENANT_FILTER_LABELS: Record<TenantFilter, string> = {
+  family: 'Families',
+  bachelor: 'Bachelors',
+  company: 'Company lease',
+};
+
+export const TENANT_FILTER_CHIPS: Record<TenantFilter, string> = {
+  family: 'Takes families',
+  bachelor: 'Takes bachelors',
+  company: 'Takes company leases',
+};
+
+export const TENANT_PREFERENCE_LABELS: Record<TenantPreference, string> = {
+  family: 'Families only',
+  bachelor: 'Bachelors welcome',
+  company: 'Company lease',
+  any: '',
+  unknown: '',
 };

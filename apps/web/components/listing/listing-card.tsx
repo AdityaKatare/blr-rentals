@@ -1,8 +1,15 @@
 import { Fragment, type ReactNode } from 'react';
 import { formatBedrooms } from '@blr/core';
 import type { SearchHit } from '@blr/db';
+import Link from 'next/link';
 import { MetroLinesIcon } from '@/components/ui/metro-lines-icon';
-import { FURNISHING_LABELS, METRO_LINE_LABELS, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import {
+  FURNISHING_LABELS,
+  METRO_LINE_LABELS,
+  PROPERTY_TYPE_LABELS,
+  SOURCE_LABELS,
+  TENANT_PREFERENCE_LABELS,
+} from '@/constants/labels';
 import { availability, formatDistance, timeAgo } from '@/utils/format';
 import { AlsoListed } from './also-listed';
 import { ListingBadges } from './listing-badges';
@@ -20,6 +27,7 @@ interface CardDetail {
 export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) {
   const place = [hit.societyName, hit.locality].filter(Boolean).join(', ');
   const heading = `${formatBedrooms(hit)} ${place ? `in ${place}` : ''}`.trim();
+  const societyHref = hit.societySlug ? `/societies/${hit.societySlug}` : null;
   const sourceLabel = SOURCE_LABELS[hit.source] ?? hit.source;
   const updated = timeAgo(hit.updatedAt);
   const perSqft = hit.areaSqft ? Math.round(hit.rent / hit.areaSqft) : null;
@@ -48,6 +56,7 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
     hit.areaSqft ? `${hit.areaSqft.toLocaleString('en-IN')} sqft · ₹${perSqft}/sqft` : null,
     FURNISHING_LABELS[hit.furnishing] || null,
     hit.bathrooms ? `${hit.bathrooms} bath` : null,
+    TENANT_PREFERENCE_LABELS[hit.tenantPreference] || null,
   ].filter(Boolean);
 
   return (
@@ -73,7 +82,17 @@ export function ListingCard({ hit, saved }: { hit: SearchHit; saved: boolean }) 
         </div>
 
         <h2 className="truncate font-medium" title={hit.title}>
-          {heading}
+          {societyHref && hit.societyName ? (
+            <>
+              {formatBedrooms(hit)} in{' '}
+              <Link href={societyHref} className="underline decoration-zinc-300 underline-offset-2 hover:decoration-zinc-900">
+                {hit.societyName}
+              </Link>
+              {hit.locality ? `, ${hit.locality}` : ''}
+            </>
+          ) : (
+            heading
+          )}
         </h2>
 
         <p className="text-sm text-zinc-600">{facts.join(' · ')}</p>

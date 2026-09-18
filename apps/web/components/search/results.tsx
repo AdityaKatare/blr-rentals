@@ -1,4 +1,5 @@
 import type { SortOption } from '@blr/core';
+import Link from 'next/link';
 import { ListingCard } from '@/components/listing/listing-card';
 import { ResultsMap } from '@/components/map/results-map';
 import { DatabaseErrorNotice, Notice } from '@/components/ui/notice';
@@ -6,7 +7,7 @@ import { SORT_LABELS } from '@/constants/labels';
 import type { SearchOutcome } from '@/server/search';
 import { clearFiltersHref, type ActiveFilter } from '@/utils/filters';
 import { pinsFromHits } from '@/utils/map';
-import { first, isNearMetroOption, type Params } from '@/utils/search-params';
+import { first, isDepositMonths, isNearMetroOption, type Params } from '@/utils/search-params';
 import { ActiveFilterChips } from './active-filter-chips';
 import { ActiveListingProvider } from './active-listing';
 import { Pagination } from './pagination';
@@ -47,7 +48,17 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
   const { lat, lng, locality, nearest } = result.center;
   const near = locality?.name ?? (nearest ? `your map pin near ${nearest.name}` : `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
   const { pins, approxOnly } = pinsFromHits(result.hits);
-  const metroFiltered = isNearMetroOption(Number(first(params.nearMetro)));
+  const notes: string[] = [];
+  if (isNearMetroOption(Number(first(params.nearMetro)))) {
+    notes.push(
+      'Metro distance is measured in a straight line from open Namma Metro stations. Listings placed only at their locality centre cannot match this filter and are left out.',
+    );
+  }
+  if (isDepositMonths(Number(first(params.depositMonths)))) {
+    notes.push(
+      'Deposit in months is the published deposit divided by the rent. Listings with no deposit, or one too far off the rent to believe, are left out.',
+    );
+  }
 
   return (
     <ActiveListingProvider>
@@ -60,11 +71,12 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
         </p>
       </div>
 
-      {metroFiltered && (
-        <p className="text-xs text-zinc-500">
-          Metro distance is measured in a straight line from open Namma Metro stations. Listings placed only at their
-          locality centre cannot match this filter and are left out.
-        </p>
+      {notes.length > 0 && (
+        <div className="space-y-1 text-xs text-zinc-500">
+          {notes.map((note) => (
+            <p key={note}>{note}</p>
+          ))}
+        </div>
       )}
 
       <ActiveFilterChips chips={chips} clearAllHref={clearFiltersHref(params)} />
@@ -82,7 +94,12 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
 
       {result.hits.length === 0 ? (
         <Notice tone="zinc" title="Nothing matches these filters yet">
-          Widen the radius, raise the rent limit or clear some filters. Only areas the scraper has visited have listings.
+          Widen the radius, raise the rent limit or clear some filters. Only areas the scraper has visited have
+          listings. To look inside one apartment wherever it is, search it under{' '}
+          <Link href="/societies" className="underline underline-offset-2">
+            Apartments
+          </Link>
+          .
         </Notice>
       ) : (
         <div className="space-y-3">

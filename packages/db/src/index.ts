@@ -10,6 +10,14 @@ export { listMetroStations } from './queries/metro';
 export { createRunRecorder, recentRuns } from './queries/scrape-runs';
 export { loadSearchArea } from './queries/search-areas';
 export { searchListings } from './queries/search';
+export {
+  findSociety,
+  listSocieties,
+  societyListings,
+  societyOptions,
+  SOCIETY_PAGE_SIZE,
+  type SocietyOption,
+} from './queries/societies';
 export { DEFAULT_REMOVE_DAYS, DEFAULT_STALE_DAYS, markStale } from './queries/stale';
 export { listingCounts, sourceOverview } from './queries/status';
 export type * from './types';

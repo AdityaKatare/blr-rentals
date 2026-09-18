@@ -2,12 +2,12 @@
 
 One search box over Bangalore rental listings from several portals. MVP sources are **NoBroker** and **MagicBricks**; Housing.com and 99acres exist as disabled adapter stubs.
 
-**Status: working MVP.** NoBroker and MagicBricks are scraped, normalised, deduplicated across sources and searchable by radius, with a shortlist and a `/status` page. Results can be filtered by straight-line distance to an open Namma Metro station and every card shows its nearest station (`docs/metro-stations.md`). Scheduling is not set up yet.
+**Status: working MVP.** NoBroker and MagicBricks are scraped, normalised, deduplicated across sources and searchable by radius, with a shortlist and a `/status` page. Results can be filtered by straight-line distance to an open Namma Metro station and every card shows its nearest station (`docs/metro-stations.md`). Search also filters on who the landlord will take and on the deposit in months, sorts by what it costs to move in (`docs/move-in-cost.md`), and every apartment has its own page listing all of its units (`docs/apartments.md`). Scheduling is not set up yet.
 
 ## Layout
 
 ```
-apps/web        Next.js — search, shortlist, /status   (server components query Postgres directly)
+apps/web        Next.js — search, apartments, shortlist, /status   (server components query Postgres directly)
 apps/scraper    Node CLI — sources/, pipeline/, http/  (writes to Postgres)
 packages/core   Zod contracts: NormalizedListing, SearchQuery, enums, normalizers, ranking, dedupe scoring
 packages/db     SQL migrations, seeds, the postgres-js client and all search/dedupe queries

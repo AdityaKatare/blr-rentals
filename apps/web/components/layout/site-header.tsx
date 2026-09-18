@@ -14,6 +14,9 @@ export function SiteHeader({ savedCount }: { savedCount: number }) {
             Shortlist
             {savedCount > 0 && <span className="rounded-full bg-zinc-900 px-1.5 text-xs text-white">{savedCount}</span>}
           </Link>
+          <Link href="/societies" className="hover:text-zinc-900">
+            Apartments
+          </Link>
           <Link href="/status" className="hover:text-zinc-900">
             Status
           </Link>

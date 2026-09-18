@@ -1,7 +1,13 @@
-import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import {
+  FURNISHING_LABELS,
+  NEAR_METRO_LABELS,
+  PROPERTY_TYPE_LABELS,
+  SOURCE_LABELS,
+  TENANT_FILTER_CHIPS,
+} from '@/constants/labels';
 import { BHK_OPTIONS, FILTERS_KEPT_ON_CLEAR } from '@/constants/search';
 import { humanize, rupees, shortDate } from './format';
-import { first, isNearMetroOption, list, withParams, type Params } from './search-params';
+import { first, isDepositMonths, isNearMetroOption, isTenantFilter, list, withParams, type Params } from './search-params';
 
 export interface ActiveFilter {
   key: string;
@@ -51,6 +57,22 @@ export function activeFilters(params: Params): ActiveFilter[] {
       key: 'nearMetro',
       label: `Metro within ${NEAR_METRO_LABELS[nearMetro]}`,
       href: withParams(params, { nearMetro: null, page: null }),
+    });
+  }
+  const tenants = first(params.tenants);
+  if (tenants !== undefined && isTenantFilter(tenants)) {
+    chips.push({
+      key: 'tenants',
+      label: TENANT_FILTER_CHIPS[tenants],
+      href: withParams(params, { tenants: null, page: null }),
+    });
+  }
+  const depositMonths = Number(first(params.depositMonths));
+  if (isDepositMonths(depositMonths)) {
+    chips.push({
+      key: 'depositMonths',
+      label: `Deposit ${depositMonths} ${depositMonths === 1 ? 'month' : 'months'} or less`,
+      href: withParams(params, { depositMonths: null, page: null }),
     });
   }
   multi('amenities', (v) => humanize(v));

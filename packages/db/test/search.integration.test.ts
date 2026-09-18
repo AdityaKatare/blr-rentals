@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { SearchQuerySchema, type SearchQueryInput, type SourceSlug } from '@blr/core';
+import { SearchQuerySchema, societySlug, type SearchQueryInput, type SourceSlug } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type DbHandle } from '../src/client';
 import { loadEnv } from '../src/env';
@@ -31,13 +31,16 @@ const UPCOMING_STATION = { slug: `${metroPrefix}-upcoming`, name: 'Test Upcoming
 
 const offsetLat = (km: number) => CENTER.lat + km / 111.2;
 
+const SOCIETY = `Zz Test Meadows ${randomBytes(3).toString('hex')}`;
+const OTHER_SOCIETY = `Zz Other Court ${randomBytes(3).toString('hex')}`;
+
 const fixtures = [
-  { id: 'near-2bhk', km: 0.5, rent: 25000, bedrooms: 2, furnishing: 'semi', type: 'apartment', parking: 'car', amenities: ['gym', 'lift'], updatedDaysAgo: 5, available: '2026-09-01' },
-  { id: 'mid-2bhk-cheap', km: 2, rent: 18000, bedrooms: 2, furnishing: 'unfurnished', type: 'independent_house', parking: 'none', amenities: [], updatedDaysAgo: 1, available: '2026-12-01' },
-  { id: 'far-3bhk', km: 4, rent: 60000, bedrooms: 3, furnishing: 'full', type: 'apartment', parking: 'both', amenities: ['gym', 'lift', 'pool'], updatedDaysAgo: 0, available: null },
-  { id: 'rk', km: 1, rent: 9000, bedrooms: 0, furnishing: 'semi', type: 'apartment', parking: 'bike', amenities: ['lift'], updatedDaysAgo: 20, available: null },
-  { id: 'outside', km: 12, rent: 20000, bedrooms: 2, furnishing: 'semi', type: 'apartment', parking: 'car', amenities: [], updatedDaysAgo: 0, available: null },
-  { id: 'stale', km: 0.2, rent: 20000, bedrooms: 2, furnishing: 'semi', type: 'apartment', parking: 'car', amenities: [], updatedDaysAgo: 0, available: null, status: 'stale' },
+  { id: 'near-2bhk', km: 0.5, rent: 25000, bedrooms: 2, furnishing: 'semi', type: 'apartment', parking: 'car', amenities: ['gym', 'lift'], updatedDaysAgo: 5, available: '2026-09-01', deposit: 50000, maintenance: 2000, listedBy: 'owner', tenants: 'family', society: SOCIETY },
+  { id: 'mid-2bhk-cheap', km: 2, rent: 18000, bedrooms: 2, furnishing: 'unfurnished', type: 'independent_house', parking: 'none', amenities: [], updatedDaysAgo: 1, available: '2026-12-01', deposit: 90000, maintenance: null, listedBy: 'broker', tenants: 'bachelor', society: SOCIETY },
+  { id: 'far-3bhk', km: 4, rent: 60000, bedrooms: 3, furnishing: 'full', type: 'apartment', parking: 'both', amenities: ['gym', 'lift', 'pool'], updatedDaysAgo: 0, available: null, deposit: 600000, maintenance: 5000, listedBy: 'owner', tenants: 'any', society: OTHER_SOCIETY },
+  { id: 'rk', km: 1, rent: 9000, bedrooms: 0, furnishing: 'semi', type: 'apartment', parking: 'bike', amenities: ['lift'], updatedDaysAgo: 20, available: null, deposit: 1, maintenance: null, listedBy: 'owner', tenants: 'company', society: null },
+  { id: 'outside', km: 12, rent: 20000, bedrooms: 2, furnishing: 'semi', type: 'apartment', parking: 'car', amenities: [], updatedDaysAgo: 0, available: null, deposit: null, maintenance: null, listedBy: 'owner', tenants: 'any', society: null },
+  { id: 'stale', km: 0.2, rent: 20000, bedrooms: 2, furnishing: 'semi', type: 'apartment', parking: 'car', amenities: [], updatedDaysAgo: 0, available: null, status: 'stale', deposit: 40000, maintenance: null, listedBy: 'owner', tenants: 'any', society: SOCIETY },
 ];
 
 describe.runIf(handle)('searchListings against Postgres', () => {
@@ -57,10 +60,13 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     for (const f of fixtures) {
       await sql`
         INSERT INTO listings (source_id, source_listing_id, source_url, title, property_type, bedrooms, is_1rk, rent,
-                              furnishing, parking, listed_by, location, geo_accuracy, amenities, images,
+                              deposit, maintenance, furnishing, parking, listed_by, tenant_preference, society_name,
+                              location, geo_accuracy, amenities, images,
                               available_from, source_updated_at, raw_hash, status)
         VALUES (${sourceId}, ${f.id}, ${`https://example.com/${f.id}`}, ${f.id}, ${f.type}::property_type, ${f.bedrooms},
-                ${f.bedrooms === 0}, ${f.rent}, ${f.furnishing}::furnishing, ${f.parking}::parking, 'owner',
+                ${f.bedrooms === 0}, ${f.rent}, ${f.deposit}, ${f.maintenance},
+                ${f.furnishing}::furnishing, ${f.parking}::parking, ${f.listedBy}::listed_by,
+                ${f.tenants}::tenant_preference, ${f.society},
                 ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(f.km)}), 4326)::geography, 'exact',
                 ${`{${f.amenities.join(',')}}`}::text[], '[]'::jsonb, ${f.available}::date,
                 now() - make_interval(days => ${f.updatedDaysAgo}), 'h', ${f.status ?? 'active'}::listing_status)`;
@@ -185,6 +191,48 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     expect(saved[0]!.nearestMetro).toMatchObject({ name: OPEN_STATION.name });
 
     await sql`DELETE FROM listings WHERE source_id = ${sourceId} AND source_listing_id = ${centroidId}`;
+  });
+
+  it('filters by who the landlord will take, counting "any" as open to everyone', async () => {
+    const only = async (input: Omit<SearchQueryInput, 'center'>) =>
+      ids((await search({ radiusKm: 5, sort: 'distance', ...input })).hits).filter((id) => fixtures.some((f) => f.id === id));
+
+    expect(await only({ tenantPreference: 'family' })).toEqual(['near-2bhk', 'far-3bhk']);
+    expect(await only({ tenantPreference: 'bachelor' })).toEqual(['mid-2bhk-cheap', 'far-3bhk']);
+    expect(await only({ tenantPreference: 'company' })).toEqual(['rk', 'far-3bhk']);
+  });
+
+  it('filters on deposit in months and skips deposits the portal got wrong', async () => {
+    const only = async (depositMaxMonths: 1 | 2 | 3 | 4 | 5 | 6) =>
+      ids((await search({ radiusKm: 5, sort: 'distance', depositMaxMonths })).hits).filter((id) =>
+        fixtures.some((f) => f.id === id),
+      );
+
+    expect(await only(2)).toEqual(['near-2bhk']);
+    expect(await only(5)).toEqual(['near-2bhk', 'mid-2bhk-cheap']);
+    expect(await only(1)).toEqual([]);
+  });
+
+  it('sorts by move-in cost and leaves listings without a usable deposit last', async () => {
+    const r = await search({ radiusKm: 5, sort: 'movein_asc' });
+    const mine = r.hits.filter((h) => fixtures.some((f) => h.sourceUrl.endsWith(f.id)));
+    expect(ids(mine)).toEqual(['near-2bhk', 'mid-2bhk-cheap', 'far-3bhk', 'rk']);
+
+    const byId = (id: string) => mine.find((h) => h.sourceUrl.endsWith(id))!;
+    expect(byId('near-2bhk').moveInCost).toEqual({ total: 77000, rent: 25000, deposit: 50000, maintenance: 2000, brokerage: 0 });
+    expect(byId('mid-2bhk-cheap').moveInCost).toMatchObject({ total: 126000, brokerage: 18000 });
+    expect(byId('rk').moveInCost).toBeNull();
+
+    const totals = mine.map((h) => h.moveInCost?.total ?? Number.POSITIVE_INFINITY);
+    expect([...totals].sort((a, b) => a - b)).toEqual(totals);
+  });
+
+  it('carries the apartment slug on every hit so cards can link to its page', async () => {
+    const r = await search({ radiusKm: 5, sort: 'distance' });
+    const byId = (id: string) => r.hits.find((h) => h.sourceUrl.endsWith(id))!;
+    expect(byId('near-2bhk').societySlug).toBe(societySlug(SOCIETY));
+    expect(byId('far-3bhk').societySlug).toBe(societySlug(OTHER_SOCIETY));
+    expect(byId('rk').societySlug).toBeNull();
   });
 
   it('centres on a locality by id and matches locality names loosely', async () => {

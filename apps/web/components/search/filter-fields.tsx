@@ -1,16 +1,25 @@
 import {
   AMENITIES,
   DEFAULT_RADIUS_KM,
+  DEPOSIT_MONTHS_OPTIONS,
   FURNISHINGS,
   NEAR_METRO_OPTIONS_M,
   PROPERTY_TYPES,
   SORT_OPTIONS,
   SOURCE_SLUGS,
+  TENANT_FILTERS,
 } from '@blr/core';
 import type { LocalityMatch, SearchResult } from '@blr/db';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChipCheckbox } from '@/components/ui/chip-checkbox';
-import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS, SORT_LABELS, SOURCE_LABELS } from '@/constants/labels';
+import {
+  FURNISHING_LABELS,
+  NEAR_METRO_LABELS,
+  PROPERTY_TYPE_LABELS,
+  SORT_LABELS,
+  SOURCE_LABELS,
+  TENANT_FILTER_LABELS,
+} from '@/constants/labels';
 import { BHK_OPTIONS, RADIUS_OPTIONS_KM } from '@/constants/search';
 import { humanize } from '@/utils/format';
 import { formatCoord } from '@/utils/map';
@@ -136,6 +145,36 @@ export function FilterFields({ params, parsed, localities, center }: FilterField
         <label className="flex items-center justify-between gap-2 pt-1 text-sm">
           Available by
           <input name="availableBy" type="date" defaultValue={first(params.availableBy) ?? ''} className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+        </label>
+        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
+          Tenants
+          <select
+            name="tenants"
+            defaultValue={parsed.query.tenantPreference ?? ''}
+            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+          >
+            <option value="">Anyone</option>
+            {TENANT_FILTERS.map((t) => (
+              <option key={t} value={t}>
+                {TENANT_FILTER_LABELS[t]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center justify-between gap-2 pt-1 text-sm">
+          Deposit
+          <select
+            name="depositMonths"
+            defaultValue={parsed.query.depositMaxMonths ? String(parsed.query.depositMaxMonths) : ''}
+            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+          >
+            <option value="">Any size</option>
+            {DEPOSIT_MONTHS_OPTIONS.map((m) => (
+              <option key={m} value={m}>
+                Up to {m} {m === 1 ? 'month' : 'months'}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="flex items-center justify-between gap-2 pt-1 text-sm">
           Near metro
