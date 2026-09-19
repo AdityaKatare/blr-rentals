@@ -16,9 +16,9 @@ interface SearchHeadlineProps {
   near: string | null;
 }
 
-const FIELD = 'relative inline-flex items-baseline border-b-2 border-ink pr-[0.7em] align-baseline';
+const FIELD = 'relative inline-flex items-baseline border-b-2 border-ink align-baseline';
 const INHERIT = 'bg-transparent font-display text-[inherit] leading-none';
-const NATIVE = `cursor-pointer appearance-none ${INHERIT}`;
+const NATIVE = `cursor-pointer appearance-none pr-[0.8em] ${INHERIT}`;
 
 export function SearchHeadline({ parsed, localities, center, total, near }: SearchHeadlineProps) {
   const sort = parsed.query.sort ?? 'relevance';
@@ -37,7 +37,7 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
             <span className="sr-only">Radius</span>
             <select name="radiusKm" defaultValue={String(radiusKm)} className={NATIVE}>
               {radii.map((r) => (
-                <option key={r} value={r}>
+                <option key={r} value={r} className="font-sans text-[13px]">
                   {r} km
                 </option>
               ))}
