@@ -88,8 +88,11 @@ export function MapPinChip({ point, nearestName }: MapPinChipProps) {
 
   return (
     <div className="flex items-center gap-2 font-mono text-[11px] text-second">
-      <span className="inline-flex items-center border border-rule bg-sheet px-2 py-1">
-        Map pin {formatCoord(point.lat)}, {formatCoord(point.lng)}
+      <span
+        title={`${formatCoord(point.lat)}, ${formatCoord(point.lng)}`}
+        className="inline-flex items-center border border-rule bg-sheet px-2 py-1"
+      >
+        near {nearestName ?? `${formatCoord(point.lat)}, ${formatCoord(point.lng)}`}
       </span>
       <button ref={button} type="button" onClick={clear} className="uppercase tracking-[0.08em] underline underline-offset-4 hover:text-warn">
         Clear

@@ -23,6 +23,7 @@ interface SearchComboboxProps {
 }
 
 const SUGGESTION_LIMIT = 10;
+const AUTOSIZE_MIN = 13;
 const BROWSE_LIMIT = 50;
 
 function rank(option: ComboOption, q: string): number {
@@ -143,7 +144,7 @@ export function SearchCombobox({
         aria-autocomplete="list"
         aria-activedescendant={open && active >= 0 ? `${listId}-${active}` : undefined}
         autoComplete="off"
-        size={autoSize ? Math.max(placeholder.length, value.length + 1) : undefined}
+        size={autoSize ? Math.max(AUTOSIZE_MIN, placeholder.length, value.length + 1) : undefined}
         placeholder={placeholder}
         value={value}
         onChange={(e) => {

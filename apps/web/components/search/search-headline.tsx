@@ -2,7 +2,7 @@ import { DEFAULT_RADIUS_KM, SORT_OPTIONS } from '@blr/core';
 import type { LocalityMatch, SearchResult } from '@blr/db';
 import { Select } from '@/components/ui/select';
 import { SORT_LABELS } from '@/constants/labels';
-import { RADIUS_OPTIONS_KM } from '@/constants/search';
+import { DEFAULT_LOCALITY, RADIUS_OPTIONS_KM } from '@/constants/search';
 import { formatCoord } from '@/utils/map';
 import type { ParsedParams } from '@/utils/search-params';
 import { CenterPicker, MapPinChip } from './center-picker';
@@ -16,9 +16,7 @@ interface SearchHeadlineProps {
   near: string | null;
 }
 
-const FIELD = 'relative inline-flex items-baseline border-b-2 border-ink pr-[0.7em] align-baseline';
 const INHERIT = 'bg-transparent font-display text-[inherit] leading-none';
-const NATIVE = `cursor-pointer appearance-none ${INHERIT}`;
 
 export function SearchHeadline({ parsed, localities, center, total, near }: SearchHeadlineProps) {
   const sort = parsed.query.sort ?? 'relevance';
@@ -32,25 +30,13 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
         <h1 className="font-display text-[26px] leading-[1.25] sm:text-[32px] xl:text-[38px]">
-          {counted} within{' '}
-          <label className={FIELD}>
-            <span className="sr-only">Radius</span>
-            <select name="radiusKm" defaultValue={String(radiusKm)} className={NATIVE}>
-              {radii.map((r) => (
-                <option key={r} value={r}>
-                  {r} km
-                </option>
-              ))}
-            </select>
-            <Caret />
-          </label>{' '}
-          of{' '}
+          {counted} near{' '}
           <SearchCombobox
             id="locality"
             name="locality"
             label="Localities"
             defaultValue={explicitCenter ? '' : parsed.localityText}
-            placeholder={explicitCenter && near ? near : 'Koramangala'}
+            placeholder={explicitCenter && near ? near : DEFAULT_LOCALITY}
             options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
             clearFields={['lat', 'lng']}
             wrapperClassName="relative inline-block max-w-full align-baseline"
@@ -61,7 +47,14 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
           <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
         </h1>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Select
+            name="radiusKm"
+            label="Search radius"
+            hideLabel
+            defaultValue={String(radiusKm)}
+            options={radii.map((r) => ({ value: String(r), label: `${r} km` }))}
+          />
           <CenterPicker
             localities={localities ?? []}
             center={center ? { lat: center.lat, lng: center.lng } : explicitCenter}
@@ -80,13 +73,5 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
 
       {explicitCenter && <MapPinChip point={explicitCenter} nearestName={nearestName} />}
     </div>
-  );
-}
-
-function Caret() {
-  return (
-    <span aria-hidden className="pointer-events-none absolute right-0 bottom-[0.25em] text-[0.45em] leading-none">
-      ▾
-    </span>
   );
 }

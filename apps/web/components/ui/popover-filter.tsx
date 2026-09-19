@@ -48,29 +48,32 @@ export function PopoverFilter({ label, summary = null, note, width = 'lg:w-80', 
     <div ref={wrap} className="lg:relative">
       <span className="label mb-1 block lg:hidden">{label}</span>
 
-      <Button
-        ref={trigger}
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
-        variant={summary ? 'solid' : 'outline'}
-        className="relative hidden pr-6 lg:inline-flex"
-      >
-        {label}
-        {summary && <span className="font-mono text-[11px]">{summary}</span>}
-        <Caret />
-      </Button>
+      <span className="hidden lg:inline-block">
+        <Button
+          ref={trigger}
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((v) => !v)}
+          variant={summary ? 'solid' : 'outline'}
+          size="sm"
+          className="relative pr-5"
+        >
+          {label}
+          {summary && <span className="font-mono text-[11px]">{summary}</span>}
+          <Caret />
+        </Button>
+      </span>
 
       <div
         ref={panel}
         id={panelId}
         role="group"
         aria-label={label}
-        className={`${open ? 'block' : 'hidden max-lg:block'} lg:absolute lg:left-0 lg:top-[calc(100%+6px)] lg:z-30 ${width} lg:border lg:border-ink lg:bg-sheet lg:p-4 lg:shadow-sheet`}
+        className={`${open ? 'block' : 'hidden max-lg:block'} lg:absolute lg:left-0 lg:top-[calc(100%+6px)] lg:z-30 ${width} lg:border lg:border-ink lg:bg-sheet lg:p-3 lg:shadow-sheet`}
       >
         {children}
         {note && <p className="mt-2 border-t border-hair pt-2 text-[12px] leading-snug text-muted">{note}</p>}
-        <div className="mt-3 hidden justify-end border-t border-hair pt-3 lg:flex">
+        <div className="mt-2.5 hidden justify-end border-t border-hair pt-2.5 lg:flex">
           <Button variant="solid" size="sm" onClick={dismiss}>
             Done
           </Button>
