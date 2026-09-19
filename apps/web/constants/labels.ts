@@ -49,10 +49,10 @@ export const METRO_LINE_STYLES: Record<MetroLine, string> = {
 
 export const SORT_LABELS: Record<SortOption, string> = {
   relevance: 'Best match',
-  rent_asc: 'Rent: low to high',
-  movein_asc: 'Move-in cost: low to high',
+  rent_asc: 'Lowest rent',
+  movein_asc: 'Lowest move-in',
   distance: 'Nearest',
-  newest: 'Recently updated',
+  newest: 'Newest',
 };
 
 export const TENANT_FILTER_LABELS: Record<TenantFilter, string> = {
