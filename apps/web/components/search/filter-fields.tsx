@@ -39,7 +39,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-8 lg:gap-y-3">
+      <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6 lg:gap-y-2">
         <Group label="Rent">
           <TextInput
             name="minRent"
@@ -49,7 +49,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
             placeholder="Min"
             aria-label="Minimum rent per month"
             defaultValue={first(params.minRent) ?? ''}
-            className="w-full lg:w-24"
+            className="w-full lg:w-20"
           />
           <span aria-hidden className="text-muted">
             –
@@ -62,7 +62,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
             placeholder="Max"
             aria-label="Maximum rent per month"
             defaultValue={first(params.maxRent) ?? ''}
-            className="w-full lg:w-24"
+            className="w-full lg:w-20"
           />
         </Group>
 
@@ -92,7 +92,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
         </a>
       </div>
 
-      <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-2 lg:border-t lg:border-hair lg:pt-3">
+      <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-2 lg:border-t lg:border-hair lg:pt-2.5">
         <PopoverFilter label="Type" summary={propertyTypes.length ? String(propertyTypes.length) : null}>
           <div className="grid grid-cols-2 gap-x-4">
             {PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
@@ -120,7 +120,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
           title={DEPOSIT_FILTER_NOTE}
           defaultValue={parsed.query.depositMaxMonths ? String(parsed.query.depositMaxMonths) : ''}
           options={[
-            { value: '', label: 'Any size' },
+            { value: '', label: 'Any' },
             ...DEPOSIT_MONTHS_OPTIONS.map((m) => ({ value: String(m), label: `Up to ${m} ${m === 1 ? 'month' : 'months'}` })),
           ]}
         />
@@ -131,7 +131,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
           title={METRO_FILTER_NOTE}
           defaultValue={parsed.query.nearMetroM ? String(parsed.query.nearMetroM) : ''}
           options={[
-            { value: '', label: 'Any distance' },
+            { value: '', label: 'Any' },
             ...NEAR_METRO_OPTIONS_M.map((m) => ({ value: String(m), label: `Within ${NEAR_METRO_LABELS[m]}` })),
           ]}
         />
@@ -165,10 +165,6 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
             ))}
           </div>
         </PopoverFilter>
-
-        <span className="label hidden lg:ml-auto lg:inline" aria-live="polite">
-          Applies as you change
-        </span>
       </div>
     </>
   );
@@ -176,7 +172,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
 
 function Group({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
+    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-2">
       <span className="label">{label}</span>
       <div className="flex flex-wrap items-center gap-2">{children}</div>
     </div>

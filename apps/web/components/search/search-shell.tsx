@@ -17,6 +17,7 @@ interface SearchShellProps {
 export function SearchShell({ headline, fields, activeCount, total, children }: SearchShellProps) {
   const { formKey, pending, apply, formHandlers } = useAutoApplyForm();
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(activeCount > 0);
   const trigger = useRef<HTMLButtonElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setOpen(false), []);
@@ -34,6 +35,7 @@ export function SearchShell({ headline, fields, activeCount, total, children }: 
 
   const countLabel = total === null ? 'Results' : `${total.toLocaleString('en-IN')} ${total === 1 ? 'rental' : 'rentals'}`;
   const resultsLabel = total === null ? 'Show results' : `Show ${countLabel}`;
+  const badge = activeCount > 0 ? <span className="font-mono text-[11px]">{activeCount}</span> : null;
 
   return (
     <>
@@ -48,17 +50,42 @@ export function SearchShell({ headline, fields, activeCount, total, children }: 
           close();
         }}
       >
-        <div className={`${PAGE_WIDTH} ${GUTTER} py-5 lg:py-7`}>{headline}</div>
+        <div className={`${PAGE_WIDTH} ${GUTTER} py-5 lg:py-6`}>{headline}</div>
 
-        <div className="sticky top-0 z-20 border-y border-ink bg-paper lg:hidden">
-          <div className={`${GUTTER} flex items-center gap-3 py-2`}>
-            <Button ref={trigger} onClick={() => setOpen(true)} aria-expanded={open} aria-controls="filter-band">
-              Filters
-              {activeCount > 0 && <span className="font-mono text-[11px]">{activeCount}</span>}
-            </Button>
+        <div className="sticky top-0 z-20 border-y border-ink bg-paper">
+          <div className={`${PAGE_WIDTH} ${GUTTER} flex items-center gap-3 py-1.5`}>
+            <span className="lg:hidden">
+              <Button
+                ref={trigger}
+                size="sm"
+                variant={activeCount > 0 ? 'solid' : 'outline'}
+                onClick={() => setOpen(true)}
+                aria-expanded={open}
+                aria-controls="filter-band"
+              >
+                Filters
+                {badge}
+              </Button>
+            </span>
+            <span className="hidden lg:block">
+              <Button
+                size="sm"
+                variant={activeCount > 0 ? 'solid' : 'outline'}
+                onClick={() => setExpanded((v) => !v)}
+                aria-expanded={expanded}
+                aria-controls="filter-band"
+              >
+                {expanded ? 'Hide filters' : 'More filters'}
+                {badge}
+                <span aria-hidden className="text-[9px] leading-none">
+                  {expanded ? '▴' : '▾'}
+                </span>
+              </Button>
+            </span>
             <span className="label" aria-live="polite">
               {pending ? 'Updating…' : countLabel}
             </span>
+            <span className="label ml-auto hidden lg:inline">Applies as you change</span>
           </div>
         </div>
 
@@ -67,7 +94,9 @@ export function SearchShell({ headline, fields, activeCount, total, children }: 
           className={
             open
               ? 'fixed inset-0 z-40 flex flex-col bg-paper'
-              : 'hidden lg:block lg:border-y-2 lg:border-ink'
+              : expanded
+                ? 'hidden lg:block lg:border-b-2 lg:border-ink'
+                : 'hidden'
           }
         >
           <div className="flex items-center justify-between border-b border-ink px-4 py-3 lg:hidden">
@@ -83,7 +112,7 @@ export function SearchShell({ headline, fields, activeCount, total, children }: 
           </div>
 
           <div
-            className={`${PAGE_WIDTH} ${GUTTER} flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain py-5 lg:gap-3 lg:overflow-visible lg:py-3`}
+            className={`${PAGE_WIDTH} ${GUTTER} flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-5 lg:gap-2.5 lg:overflow-visible lg:py-2.5`}
           >
             {fields}
           </div>

@@ -42,6 +42,6 @@ export const formatCoord = (n: number): string => n.toFixed(COORD_DECIMALS);
 
 export function centerLabel(center: SearchResult['center']): string {
   if (center.locality) return center.locality.name;
-  if (center.nearest) return `your map pin near ${center.nearest.name}`;
+  if (center.nearest) return center.nearest.name;
   return `${formatCoord(center.lat)}, ${formatCoord(center.lng)}`;
 }
