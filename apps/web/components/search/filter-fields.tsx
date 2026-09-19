@@ -21,6 +21,7 @@ import {
   TENANT_FILTER_LABELS,
 } from '@/constants/labels';
 import { BHK_OPTIONS, DEPOSIT_FILTER_NOTE, METRO_FILTER_NOTE } from '@/constants/search';
+import { clearFiltersHref } from '@/utils/filters';
 import { humanize, shortDate } from '@/utils/format';
 import { first, list, type Params, type ParsedParams } from '@/utils/search-params';
 
@@ -85,7 +86,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
         </Group>
 
         <a
-          href="/"
+          href={clearFiltersHref(params)}
           className="label self-start underline underline-offset-4 hover:text-warn lg:ml-auto lg:self-auto"
         >
           Reset all filters

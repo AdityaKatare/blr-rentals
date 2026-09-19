@@ -1,5 +1,3 @@
-export const DEFAULT_LOCALITY = 'Koramangala';
-
 export const RADIUS_OPTIONS_KM = [1, 2, 3, 5, 8, 10, 15];
 
 export const BHK_OPTIONS = [

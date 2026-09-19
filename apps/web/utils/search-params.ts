@@ -13,7 +13,7 @@ import {
   type SearchQueryInput,
   type TenantFilter,
 } from '@blr/core';
-import { DEFAULT_LOCALITY, LARGEST_BHK_OPTION, MAX_SEARCH_BEDROOMS } from '@/constants/search';
+import { LARGEST_BHK_OPTION, MAX_SEARCH_BEDROOMS } from '@/constants/search';
 
 export type Params = Record<string, string | string[] | undefined>;
 
@@ -33,6 +33,7 @@ const pick = <T extends string>(values: string[], allowed: readonly T[]): T[] =>
 export interface ParsedParams {
   localityText: string;
   explicitCenter: { lat: number; lng: number } | null;
+  hasCenter: boolean;
   query: Omit<SearchQueryInput, 'center'>;
 }
 
@@ -70,9 +71,12 @@ export function parseParams(params: Params): ParsedParams {
   const depositMonths = num(params.depositMonths);
   if (depositMonths !== undefined && isDepositMonths(depositMonths)) query.depositMaxMonths = depositMonths;
 
+  const explicitCenter = lat !== undefined && lng !== undefined && !localityText ? { lat, lng } : null;
+
   return {
-    localityText: localityText || (lat !== undefined && lng !== undefined ? '' : DEFAULT_LOCALITY),
-    explicitCenter: lat !== undefined && lng !== undefined && !localityText ? { lat, lng } : null,
+    localityText,
+    explicitCenter,
+    hasCenter: explicitCenter !== null || localityText !== '',
     query,
   };
 }
