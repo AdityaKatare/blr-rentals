@@ -9,12 +9,13 @@ import { useModalSheet } from '@/hooks/use-modal-sheet';
 interface SearchShellProps {
   headline: ReactNode;
   fields: ReactNode;
+  sort: ReactNode;
   activeCount: number;
   total: number | null;
   children: ReactNode;
 }
 
-export function SearchShell({ headline, fields, activeCount, total, children }: SearchShellProps) {
+export function SearchShell({ headline, fields, sort, activeCount, total, children }: SearchShellProps) {
   const { formKey, pending, apply, formHandlers } = useAutoApplyForm();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(activeCount > 0);
@@ -85,7 +86,8 @@ export function SearchShell({ headline, fields, activeCount, total, children }: 
             <span className="label" aria-live="polite">
               {pending ? 'Updating…' : countLabel}
             </span>
-            <span className="label ml-auto hidden lg:inline">Applies as you change</span>
+            <span className="label ml-auto hidden xl:inline">Applies as you change</span>
+            <div className="ml-auto xl:ml-0">{sort}</div>
           </div>
         </div>
 

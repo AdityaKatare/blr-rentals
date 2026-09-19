@@ -1,7 +1,5 @@
-import { DEFAULT_RADIUS_KM, SORT_OPTIONS } from '@blr/core';
+import { DEFAULT_RADIUS_KM } from '@blr/core';
 import type { LocalityMatch, SearchResult } from '@blr/db';
-import { Select } from '@/components/ui/select';
-import { SORT_LABELS } from '@/constants/labels';
 import { DEFAULT_LOCALITY, RADIUS_OPTIONS_KM } from '@/constants/search';
 import { formatCoord } from '@/utils/map';
 import type { ParsedParams } from '@/utils/search-params';
@@ -16,12 +14,12 @@ interface SearchHeadlineProps {
   near: string | null;
 }
 
-const FIELD = 'relative inline-flex items-baseline border-b-2 border-ink align-baseline';
+const FIELD =
+  'relative inline-flex items-baseline border-b-2 border-ink align-baseline focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink';
 const INHERIT = 'bg-transparent font-display text-[inherit] leading-none';
-const NATIVE = `cursor-pointer appearance-none pr-[0.8em] ${INHERIT}`;
+const NATIVE = 'absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0';
 
 export function SearchHeadline({ parsed, localities, center, total, near }: SearchHeadlineProps) {
-  const sort = parsed.query.sort ?? 'relevance';
   const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
   const radii = RADIUS_OPTIONS_KM.includes(radiusKm) ? RADIUS_OPTIONS_KM : [...RADIUS_OPTIONS_KM, radiusKm].sort((a, b) => a - b);
   const explicitCenter = parsed.explicitCenter;
@@ -35,6 +33,9 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
           {counted} within{' '}
           <label className={FIELD}>
             <span className="sr-only">Radius</span>
+            <span aria-hidden className="pr-[0.7em]">
+              {radiusKm} km
+            </span>
             <select name="radiusKm" defaultValue={String(radiusKm)} className={NATIVE}>
               {radii.map((r) => (
                 <option key={r} value={r} className="font-sans text-[13px]">
@@ -61,21 +62,13 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
           <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
         </h1>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <CenterPicker
-            localities={localities ?? []}
-            center={center ? { lat: center.lat, lng: center.lng } : explicitCenter}
-            radiusKm={radiusKm}
-            nearestName={nearestName}
-            explicit={explicitCenter !== null}
-          />
-          <Select
-            name="sort"
-            label="Sort"
-            defaultValue={sort}
-            options={SORT_OPTIONS.map((s) => ({ value: s, label: SORT_LABELS[s] }))}
-          />
-        </div>
+        <CenterPicker
+          localities={localities ?? []}
+          center={center ? { lat: center.lat, lng: center.lng } : explicitCenter}
+          radiusKm={radiusKm}
+          nearestName={nearestName}
+          explicit={explicitCenter !== null}
+        />
       </div>
 
       {explicitCenter && <MapPinChip point={explicitCenter} nearestName={nearestName} />}

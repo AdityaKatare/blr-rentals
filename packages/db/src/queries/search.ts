@@ -7,10 +7,18 @@ import { localityById, nearestLocality } from './localities';
 
 export const RELEVANCE_CANDIDATE_CAP = 1000;
 
+export const DISTANCE_BAND_M = 500;
+export const RENT_BAND = 2500;
+
 export function orderBy(sql: Sql, sort: SearchQuery['sort']) {
   if (sort === 'rent_asc') return sql`rent ASC, distance_m ASC, id`;
+  if (sort === 'rent_desc') return sql`rent DESC, distance_m ASC, id`;
   if (sort === 'movein_asc') return sql`move_in_cost ASC NULLS LAST, rent ASC, id`;
+  if (sort === 'movein_desc') return sql`move_in_cost DESC NULLS LAST, rent DESC, id`;
   if (sort === 'newest') return sql`updated_ts DESC, id`;
+  if (sort === 'near_cheap') return sql`floor(distance_m / ${DISTANCE_BAND_M}) ASC, rent ASC, id`;
+  if (sort === 'cheap_near') return sql`floor(rent / ${RENT_BAND}) ASC, distance_m ASC, id`;
+  if (sort === 'new_cheap') return sql`date_trunc('day', updated_ts) DESC, rent ASC, id`;
   return sql`distance_m ASC, id`;
 }
 

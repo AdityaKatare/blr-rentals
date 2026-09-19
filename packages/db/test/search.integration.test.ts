@@ -6,7 +6,7 @@ import { loadEnv } from '../src/env';
 import { CARD_IMAGE_LIMIT } from '../src/queries/hits';
 import { listingsByIds } from '../src/queries/listings';
 import { findLocality } from '../src/queries/localities';
-import { searchListings } from '../src/queries/search';
+import { DISTANCE_BAND_M, RENT_BAND, searchListings } from '../src/queries/search';
 
 loadEnv();
 
@@ -127,6 +127,26 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     const page2 = await search({ radiusKm: 5, sort: 'distance', amenitiesAll: ['lift'], pageSize: 2, page: 2 });
     expect(page2.pages).toBe(Math.ceil(page2.total / 2));
     expect(page2.hits).toHaveLength(Math.min(2, page2.total - 2));
+  });
+
+  it('sorts high to low and breaks the two-key sorts by band', async () => {
+    const mine = (hits: { sourceUrl: string }[]) => ids(hits).filter((id) => fixtures.some((f) => f.id === id));
+
+    const rentDesc = await search({ radiusKm: 5, sort: 'rent_desc', bedrooms: [0, 2, 3] });
+    expect(mine(rentDesc.hits)).toEqual(['far-3bhk', 'near-2bhk', 'mid-2bhk-cheap', 'rk']);
+
+    const moveinDesc = await search({ radiusKm: 5, sort: 'movein_desc', bedrooms: [0, 2, 3] });
+    expect(mine(moveinDesc.hits)).toEqual(['far-3bhk', 'mid-2bhk-cheap', 'near-2bhk', 'rk']);
+
+    const byKey = (keys: [number, number][]) => [...keys].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+
+    const nearCheap = await search({ radiusKm: 5, sort: 'near_cheap' });
+    const nearKeys = nearCheap.hits.map((h): [number, number] => [Math.floor(h.distanceM! / DISTANCE_BAND_M), h.rent]);
+    expect(nearKeys).toEqual(byKey(nearKeys));
+
+    const cheapNear = await search({ radiusKm: 5, sort: 'cheap_near' });
+    const cheapKeys = cheapNear.hits.map((h): [number, number] => [Math.floor(h.rent / RENT_BAND), h.distanceM!]);
+    expect(cheapKeys).toEqual(byKey(cheapKeys));
   });
 
   it('ranks by relevance with scores and pages over the ranked list', async () => {

@@ -3,6 +3,7 @@ import { FilterFields } from '@/components/search/filter-fields';
 import { Results } from '@/components/search/results';
 import { SearchHeadline } from '@/components/search/search-headline';
 import { SearchShell } from '@/components/search/search-shell';
+import { SortSelect } from '@/components/search/sort-select';
 import { loadSearch } from '@/server/search';
 import { readShortlistIds } from '@/server/shortlist';
 import { activeFilters } from '@/utils/filters';
@@ -33,6 +34,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         />
       }
       fields={<FilterFields params={params} parsed={parsed} />}
+      sort={<SortSelect value={parsed.query.sort ?? 'relevance'} />}
     >
       <Results
         outcome={outcome}
