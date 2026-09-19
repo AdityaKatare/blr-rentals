@@ -1,6 +1,6 @@
 import { DEFAULT_RADIUS_KM } from '@blr/core';
 import type { LocalityMatch, SearchResult } from '@blr/db';
-import { DEFAULT_LOCALITY, RADIUS_OPTIONS_KM } from '@/constants/search';
+import { RADIUS_OPTIONS_KM } from '@/constants/search';
 import { formatCoord } from '@/utils/map';
 import type { ParsedParams } from '@/utils/search-params';
 import { CenterPicker, MapPinChip } from './center-picker';
@@ -24,27 +24,53 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
   const nearestName = center?.nearest?.name ?? null;
   const counted = total === null ? 'Rentals' : `${total.toLocaleString('en-IN')} ${total === 1 ? 'rental' : 'rentals'}`;
 
+  const locality = (
+    <SearchCombobox
+      id="locality"
+      name="locality"
+      label="Localities"
+      defaultValue={explicitCenter ? '' : parsed.localityText}
+      placeholder={explicitCenter && near ? near : 'an area'}
+      options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
+      clearFields={['lat', 'lng']}
+      wrapperClassName="relative inline-block max-w-full align-baseline"
+      inputClassName={`max-w-full border-0 border-b-2 border-ink p-0 placeholder:text-muted ${INHERIT}`}
+      autoSize
+    />
+  );
+
+  const hidden = (
+    <>
+      <input type="hidden" name="lat" defaultValue={explicitCenter ? formatCoord(explicitCenter.lat) : ''} />
+      <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
+    </>
+  );
+
+  if (!parsed.hasCenter) {
+    return (
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+        <h1 className="font-display text-[26px] leading-[1.25] sm:text-[32px] xl:text-[38px]">
+          Rentals near {locality}
+          {hidden}
+        </h1>
+        <CenterPicker
+          localities={localities ?? []}
+          center={null}
+          radiusKm={radiusKm}
+          nearestName={null}
+          explicit={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
         <h1 className="font-display text-[26px] leading-[1.25] sm:text-[32px] xl:text-[38px]">
-          {counted} within{' '}
-          <RadiusSelect name="radiusKm" label="Search radius" value={radiusKm} options={radii} />{' '}
-          of{' '}
-          <SearchCombobox
-            id="locality"
-            name="locality"
-            label="Localities"
-            defaultValue={explicitCenter ? '' : parsed.localityText}
-            placeholder={explicitCenter && near ? near : DEFAULT_LOCALITY}
-            options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
-            clearFields={['lat', 'lng']}
-            wrapperClassName="relative inline-block max-w-full align-baseline"
-            inputClassName={`max-w-full border-0 border-b-2 border-ink p-0 placeholder:text-muted ${INHERIT}`}
-            autoSize
-          />
-          <input type="hidden" name="lat" defaultValue={explicitCenter ? formatCoord(explicitCenter.lat) : ''} />
-          <input type="hidden" name="lng" defaultValue={explicitCenter ? formatCoord(explicitCenter.lng) : ''} />
+          {counted} within <RadiusSelect name="radiusKm" label="Search radius" value={radiusKm} options={radii} /> of{' '}
+          {locality}
+          {hidden}
         </h1>
 
         <CenterPicker

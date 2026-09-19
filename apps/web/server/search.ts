@@ -5,6 +5,7 @@ import { getDb } from './db';
 
 export type SearchOutcome =
   | { kind: 'ok'; result: SearchResult; localities: LocalityMatch[] }
+  | { kind: 'no-center'; localities: LocalityMatch[] }
   | { kind: 'unknown-locality'; text: string; localities: LocalityMatch[] }
   | { kind: 'invalid'; issues: string[]; localities: LocalityMatch[] }
   | { kind: 'db-error'; message: string };
@@ -13,6 +14,7 @@ export async function loadSearch(parsed: ParsedParams): Promise<SearchOutcome> {
   try {
     const { sql } = getDb();
     const localities = await listLocalities(sql);
+    if (!parsed.hasCenter) return { kind: 'no-center', localities };
     let center: SearchQuery['center'];
     if (parsed.explicitCenter) {
       center = parsed.explicitCenter;
