@@ -4,6 +4,7 @@ import { DEFAULT_LOCALITY, RADIUS_OPTIONS_KM } from '@/constants/search';
 import { formatCoord } from '@/utils/map';
 import type { ParsedParams } from '@/utils/search-params';
 import { CenterPicker, MapPinChip } from './center-picker';
+import { RadiusSelect } from './radius-select';
 import { SearchCombobox } from './search-combobox';
 
 interface SearchHeadlineProps {
@@ -14,10 +15,7 @@ interface SearchHeadlineProps {
   near: string | null;
 }
 
-const FIELD =
-  'relative inline-flex items-baseline border-b-2 border-ink align-baseline focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink';
 const INHERIT = 'bg-transparent font-display text-[inherit] leading-none';
-const NATIVE = 'absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0';
 
 export function SearchHeadline({ parsed, localities, center, total, near }: SearchHeadlineProps) {
   const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
@@ -31,20 +29,7 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
         <h1 className="font-display text-[26px] leading-[1.25] sm:text-[32px] xl:text-[38px]">
           {counted} within{' '}
-          <label className={FIELD}>
-            <span className="sr-only">Radius</span>
-            <span aria-hidden className="pr-[0.7em]">
-              {radiusKm} km
-            </span>
-            <select name="radiusKm" defaultValue={String(radiusKm)} className={NATIVE}>
-              {radii.map((r) => (
-                <option key={r} value={r} className="font-sans text-[13px]">
-                  {r} km
-                </option>
-              ))}
-            </select>
-            <Caret />
-          </label>{' '}
+          <RadiusSelect name="radiusKm" label="Search radius" value={radiusKm} options={radii} />{' '}
           of{' '}
           <SearchCombobox
             id="locality"
@@ -76,10 +61,3 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
   );
 }
 
-function Caret() {
-  return (
-    <span aria-hidden className="pointer-events-none absolute right-0 bottom-[0.25em] text-[0.45em] leading-none">
-      ▾
-    </span>
-  );
-}
