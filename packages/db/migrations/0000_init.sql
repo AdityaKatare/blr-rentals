@@ -1,5 +1,8 @@
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA extensions;
+DO $$ BEGIN EXECUTE format('ALTER DATABASE %I SET search_path TO public, extensions', current_database()); END $$;
+SET search_path TO public, extensions;
 
 CREATE TYPE transport AS ENUM ('http', 'browser');
 CREATE TYPE property_type AS ENUM ('apartment', 'independent_house', 'villa', 'builder_floor', 'penthouse', 'studio', 'pg', 'other');

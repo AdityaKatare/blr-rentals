@@ -32,7 +32,7 @@ const isMain = process.argv[1] !== undefined && path.resolve(process.argv[1]) ==
 
 if (isMain) {
   loadEnv();
-  const handle = createDb();
+  const handle = createDb(process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL);
   migrate(handle)
     .then((r) => {
       console.log(`migrations applied: ${r.ran.length ? r.ran.join(', ') : 'none'} (${r.skipped} already applied)`);

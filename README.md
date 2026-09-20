@@ -13,21 +13,30 @@ packages/core   Zod contracts: NormalizedListing, SearchQuery, enums, normalizer
 packages/db     SQL migrations, seeds, the postgres-js client and all search/dedupe queries
 ```
 
-One monorepo, two runtime processes, one PostGIS database. Nothing is deployed.
+One monorepo, two runtime processes, one PostGIS database. Nothing is deployed; the
+scraper is run by hand.
 
 ## Quick start
 
 ```bash
 corepack enable                 # provides pnpm
 pnpm install
-cp .env.example .env            # edit SCRAPER_CONTACT / SCRAPER_USER_AGENT
-pnpm db:up                      # PostGIS on localhost:5433 (Docker Desktop must be running)
+cp .env.example .env            # set DATABASE_URL, SCRAPER_CONTACT, SCRAPER_USER_AGENT
 pnpm db:migrate && pnpm db:seed
 pnpm typecheck && pnpm test
 pnpm scraper scrape --source nobroker --area koramangala --dry-run   # prints URLs, no network
 pnpm scraper status
 pnpm dev                        # http://localhost:3000
 ```
+
+`DATABASE_URL` can point at any PostGIS-capable Postgres. Two setups are supported:
+
+- **Supabase** (no Docker needed). Enable the `postgis` and `pg_trgm` extensions in the
+  dashboard, then use the transaction pooler URI (port 6543) as `DATABASE_URL` and the
+  session pooler URI (port 5432) as `DATABASE_URL_DIRECT`. Migrations and seeds prefer
+  `DATABASE_URL_DIRECT` when it is set; everything else uses the pooled connection.
+- **Local Docker** (`pnpm db:up`, PostGIS on localhost:5433). Still the fastest path for
+  integration tests, which want a throwaway database.
 
 ## Operating rules
 
