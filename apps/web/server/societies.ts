@@ -1,4 +1,4 @@
-import { errorMessage, type SortOption } from '@blr/core';
+import type { SortOption } from '@blr/core';
 import {
   findSociety,
   listSocieties,
@@ -8,7 +8,7 @@ import {
   type SocietyOption,
   type SocietySummary,
 } from '@blr/db';
-import { getDb } from './db';
+import { getDb, reportDbError } from './db';
 
 export const SOCIETY_OPTIONS_TTL_MS = 10 * 60 * 1000;
 
@@ -41,7 +41,7 @@ export async function loadSocieties(q: string | undefined): Promise<SocietyListO
     const { societies, total } = await listSocieties(sql, { q });
     return { kind: 'ok', societies, total };
   } catch (err) {
-    return { kind: 'db-error', message: errorMessage(err) };
+    return { kind: 'db-error', message: reportDbError(err) };
   }
 }
 
@@ -55,7 +55,7 @@ export async function loadSociety(
     if (!page) return { kind: 'not-found' };
     return { kind: 'ok', page };
   } catch (err) {
-    return { kind: 'db-error', message: errorMessage(err) };
+    return { kind: 'db-error', message: reportDbError(err) };
   }
 }
 

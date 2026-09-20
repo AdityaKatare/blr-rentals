@@ -1,9 +1,8 @@
-import { errorMessage } from '@blr/core';
 import { listingsByIds, type SearchHit } from '@blr/db';
 import { cookies } from 'next/headers';
 import { SHORTLIST_COOKIE } from '@/constants/shortlist';
 import { parseShortlist } from '@/utils/shortlist';
-import { getDb } from './db';
+import { getDb, reportDbError } from './db';
 
 export async function readShortlistIds(): Promise<string[]> {
   return parseShortlist((await cookies()).get(SHORTLIST_COOKIE)?.value);
@@ -20,6 +19,6 @@ export async function loadShortlist(ids: readonly string[]): Promise<ShortlistOu
       gone: hits.filter((h) => h.status !== 'active'),
     };
   } catch (err) {
-    return { error: errorMessage(err) };
+    return { error: reportDbError(err) };
   }
 }

@@ -6,5 +6,6 @@ export function readBrowserCookie(name: string): string | undefined {
 }
 
 export function writeBrowserCookie(name: string, value: string, maxAgeSeconds: number): void {
-  document.cookie = `${name}=${value}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax`;
+  const secure = location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${name}=${value}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
 }

@@ -12,6 +12,7 @@ const mono = Geist_Mono({ subsets: ['latin'], display: 'swap', variable: '--font
 export const metadata: Metadata = {
   title: { default: 'blr-rentals', template: '%s · blr-rentals' },
   description: 'One search over Bangalore rental listings from several portals.',
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };

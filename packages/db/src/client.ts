@@ -7,6 +7,13 @@ export interface DbHandle {
   close: () => Promise<void>;
 }
 
+export interface DbOptions {
+  max?: number;
+  idle_timeout?: number;
+  connect_timeout?: number;
+  max_lifetime?: number | null;
+}
+
 const DATE_TIME_TYPE_OIDS = [1082, 1083, 1114, 1115, 1182, 1184, 1185, 1231];
 const JSON_TYPE_OIDS = [114, 3802];
 const passThrough = (value: unknown) => value;
@@ -19,11 +26,11 @@ function keepDatesAsTextAndJsonPreEncoded(sql: Sql): void {
   for (const oid of JSON_TYPE_OIDS) sql.options.serializers[oid] = passThrough;
 }
 
-export function createDb(url: string | undefined = process.env.DATABASE_URL): DbHandle {
+export function createDb(url: string | undefined = process.env.DATABASE_URL, options: DbOptions = {}): DbHandle {
   if (!url) {
     throw new Error('DATABASE_URL is not set. Copy .env.example to .env and start the database (pnpm db:up).');
   }
-  const sql = postgres(url, { max: 5, prepare: false, onnotice: () => undefined });
+  const sql = postgres(url, { max: 5, prepare: false, onnotice: () => undefined, ...options });
   keepDatesAsTextAndJsonPreEncoded(sql);
   return {
     sql,

@@ -1,4 +1,4 @@
-export { createDb, type DbHandle, type Sql } from './client';
+export { createDb, type DbHandle, type DbOptions, type Sql } from './client';
 export { loadEnv } from './env';
 export { resolveSeedArea } from './seeds';
 export { geographyPoint, inTransaction, pgArray } from './sql';

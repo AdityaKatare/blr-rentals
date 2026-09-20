@@ -10,8 +10,10 @@ import {
   TENANT_PREFERENCES,
 } from './enums';
 
+const HttpUrlSchema = z.string().url().regex(/^https?:\/\//i);
+
 export const ImageSchema = z.object({
-  url: z.string().url(),
+  url: HttpUrlSchema,
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   isCover: z.boolean().optional(),
@@ -26,7 +28,7 @@ export const NormalizedListingSchema = z
   .object({
     source: z.enum(SOURCE_SLUGS),
     sourceListingId: z.string().min(1),
-    sourceUrl: z.string().url(),
+    sourceUrl: HttpUrlSchema,
 
     title: z.string().min(1).max(300),
     description: z.string().max(DESCRIPTION_MAX_LENGTH).nullable().default(null),

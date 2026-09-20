@@ -20,10 +20,12 @@ export function DatabaseErrorNotice({ message }: { message: string }) {
   return (
     <Notice tone="alert" title="Database unreachable">
       <p>{message}</p>
-      <p className="mt-2">
-        Start it with <code className="font-mono">pnpm db:up</code>, then{' '}
-        <code className="font-mono">pnpm db:migrate &amp;&amp; pnpm db:seed</code>.
-      </p>
+      {process.env.NODE_ENV !== 'production' && (
+        <p className="mt-2">
+          Start it with <code className="font-mono">pnpm db:up</code>, then{' '}
+          <code className="font-mono">pnpm db:migrate &amp;&amp; pnpm db:seed</code>.
+        </p>
+      )}
     </Notice>
   );
 }

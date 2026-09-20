@@ -42,6 +42,20 @@ The integration tests in `packages/db` read `TEST_DATABASE_URL` and skip themsel
 is unset. They never fall back to `DATABASE_URL`, so a normal `pnpm test` cannot write to
 whatever the app is pointed at.
 
+## Deploying the web app
+
+Vercel, root directory `apps/web`, Node 22. `apps/web/vercel.json` pins functions to `bom1`
+so they sit next to the Supabase project in `ap-south-1`.
+
+The site should not connect as `postgres`. Run `packages/db/sql/web-reader.sql` once in the
+Supabase SQL editor with a real password: it creates a `web_reader` role with `SELECT` on
+`public` and a permissive read policy on each table, which matters because row-level
+security is on and only `postgres` bypasses it. New tables in later migrations need the
+same policy. Set Vercel's `DATABASE_URL` to the transaction-pooler URI with
+`web_reader.<project-ref>` as the user; never give it `DATABASE_URL_DIRECT`.
+
+The site answers `/robots.txt` with disallow-all and every page carries `noindex`.
+
 ## Operating rules
 
 - `robots.txt` is checked before every request; a disallowed URL is a bug.
