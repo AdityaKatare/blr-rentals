@@ -1,28 +1,13 @@
 import { randomBytes } from 'node:crypto';
 import { DAY_MS, NormalizedListingSchema, type NormalizedListing, type SourceSlug } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createDb, type DbHandle } from '../src/client';
-import { loadEnv } from '../src/env';
 import { createListingStore } from '../src/queries/listing-store';
 import { createRunRecorder } from '../src/queries/scrape-runs';
 import { markStale } from '../src/queries/stale';
 import type { FinishedRun } from '../src/types';
+import { connectTestDb } from './support/test-db';
 
-loadEnv();
-
-async function tryConnect(): Promise<DbHandle | null> {
-  if (!process.env.DATABASE_URL) return null;
-  const handle = createDb(process.env.DATABASE_URL);
-  try {
-    await handle.sql`SELECT 1 FROM listings LIMIT 1`;
-    return handle;
-  } catch {
-    await handle.close().catch(() => undefined);
-    return null;
-  }
-}
-
-const handle = await tryConnect();
+const handle = await connectTestDb('listings');
 const slug = `zz-store-${randomBytes(4).toString('hex')}` as SourceSlug;
 
 function fixtureListings(): NormalizedListing[] {
@@ -66,7 +51,7 @@ const okRun = (): FinishedRun => ({
 });
 
 describe.runIf(handle)('listing store against Postgres', () => {
-  const sql = handle!.sql;
+  const sql = handle?.sql!;
   let sourceId: number;
 
   beforeAll(async () => {
@@ -80,7 +65,7 @@ describe.runIf(handle)('listing store against Postgres', () => {
     await sql`DELETE FROM scrape_runs WHERE source_id = ${sourceId}`;
     await sql`DELETE FROM listings WHERE source_id = ${sourceId}`;
     await sql`DELETE FROM sources WHERE id = ${sourceId}`;
-    await handle!.close();
+    await handle?.close();
   });
 
   it('inserts, then touches unchanged listings, then records tracked changes', async () => {

@@ -38,6 +38,10 @@ pnpm dev                        # http://localhost:3000
 - **Local Docker** (`pnpm db:up`, PostGIS on localhost:5433). Still the fastest path for
   integration tests, which want a throwaway database.
 
+The integration tests in `packages/db` read `TEST_DATABASE_URL` and skip themselves when it
+is unset. They never fall back to `DATABASE_URL`, so a normal `pnpm test` cannot write to
+whatever the app is pointed at.
+
 ## Operating rules
 
 - `robots.txt` is checked before every request; a disallowed URL is a bug.

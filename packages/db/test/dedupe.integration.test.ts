@@ -1,26 +1,11 @@
 import { randomBytes } from 'node:crypto';
 import { SearchQuerySchema } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createDb, type DbHandle } from '../src/client';
 import { dedupeListings } from '../src/queries/dedupe';
-import { loadEnv } from '../src/env';
 import { searchListings } from '../src/queries/search';
+import { connectTestDb } from './support/test-db';
 
-loadEnv();
-
-async function tryConnect(): Promise<DbHandle | null> {
-  if (!process.env.DATABASE_URL) return null;
-  const handle = createDb(process.env.DATABASE_URL);
-  try {
-    await handle.sql`SELECT 1 FROM properties LIMIT 1`;
-    return handle;
-  } catch {
-    await handle.close().catch(() => undefined);
-    return null;
-  }
-}
-
-const handle = await tryConnect();
+const handle = await connectTestDb('properties');
 const tag = randomBytes(4).toString('hex');
 const CENTER = { lat: 12.72, lng: 77.35 };
 const north = (m: number) => CENTER.lat + m / 111_200;
@@ -49,7 +34,7 @@ const FIXTURES: Fixture[] = [
 ];
 
 describe.runIf(handle)('dedupeListings against Postgres', () => {
-  const sql = handle!.sql;
+  const sql = handle?.sql!;
   const sourceIds: Record<'a' | 'b', number> = { a: 0, b: 0 };
   const ids: Record<string, string> = {};
 
@@ -82,7 +67,7 @@ describe.runIf(handle)('dedupeListings against Postgres', () => {
     await sql`DELETE FROM listings WHERE source_id IN (${sourceIds.a}, ${sourceIds.b})`;
     for (const p of props) await sql`DELETE FROM properties WHERE id = ${p.property_id}`;
     await sql`DELETE FROM sources WHERE id IN (${sourceIds.a}, ${sourceIds.b})`;
-    await handle!.close();
+    await handle?.close();
   });
 
   it('groups the same flat across sources and keeps neighbours and strangers apart', async () => {

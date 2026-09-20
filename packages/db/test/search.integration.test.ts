@@ -1,28 +1,13 @@
 import { randomBytes } from 'node:crypto';
 import { SearchQuerySchema, societySlug, type SearchQueryInput, type SourceSlug } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createDb, type DbHandle } from '../src/client';
-import { loadEnv } from '../src/env';
 import { CARD_IMAGE_LIMIT } from '../src/queries/hits';
 import { listingsByIds } from '../src/queries/listings';
 import { findLocality } from '../src/queries/localities';
 import { DISTANCE_BAND_M, RENT_BAND, searchListings } from '../src/queries/search';
+import { connectTestDb } from './support/test-db';
 
-loadEnv();
-
-async function tryConnect(): Promise<DbHandle | null> {
-  if (!process.env.DATABASE_URL) return null;
-  const handle = createDb(process.env.DATABASE_URL);
-  try {
-    await handle.sql`SELECT 1 FROM localities LIMIT 1`;
-    return handle;
-  } catch {
-    await handle.close().catch(() => undefined);
-    return null;
-  }
-}
-
-const handle = await tryConnect();
+const handle = await connectTestDb('localities');
 const slug = `zz-search-${randomBytes(4).toString('hex')}` as SourceSlug;
 const CENTER = { lat: 12.9, lng: 77.9 };
 const metroPrefix = `zz-metro-${randomBytes(4).toString('hex')}`;
@@ -44,7 +29,7 @@ const fixtures = [
 ];
 
 describe.runIf(handle)('searchListings against Postgres', () => {
-  const sql = handle!.sql;
+  const sql = handle?.sql!;
   let sourceId: number;
 
   const search = (input: Omit<SearchQueryInput, 'center'> & { center?: SearchQueryInput['center'] }) =>
@@ -86,7 +71,7 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     await sql`DELETE FROM listings WHERE source_id = ${sourceId}`;
     await sql`DELETE FROM sources WHERE id = ${sourceId}`;
     await sql`DELETE FROM metro_stations WHERE slug LIKE ${`${metroPrefix}-%`}`;
-    await handle!.close();
+    await handle?.close();
   });
 
   const scoped = { sources: undefined } as const;
