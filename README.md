@@ -1,66 +1,46 @@
-# blr-rentals
+# BLR Flat Hunt
 
-One search box over Bangalore rental listings from several portals. MVP sources are **NoBroker** and **MagicBricks**; Housing.com and 99acres exist as disabled adapter stubs.
+**One search over Bangalore's rental portals.** → [blrflathunt.vercel.app](https://blrflathunt.vercel.app)
 
-**Status: working MVP.** NoBroker and MagicBricks are scraped, normalised, deduplicated across sources and searchable by radius, with a shortlist and a `/status` page. Results can be filtered by straight-line distance to an open Namma Metro station and every card shows its nearest station (`docs/metro-stations.md`). Search also filters on who the landlord will take and on the deposit in months, sorts by what it costs to move in (`docs/move-in-cost.md`), and every apartment has its own page listing all of its units (`docs/apartments.md`). Scheduling is not set up yet.
+Finding a flat in Bangalore means keeping NoBroker and MagicBricks open in two tabs, seeing
+the same 2BHK twice at two different rents, and doing the deposit maths in your head. This
+does that work for you: every listing from both portals, deduplicated, searchable by
+distance from wherever you actually need to be, and sorted by what it really costs to move in.
 
-## Layout
+## What it does
 
-```
-apps/web        Next.js — search, apartments, shortlist, /status   (server components query Postgres directly)
-apps/scraper    Node CLI — sources/, pipeline/, http/  (writes to Postgres)
-packages/core   Zod contracts: NormalizedListing, SearchQuery, enums, normalizers, ranking, dedupe scoring
-packages/db     SQL migrations, seeds, the postgres-js client and all search/dedupe queries
-```
+**Search the way you think about it**
+- Name a locality or drop a pin on the map, pick a radius, and see everything inside it —
+  listings from every portal, on one map and one list.
+- The same flat listed on both portals shows up once, with a note on where else it's
+  listed and at what price — and a flag when it's cheaper there.
 
-One monorepo, two runtime processes, one PostGIS database. Nothing is deployed; the
-scraper is run by hand.
+**Filter on what actually matters**
+- Rent, BHK (1RK included), furnishing, property type, amenities, parking.
+- **Owner-only** listings to skip brokerage.
+- **Who the landlord will take** — family, bachelors, company lease.
+- **Deposit capped in months** — hide anything asking more than, say, 3 months.
+- **Walking distance to a Namma Metro station** — 500 m, 1 km or 1.5 km from any open station.
+  Every card shows its nearest station.
+- Available-by date, and which portal it came from.
 
-## Quick start
+**Sort by the real cost**
+- **Move-in cost** — rent, deposit, maintenance and a month's brokerage if a broker listed it,
+  so a cheap rent with a ten-month deposit doesn't fool you.
+- Nearest, cheapest, newest, and combinations like *nearest · cheapest*.
+- Rent cuts in the last two weeks are flagged on the card.
 
-```bash
-corepack enable                 # provides pnpm
-pnpm install
-cp .env.example .env            # set DATABASE_URL, SCRAPER_CONTACT, SCRAPER_USER_AGENT
-pnpm db:migrate && pnpm db:seed
-pnpm typecheck && pnpm test
-pnpm scraper scrape --source nobroker --area koramangala --dry-run   # prints URLs, no network
-pnpm scraper status
-pnpm dev                        # http://localhost:3000
-```
+**Keep track without an account**
+- Shortlist flats with one tap; it lives in your browser, no sign-up.
+- Every apartment complex has its own page listing all of its units and their rent range,
+  so you can see what a building actually goes for.
+- Full-screen photo viewer, and every listing links straight to the original post.
 
-`DATABASE_URL` can point at any PostGIS-capable Postgres. Two setups are supported:
+## How it treats the portals
 
-- **Supabase** (no Docker needed). Enable the `postgis` and `pg_trgm` extensions in the
-  dashboard, then use the transaction pooler URI (port 6543) as `DATABASE_URL` and the
-  session pooler URI (port 5432) as `DATABASE_URL_DIRECT`. Migrations and seeds prefer
-  `DATABASE_URL_DIRECT` when it is set; everything else uses the pooled connection.
-- **Local Docker** (`pnpm db:up`, PostGIS on localhost:5433). Still the fastest path for
-  integration tests, which want a throwaway database.
+- Nobody's name, phone number or email is ever stored — only whether a listing is from an
+  owner or a broker. To contact anyone you go to the original listing.
+- Photos are shown from the portals' own servers, never copied.
+- The site is `noindex`: it isn't trying to outrank anyone in search.
 
-The integration tests in `packages/db` read `TEST_DATABASE_URL` and skip themselves when it
-is unset. They never fall back to `DATABASE_URL`, so a normal `pnpm test` cannot write to
-whatever the app is pointed at.
-
-## Deploying the web app
-
-Vercel, root directory `apps/web`, Node 22. `apps/web/vercel.json` pins functions to `bom1`
-so they sit next to the Supabase project in `ap-south-1`.
-
-The site should not connect as `postgres`. Run `packages/db/sql/web-reader.sql` once in the
-Supabase SQL editor with a real password: it creates a `web_reader` role with `SELECT` on
-`public` and a permissive read policy on each table, which matters because row-level
-security is on and only `postgres` bypasses it. New tables in later migrations need the
-same policy. Set Vercel's `DATABASE_URL` to the transaction-pooler URI with
-`web_reader.<project-ref>` as the user; never give it `DATABASE_URL_DIRECT`.
-
-The site answers `/robots.txt` with disallow-all and every page carries `noindex`.
-
-## Operating rules
-
-- `robots.txt` is checked before every request; a disallowed URL is a bug.
-- Honest User-Agent with a contact address. If a source blocks it, we stop — no spoofing, no proxies.
-- ≤ 1 request every 2–3 s per host, one worker per source, abort on 403/406.
-- Poster names, phone numbers and emails are stripped before storage. Only `listed_by` (owner/broker) is kept.
-- Every result links out to the source. Images are hot-linked, never re-hosted.
-- Personal-use tool.
+Not affiliated with NoBroker, MagicBricks, or anyone else.
