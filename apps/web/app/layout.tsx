@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { SiteHeader } from '@/components/layout/site-header';
+import { Telemetry } from '@/components/layout/telemetry';
 import { readShortlistIds } from '@/server/shortlist';
 import './globals.css';
 
@@ -25,6 +26,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body className="min-h-dvh bg-paper text-ink antialiased">
         <SiteHeader savedCount={savedIds.length} />
         <main>{children}</main>
+        <Telemetry />
       </body>
     </html>
   );

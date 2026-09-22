@@ -53,6 +53,24 @@ same policy. Set Vercel's `DATABASE_URL` to the transaction-pooler URI with
 
 The site answers `/robots.txt` with disallow-all and every page carries `noindex`.
 
+### Analytics and monitoring
+
+`components/layout/telemetry.tsx` mounts Vercel Web Analytics and Speed Insights once, from
+the root layout. Both need their toggle on in the project dashboard, need no environment
+variables, and send nothing from `next dev`. Query strings are removed before anything is
+sent, because search URLs can hold the `lat`/`lng` of a point someone picked on the map.
+Neither uses cookies or stores IPs, so there is no consent banner.
+
+| Where in the Vercel project | What it shows |
+| --- | --- |
+| Analytics | Visitors, page views, top pages and routes, referrers, countries, devices, browsers, OS |
+| Speed Insights | Real-user LCP, INP, CLS, FCP, TTFB and a score per route, for mobile and desktop |
+| Observability | Function invocations, errors, 5xx rate and duration per route |
+| Logs | Runtime logs, including `[db]` errors from `server/db.ts` |
+
+The environment filter in Analytics and Speed Insights separates Production from Preview
+traffic. Custom events (`track()`) need a Pro plan, so this Hobby project does not use them.
+
 ## Operating rules
 
 - `robots.txt` is checked before every request; a disallowed URL is a bug.
