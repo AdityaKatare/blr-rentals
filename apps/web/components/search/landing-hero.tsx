@@ -22,8 +22,7 @@ export function LandingHero({ parsed, localities }: LandingHeroProps) {
           Find a place to rent in Bangalore.
         </h1>
         <p className="max-w-2xl text-[15px] leading-relaxed text-second sm:text-[17px]">
-          One search over NoBroker and MagicBricks. The same flat shows up once, found by distance from wherever you
-          need to be and sorted by what it really costs to move in.
+          Every rental listing in one place, each flat once, sorted by what it costs to move in.
         </p>
       </div>
 
