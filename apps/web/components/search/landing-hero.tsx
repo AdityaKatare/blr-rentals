@@ -16,7 +16,7 @@ export function LandingHero({ parsed, localities }: LandingHeroProps) {
   const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
 
   return (
-    <div className="rise flex flex-col gap-7 py-2 sm:gap-9 sm:py-6 lg:py-10">
+    <div className="rise flex min-h-[calc(100svh-201px)] flex-col justify-center gap-7 py-2 sm:min-h-[calc(100svh-173px)] sm:gap-9 sm:py-6 lg:min-h-[calc(100svh-189px)] lg:py-10">
       <div className="flex flex-col gap-3 sm:gap-4">
         <h1 className="max-w-3xl font-display text-[36px] leading-[1.02] sm:text-[52px] xl:text-[64px]">
           Find a place to rent in Bangalore.
