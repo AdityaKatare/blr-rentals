@@ -227,3 +227,8 @@ export interface ListingCounts {
   groupedHomes: number;
   ungrouped: number;
 }
+
+export interface LocalityCoverage {
+  id: number;
+  listings: number;
+}

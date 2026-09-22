@@ -9,8 +9,10 @@ import { DEPOSIT_FILTER_NOTE, METRO_FILTER_NOTE } from '@/constants/search';
 import type { SearchOutcome } from '@/server/search';
 import { clearFiltersHref, type ActiveFilter } from '@/utils/filters';
 import { centerLabel, pinsFromHits } from '@/utils/map';
-import { first, isDepositMonths, isNearMetroOption, withParams, type Params } from '@/utils/search-params';
+import { groupByRegion } from '@/utils/regions';
+import { first, isDepositMonths, isNearMetroOption, type Params } from '@/utils/search-params';
 import { ActiveFilterChips } from './active-filter-chips';
+import { AreaGroups } from './area-groups';
 import { ActiveListingProvider } from './active-listing';
 import { Pagination } from './pagination';
 
@@ -26,25 +28,8 @@ interface ResultsProps {
 export function Results({ outcome, params, sort, radiusKm, saved, chips }: ResultsProps) {
   if (outcome.kind === 'no-center') {
     return (
-      <div className={`${PAGE_WIDTH} ${GUTTER} flex flex-col gap-5 py-6`}>
-        <Notice tone="plain" title="Where are you looking?">
-          Name an area on the line above, or drop a point with “Pick on map”. Nothing is searched
-          until you do.
-        </Notice>
-        <div className="flex flex-col gap-2">
-          <p className="label">Areas with listings</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-            {outcome.localities.map((l) => (
-              <Link
-                key={l.name}
-                href={withParams(params, { locality: l.name, lat: null, lng: null, page: null })}
-                className="text-[13px] underline decoration-hair underline-offset-4 hover:decoration-ink"
-              >
-                {l.name}
-              </Link>
-            ))}
-          </div>
-        </div>
+      <div className={`${PAGE_WIDTH} ${GUTTER} py-8 lg:py-10`}>
+        <AreaGroups regions={groupByRegion(outcome.localities, outcome.coverage)} params={params} />
       </div>
     );
   }

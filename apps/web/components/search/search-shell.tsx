@@ -12,10 +12,11 @@ interface SearchShellProps {
   sort: ReactNode;
   activeCount: number;
   total: number | null;
+  landing: boolean;
   children: ReactNode;
 }
 
-export function SearchShell({ headline, fields, sort, activeCount, total, children }: SearchShellProps) {
+export function SearchShell({ headline, fields, sort, activeCount, total, landing, children }: SearchShellProps) {
   const { formKey, pending, apply, formHandlers } = useAutoApplyForm();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(activeCount > 0);
@@ -35,7 +36,8 @@ export function SearchShell({ headline, fields, sort, activeCount, total, childr
   }, [open]);
 
   const countLabel = total === null ? 'Results' : `${total.toLocaleString('en-IN')} ${total === 1 ? 'rental' : 'rentals'}`;
-  const resultsLabel = total === null ? 'Show results' : `Show ${countLabel}`;
+  const resultsLabel = landing ? 'Apply filters' : total === null ? 'Show results' : `Show ${countLabel}`;
+  const moreLabel = landing ? 'Filters' : 'More filters';
   const badge = activeCount > 0 ? <span className="font-mono text-[11px]">{activeCount}</span> : null;
 
   return (
@@ -53,7 +55,7 @@ export function SearchShell({ headline, fields, sort, activeCount, total, childr
       >
         <div className={`${PAGE_WIDTH} ${GUTTER} py-5 lg:py-6`}>{headline}</div>
 
-        <div className="sticky top-0 z-20 border-y border-ink bg-paper">
+        <div className={landing ? 'border-t border-hair' : 'sticky top-0 z-20 border-y border-ink bg-paper'}>
           <div className={`${PAGE_WIDTH} ${GUTTER} flex items-center gap-3 py-1.5`}>
             <span className="lg:hidden">
               <Button
@@ -76,18 +78,24 @@ export function SearchShell({ headline, fields, sort, activeCount, total, childr
                 aria-expanded={expanded}
                 aria-controls="filter-band"
               >
-                {expanded ? 'Hide filters' : 'More filters'}
+                {expanded ? 'Hide filters' : moreLabel}
                 {badge}
                 <span aria-hidden className="text-[9px] leading-none">
                   {expanded ? '▴' : '▾'}
                 </span>
               </Button>
             </span>
-            <span className="label" aria-live="polite">
-              {pending ? 'Updating…' : countLabel}
-            </span>
-            <span className="label ml-auto hidden xl:inline">Applies as you change</span>
-            <div className="ml-auto xl:ml-0">{sort}</div>
+            {landing ? (
+              <span className="label">Applies to your next search</span>
+            ) : (
+              <>
+                <span className="label" aria-live="polite">
+                  {pending ? 'Updating…' : countLabel}
+                </span>
+                <span className="label ml-auto hidden xl:inline">Applies as you change</span>
+                <div className="ml-auto xl:ml-0">{sort}</div>
+              </>
+            )}
           </div>
         </div>
 

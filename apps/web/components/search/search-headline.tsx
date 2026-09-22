@@ -46,24 +46,6 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
     </>
   );
 
-  if (!parsed.hasCenter) {
-    return (
-      <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-        <h1 className="font-display text-[26px] leading-[1.25] sm:text-[32px] xl:text-[38px]">
-          Rentals near {locality}
-          {hidden}
-        </h1>
-        <CenterPicker
-          localities={localities ?? []}
-          center={null}
-          radiusKm={radiusKm}
-          nearestName={null}
-          explicit={false}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">

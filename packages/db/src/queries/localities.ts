@@ -1,6 +1,6 @@
 import type { Sql } from '../client';
 import { geographyPoint } from '../sql';
-import type { LocalityMatch } from '../types';
+import type { LocalityCoverage, LocalityMatch } from '../types';
 
 const localityColumns = (sql: Sql) =>
   sql`id, slug, name, aliases, ST_Y(centroid::geometry) AS lat, ST_X(centroid::geometry) AS lng`;
@@ -40,4 +40,14 @@ export async function nearestLocality(sql: Sql, lat: number, lng: number): Promi
     ORDER BY centroid <-> ${geographyPoint(sql, lat, lng)}
     LIMIT 1`;
   return row ?? null;
+}
+
+export async function localityCoverage(sql: Sql, radiusKm: number): Promise<LocalityCoverage[]> {
+  return sql<LocalityCoverage[]>`
+    SELECT l.id, count(DISTINCT COALESCE(x.property_id, x.id))::int AS listings
+    FROM localities l
+    LEFT JOIN listings x
+      ON x.status = 'active' AND x.location IS NOT NULL
+     AND ST_DWithin(x.location, l.centroid, ${radiusKm * 1000})
+    GROUP BY l.id`;
 }

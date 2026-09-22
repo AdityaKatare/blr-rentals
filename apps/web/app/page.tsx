@@ -1,5 +1,6 @@
 import { DEFAULT_RADIUS_KM } from '@blr/core';
 import { FilterFields } from '@/components/search/filter-fields';
+import { LandingHero } from '@/components/search/landing-hero';
 import { Results } from '@/components/search/results';
 import { SearchHeadline } from '@/components/search/search-headline';
 import { SearchShell } from '@/components/search/search-shell';
@@ -19,19 +20,25 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const chips = activeFilters(params);
   const center = outcome.kind === 'ok' ? outcome.result.center : null;
   const total = outcome.kind === 'ok' ? outcome.result.total : null;
+  const localities = 'localities' in outcome ? outcome.localities : null;
 
   return (
     <SearchShell
       activeCount={chips.length}
       total={total}
+      landing={!parsed.hasCenter}
       headline={
-        <SearchHeadline
-          parsed={parsed}
-          localities={'localities' in outcome ? outcome.localities : null}
-          center={center}
-          total={total}
-          near={center ? centerLabel(center) : null}
-        />
+        parsed.hasCenter ? (
+          <SearchHeadline
+            parsed={parsed}
+            localities={localities}
+            center={center}
+            total={total}
+            near={center ? centerLabel(center) : null}
+          />
+        ) : (
+          <LandingHero parsed={parsed} localities={localities} />
+        )
       }
       fields={<FilterFields params={params} parsed={parsed} />}
       sort={<SortSelect value={parsed.query.sort ?? 'relevance'} />}
