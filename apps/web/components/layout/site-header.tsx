@@ -6,7 +6,6 @@ export function SiteHeader({ savedCount }: { savedCount: number }) {
   const links = [
     { href: '/', label: 'Search' },
     { href: '/shortlist', label: savedCount > 0 ? `Shortlist · ${savedCount}` : 'Shortlist' },
-    { href: '/societies', label: 'Apartments' },
     { href: '/status', label: 'Status' },
   ];
 

@@ -1,7 +1,8 @@
 import { DEFAULT_RADIUS_KM } from '@blr/core';
-import type { LocalityMatch, SearchResult } from '@blr/db';
+import type { LocalityMatch, SearchResult, SocietyOption } from '@blr/db';
 import { RADIUS_OPTIONS_KM } from '@/constants/search';
 import { formatCoord } from '@/utils/map';
+import { placeOptions } from '@/utils/search-options';
 import type { ParsedParams } from '@/utils/search-params';
 import { CenterPicker, MapPinChip } from './center-picker';
 import { RadiusSelect } from './radius-select';
@@ -10,6 +11,7 @@ import { SearchCombobox } from './search-combobox';
 interface SearchHeadlineProps {
   parsed: ParsedParams;
   localities: LocalityMatch[] | null;
+  buildings: SocietyOption[];
   center: SearchResult['center'] | null;
   total: number | null;
   near: string | null;
@@ -17,7 +19,7 @@ interface SearchHeadlineProps {
 
 const INHERIT = 'bg-transparent font-display text-[inherit] leading-none';
 
-export function SearchHeadline({ parsed, localities, center, total, near }: SearchHeadlineProps) {
+export function SearchHeadline({ parsed, localities, buildings, center, total, near }: SearchHeadlineProps) {
   const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
   const radii = RADIUS_OPTIONS_KM.includes(radiusKm) ? RADIUS_OPTIONS_KM : [...RADIUS_OPTIONS_KM, radiusKm].sort((a, b) => a - b);
   const explicitCenter = parsed.explicitCenter;
@@ -28,10 +30,10 @@ export function SearchHeadline({ parsed, localities, center, total, near }: Sear
     <SearchCombobox
       id="locality"
       name="locality"
-      label="Localities"
+      label="Areas and apartments"
       defaultValue={explicitCenter ? '' : parsed.localityText}
       placeholder={explicitCenter && near ? near : 'an area'}
-      options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
+      options={placeOptions(localities ?? [], buildings)}
       clearFields={['lat', 'lng']}
       wrapperClassName="relative inline-block max-w-full align-baseline"
       inputClassName={`max-w-full border-0 border-b-2 border-ink p-0 placeholder:text-muted ${INHERIT}`}

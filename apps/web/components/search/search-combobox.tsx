@@ -1,12 +1,9 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { INPUT_CLASS } from '@/components/ui/text-input';
-
-export interface ComboOption {
-  value: string;
-  hint?: string | null;
-}
+import { exactPageFor, type ComboOption } from '@/utils/search-options';
 
 interface SearchComboboxProps {
   id: string;
@@ -55,6 +52,7 @@ export function SearchCombobox({
   wrapperClassName = 'relative',
   autoSize = false,
 }: SearchComboboxProps) {
+  const router = useRouter();
   const listId = `${useId()}-list`;
   const input = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(defaultValue);
@@ -95,13 +93,17 @@ export function SearchCombobox({
     setActive(-1);
   };
 
-  const choose = (picked: string) => {
-    setValue(picked);
+  const choose = (picked: ComboOption) => {
+    setValue(picked.value);
     close();
     setTyping(false);
+    if (picked.href) {
+      router.push(picked.href);
+      return;
+    }
     const form = input.current?.form;
     if (!form) return;
-    setField(form, name, picked);
+    setField(form, name, picked.value);
     for (const field of clearFields) setField(form, field, '');
     form.requestSubmit();
   };
@@ -121,8 +123,18 @@ export function SearchCombobox({
     if (e.key === 'Enter' && open && active >= 0 && matches[active]) {
       e.preventDefault();
       e.stopPropagation();
-      choose(matches[active].value);
+      choose(matches[active]);
       return;
+    }
+    if (e.key === 'Enter') {
+      const page = exactPageFor(options, value);
+      if (page) {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        router.push(page);
+        return;
+      }
     }
     if (e.key === 'Escape' && open) {
       e.preventDefault();
@@ -168,22 +180,24 @@ export function SearchCombobox({
         >
           {matches.map((option, i) => (
             <li
-              key={option.value}
+              key={option.href ?? option.value}
               id={`${listId}-${i}`}
               role="option"
               aria-selected={i === active}
               onMouseEnter={() => setActive(i)}
               onPointerDown={(e) => {
                 e.preventDefault();
-                choose(option.value);
+                choose(option);
               }}
               className={`flex cursor-pointer items-baseline justify-between gap-3 px-3 py-2 ${
                 i === active ? 'bg-ink text-paper' : ''
               }`}
             >
               <span className="truncate">{option.value}</span>
-              {option.hint && (
-                <span className={`shrink-0 font-mono text-[11px] ${i === active ? 'text-paper/70' : 'text-muted'}`}>{option.hint}</span>
+              {(option.note ?? option.hint) && (
+                <span className={`shrink-0 font-mono text-[11px] ${i === active ? 'text-paper/70' : 'text-muted'}`}>
+                  {option.note ?? option.hint}
+                </span>
               )}
             </li>
           ))}

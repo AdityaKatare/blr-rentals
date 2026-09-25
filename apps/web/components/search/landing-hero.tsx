@@ -1,6 +1,7 @@
 import { DEFAULT_RADIUS_KM } from '@blr/core';
-import type { LocalityMatch } from '@blr/db';
+import type { LocalityMatch, SocietyOption } from '@blr/db';
 import { buttonClass } from '@/components/ui/button';
+import { placeOptions } from '@/utils/search-options';
 import type { ParsedParams } from '@/utils/search-params';
 import { CenterPicker } from './center-picker';
 import { SearchCombobox } from './search-combobox';
@@ -8,11 +9,12 @@ import { SearchCombobox } from './search-combobox';
 interface LandingHeroProps {
   parsed: ParsedParams;
   localities: LocalityMatch[] | null;
+  buildings: SocietyOption[];
 }
 
 const HERO_INPUT = 'min-h-11 w-full border border-ink bg-sheet px-3 py-2 text-[15px] text-ink placeholder:text-muted';
 
-export function LandingHero({ parsed, localities }: LandingHeroProps) {
+export function LandingHero({ parsed, localities, buildings }: LandingHeroProps) {
   const radiusKm = parsed.query.radiusKm ?? DEFAULT_RADIUS_KM;
 
   return (
@@ -35,10 +37,10 @@ export function LandingHero({ parsed, localities }: LandingHeroProps) {
             <SearchCombobox
               id="locality"
               name="locality"
-              label="Localities"
+              label="Areas and apartments"
               defaultValue=""
-              placeholder="An area, e.g. Koramangala or Whitefield"
-              options={(localities ?? []).map((l) => ({ value: l.name, hint: l.aliases.join(', ') || null }))}
+              placeholder="An area or apartment, e.g. Koramangala"
+              options={placeOptions(localities ?? [], buildings)}
               clearFields={['lat', 'lng']}
               inputClassName={HERO_INPUT}
             />

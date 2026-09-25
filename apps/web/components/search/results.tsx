@@ -41,7 +41,14 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
           <DatabaseErrorNotice message={outcome.message} />
         ) : outcome.kind === 'unknown-locality' ? (
           <Notice tone="alert" title={`No locality matches “${outcome.text}”`}>
-            Try a nearby area, for example {outcome.localities.slice(0, 6).map((l) => l.name).join(', ')}.
+            <p>Try a nearby area, for example {outcome.localities.slice(0, 6).map((l) => l.name).join(', ')}.</p>
+            <p className="mt-2">
+              Looking for an apartment?{' '}
+              <Link href={`/societies?q=${encodeURIComponent(outcome.text)}`} className="underline underline-offset-4">
+                See apartments named “{outcome.text}”
+              </Link>
+              .
+            </p>
           </Notice>
         ) : (
           <Notice tone="alert" title="Some filters are out of range">
@@ -98,9 +105,9 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
           <div className="py-6">
             <Notice tone="alert" title="Nothing matches these filters yet">
               Widen the radius, raise the rent limit or clear some filters. Only areas the scraper has visited have
-              listings. To look inside one apartment wherever it is, search it under{' '}
+              listings. To look inside one apartment wherever it is, type its name in the search box or{' '}
               <Link href="/societies" className="underline underline-offset-4">
-                Apartments
+                browse all apartments
               </Link>
               .
             </Notice>

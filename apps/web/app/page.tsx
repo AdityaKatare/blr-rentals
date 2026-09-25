@@ -7,6 +7,7 @@ import { SearchShell } from '@/components/search/search-shell';
 import { SortSelect } from '@/components/search/sort-select';
 import { loadSearch } from '@/server/search';
 import { readShortlistIds } from '@/server/shortlist';
+import { loadSocietyNames } from '@/server/societies';
 import { activeFilters } from '@/utils/filters';
 import { centerLabel } from '@/utils/map';
 import { parseParams, type Params } from '@/utils/search-params';
@@ -16,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   const parsed = parseParams(params);
-  const [outcome, savedIds] = await Promise.all([loadSearch(parsed), readShortlistIds()]);
+  const [outcome, savedIds, buildings] = await Promise.all([loadSearch(parsed), readShortlistIds(), loadSocietyNames()]);
   const chips = activeFilters(params);
   const center = outcome.kind === 'ok' ? outcome.result.center : null;
   const total = outcome.kind === 'ok' ? outcome.result.total : null;
@@ -32,12 +33,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <SearchHeadline
             parsed={parsed}
             localities={localities}
+            buildings={buildings}
             center={center}
             total={total}
             near={center ? centerLabel(center) : null}
           />
         ) : (
-          <LandingHero parsed={parsed} localities={localities} />
+          <LandingHero parsed={parsed} localities={localities} buildings={buildings} />
         )
       }
       fields={<FilterFields params={params} parsed={parsed} />}
