@@ -3,8 +3,10 @@ import { PageHeadline, PageShell } from '@/components/layout/page';
 import { ListingRow } from '@/components/listing/listing-row';
 import { ActiveListingProvider } from '@/components/search/active-listing';
 import { EmptyShortlist } from '@/components/shortlist/empty-shortlist';
+import { ShortlistInsights } from '@/components/shortlist/shortlist-insights';
 import { DatabaseErrorNotice } from '@/components/ui/notice';
 import { loadShortlist, readShortlistIds } from '@/server/shortlist';
+import { summarizeShortlist } from '@/utils/shortlist-insights';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +21,7 @@ export default async function ShortlistPage() {
       : `${shortlist.active.length} saved ${shortlist.active.length === 1 ? 'listing' : 'listings'}${
           shortlist.gone.length > 0 ? `, ${shortlist.gone.length} no longer listed` : ''
         }. Saved in this browser only.`;
+  const insights = 'error' in shortlist ? null : summarizeShortlist(shortlist.active);
 
   return (
     <PageShell>
@@ -43,6 +46,7 @@ export default async function ShortlistPage() {
         </div>
       ) : (
         <ActiveListingProvider>
+          {insights && <ShortlistInsights insights={insights} />}
           <div className="@container">
             {[...shortlist.active, ...shortlist.gone].map((hit) => (
               <ListingRow key={hit.id} hit={hit} saved />

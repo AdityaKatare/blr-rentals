@@ -3,7 +3,13 @@ import type { SocietyBedroomStat } from '@blr/db';
 import { TABLE, TABLE_HEAD, TABLE_WRAP, TD, TD_NUM, TH } from '@/components/ui/data-table';
 import { rupees } from '@/utils/format';
 
-export function SocietyRentTable({ stats }: { stats: SocietyBedroomStat[] }) {
+export function SocietyRentTable({
+  stats,
+  unitsLabel = 'Live units',
+}: {
+  stats: SocietyBedroomStat[];
+  unitsLabel?: string;
+}) {
   if (stats.length === 0) return null;
   return (
     <div className={TABLE_WRAP}>
@@ -11,7 +17,7 @@ export function SocietyRentTable({ stats }: { stats: SocietyBedroomStat[] }) {
         <thead className={TABLE_HEAD}>
           <tr>
             <th className={TH}>Size</th>
-            <th className={TH}>Live units</th>
+            <th className={TH}>{unitsLabel}</th>
             <th className={TH}>Lowest</th>
             <th className={TH}>Median</th>
             <th className={TH}>Highest</th>
