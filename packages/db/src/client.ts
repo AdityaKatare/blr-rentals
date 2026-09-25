@@ -12,6 +12,7 @@ export interface DbOptions {
   idle_timeout?: number;
   connect_timeout?: number;
   max_lifetime?: number | null;
+  max_pipeline?: number;
 }
 
 const DATE_TIME_TYPE_OIDS = [1082, 1083, 1114, 1115, 1182, 1184, 1185, 1231];

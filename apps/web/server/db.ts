@@ -3,7 +3,7 @@ import { createDb, loadEnv, type DbHandle, type DbOptions } from '@blr/db';
 
 const globalRef = globalThis as unknown as { __blrDb?: DbHandle };
 
-const SERVERLESS_POOL: DbOptions = { max: 3, idle_timeout: 20, connect_timeout: 10, max_lifetime: 30 * 60 };
+const SERVERLESS_POOL: DbOptions = { max: 3, idle_timeout: 20, connect_timeout: 10, max_lifetime: 30 * 60, max_pipeline: 0 };
 
 export const DB_ERROR_MESSAGE = 'The listings database could not be reached. Try again in a moment.';
 
