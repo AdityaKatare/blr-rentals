@@ -1,4 +1,4 @@
-import { DAY_MS, istDate } from '@blr/core';
+import { DAY_MS, formatBedrooms, istDate } from '@blr/core';
 import { NEW_LISTING_DAYS } from '@/constants/search';
 
 const inr = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
@@ -53,3 +53,6 @@ export function availability(isoDate: string, now: Date = new Date()): string {
 }
 
 export const humanize = (s: string): string => s.replace(/_/g, ' ');
+
+export const sizeLabel = (bedrooms: number): string =>
+  formatBedrooms({ bedrooms, is1rk: bedrooms === 0, bedroomsPlus: false });

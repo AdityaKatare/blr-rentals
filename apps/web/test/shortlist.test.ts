@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { SHORTLIST_MAX } from '@/constants/shortlist';
-import { parseShortlist, serializeShortlist, toggleShortlist } from '@/utils/shortlist';
+import {
+  parseShortlist,
+  parseShortlistSize,
+  serializeShortlist,
+  shortlistSizeHref,
+  toggleShortlist,
+} from '@/utils/shortlist';
 
 const uuid = (n: number): string => `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`;
 
@@ -43,5 +49,26 @@ describe('serializeShortlist', () => {
   it('round-trips through parseShortlist', () => {
     const ids = [uuid(3), uuid(1), uuid(2)];
     expect(parseShortlist(serializeShortlist(ids))).toEqual(ids);
+  });
+});
+
+describe('parseShortlistSize', () => {
+  it('reads a bedroom count, with 0 for a 1 RK', () => {
+    expect(parseShortlistSize('2')).toBe(2);
+    expect(parseShortlistSize('0')).toBe(0);
+  });
+
+  it('ignores anything that is not a plausible bedroom count', () => {
+    for (const value of [undefined, '', 'two', '-1', '2.5', ' 2', '11', '100']) {
+      expect(parseShortlistSize(value)).toBeNull();
+    }
+  });
+});
+
+describe('shortlistSizeHref', () => {
+  it('links to one size, or back to the whole shortlist', () => {
+    expect(shortlistSizeHref(3)).toBe('/shortlist?bedrooms=3');
+    expect(shortlistSizeHref(0)).toBe('/shortlist?bedrooms=0');
+    expect(shortlistSizeHref(null)).toBe('/shortlist');
   });
 });

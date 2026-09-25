@@ -3,6 +3,7 @@ import { SocietyRentTable } from '@/components/society/society-rent-table';
 import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS } from '@/constants/labels';
 import { SHORTLIST_NEAR_METRO_M, SHORTLIST_TOP_AREAS } from '@/constants/shortlist';
 import { humanize, rupees } from '@/utils/format';
+import { shortlistSizeHref } from '@/utils/shortlist';
 import type { ShortlistInsights as Insights, Spread, Tally } from '@/utils/shortlist-insights';
 
 interface Item {
@@ -12,7 +13,7 @@ interface Item {
 
 const range = (s: Spread): string => (s.low === s.high ? rupees(s.low) : `${rupees(s.low)} – ${rupees(s.high)}`);
 
-export function ShortlistInsights({ insights }: { insights: Insights }) {
+export function ShortlistInsights({ insights, activeSize }: { insights: Insights; activeSize: number | null }) {
   const { homes, rent, moveIn, byBedrooms, rentCuts, cheaperElsewhere } = insights;
   const ofHomes = (n: number) => `${n} of ${homes}`;
 
@@ -54,7 +55,14 @@ export function ShortlistInsights({ insights }: { insights: Insights }) {
   const hasBreakdown = byBedrooms.length > 1 || rows.length > 0 || signals.length > 0;
   const breakdown = (
     <div className="grid gap-6 lg:grid-cols-2">
-      {byBedrooms.length > 1 && <SocietyRentTable stats={byBedrooms} unitsLabel="Saved" />}
+      {byBedrooms.length > 1 && (
+        <SocietyRentTable
+          stats={byBedrooms}
+          unitsLabel="Saved"
+          sizeHref={(bedrooms) => shortlistSizeHref(bedrooms === activeSize ? null : bedrooms)}
+          activeBedrooms={activeSize}
+        />
+      )}
 
       <div className="flex flex-col gap-3 text-[13px] text-second">
         <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2">
