@@ -4,7 +4,7 @@ export { resolveSeedArea } from './seeds';
 export { geographyPoint, inTransaction, pgArray } from './sql';
 export { dedupeListings, refreshProperty } from './queries/dedupe';
 export { createListingStore } from './queries/listing-store';
-export { listingsByIds } from './queries/listings';
+export { listingBySourceId, listingsByIds, type SourceLookup } from './queries/listings';
 export { findLocality, listLocalities, localityCoverage, nearestLocality } from './queries/localities';
 export { listMetroStations } from './queries/metro';
 export { createRunRecorder, recentRuns } from './queries/scrape-runs';
