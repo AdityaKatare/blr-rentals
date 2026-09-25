@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "BLR Flat Hunt",
+  "version": "0.1.0",
+  "description": "On NoBroker and MagicBricks listings: is it cheaper on the other portal, nearest metro, and what it really costs to move in.",
+  "background": { "service_worker": "background.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.nobroker.in/property/*", "https://www.magicbricks.com/propertyDetails/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": ["https://blrflathunt.vercel.app/*"],
+  "permissions": []
+}

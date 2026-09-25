@@ -5,6 +5,7 @@
 ```
 apps/web        Next.js — search, apartments, shortlist, /status   (server components query Postgres directly)
 apps/scraper    Node CLI — sources/, pipeline/, http/  (writes to Postgres)
+apps/extension  Chrome extension — overlays /api/lookup data on NoBroker and MagicBricks pages
 packages/core   Zod contracts: NormalizedListing, SearchQuery, enums, normalizers, ranking, dedupe scoring
 packages/db     SQL migrations, seeds, the postgres-js client and all search/dedupe queries
 ```
@@ -70,6 +71,22 @@ Neither uses cookies or stores IPs, so there is no consent banner.
 
 The environment filter in Analytics and Speed Insights separates Production from Preview
 traffic. Custom events (`track()`) need a Pro plan, so this Hobby project does not use them.
+
+## Browser extension
+
+`apps/extension` is a Manifest V3 extension with no framework: a content script that reads the
+listing id out of the portal's URL, a background worker that calls `/api/lookup` on the live
+site, and a card rendered in a Shadow DOM. It never scrapes the page and sends nothing but the
+listing id.
+
+```bash
+pnpm --filter @blr/extension build        # writes apps/extension/dist
+pnpm --filter @blr/extension watch        # rebuild on change
+```
+
+Load it in Chrome at `chrome://extensions` → *Developer mode* → *Load unpacked* →
+`apps/extension/dist`. After a rebuild, click the reload icon on the extension card. Open any
+NoBroker `/property/…/detail` or MagicBricks `/propertyDetails/…` page.
 
 ## Operating rules
 

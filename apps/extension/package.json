@@ -1,0 +1,20 @@
+{
+  "name": "@blr/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension that overlays BLR Flat Hunt data on NoBroker and MagicBricks listing pages.",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@blr/db": "workspace:*",
+    "@types/chrome": "^0.1.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
