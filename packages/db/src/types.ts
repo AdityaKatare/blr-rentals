@@ -9,6 +9,7 @@ import type {
   MoveInCost,
   NormalizedListing,
   Parking,
+  PoiCategory,
   PropertyType,
   SortOption,
   SourceSlug,
@@ -64,6 +65,14 @@ export interface SearchHit {
   sources: SourceSlug[];
   otherListings: OtherListing[];
   nearestMetro: NearestMetro | null;
+  nearby: NearbyPoi[];
+}
+
+export interface NearbyPoi {
+  category: PoiCategory;
+  name: string | null;
+  distanceM: number;
+  approximate: boolean;
 }
 
 export interface NearestMetro {

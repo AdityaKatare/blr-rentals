@@ -3,6 +3,7 @@ export * from './geo';
 export * from './listing';
 export * from './money';
 export * from './society';
+export * from './proximity';
 export * from './search-query';
 export * from './normalize/index';
 export * from './dedupe/scorer';

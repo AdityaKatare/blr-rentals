@@ -72,6 +72,34 @@ Neither uses cookies or stores IPs, so there is no consent banner.
 The environment filter in Analytics and Speed Insights separates Production from Preview
 traffic. Custom events (`track()`) need a Pro plan, so this Hobby project does not use them.
 
+## Nearby places
+
+The **Nearby** filter (`near=tech_park:5000&near=hospital:2000`, one per category, all must
+hold) reads the `pois` table, except `metro`, which reads `metro_stations`. Distances are
+straight-line `ST_DWithin` on geography, measured to the edge of polygons, so a 5 km tech park
+filter means 5 km from the campus boundary. Listings placed only at a locality centroid count
+only for distances of 3 km or more. The old `nearMetro=1000` links still work.
+
+Categories live in `packages/core/src/proximity.ts` (with their radius presets) and their OSM
+tag rules in `packages/db/src/pois/osm.ts`. The same rules write the Overpass query and
+classify the export, so adding a category means one entry in each plus a label in
+`apps/web/constants/labels.ts`. No migration is needed. City-specific tech park names, OSM ids to drop and
+renames go in `packages/db/seeds/poi_overrides.json`.
+
+Refresh (the scripts never touch the network; the data is OpenStreetMap, ODbL, so keep the
+attribution):
+
+```bash
+pnpm --silent --filter @blr/db pois query 12.70,77.35,13.25,77.90 > pois.ql
+curl -sS -A "blr-rentals/0.1 (+mailto:you@example.com)" --data-urlencode "data@pois.ql"   https://overpass-api.de/api/interpreter -o pois.json
+pnpm --filter @blr/db pois ingest pois.json --dry-run   # counts, plus every tech park for review
+pnpm --filter @blr/db pois ingest pois.json
+pnpm --filter @blr/db pois counts
+```
+
+`ingest` replaces the `osm` rows of each category present in the export, in one transaction,
+and leaves categories the export does not mention alone.
+
 ## Browser extension
 
 `apps/extension` is a Manifest V3 extension with no framework: a content script that reads the

@@ -1,4 +1,4 @@
-import type { MetroLine, NearMetroM, SortOption, TenantFilter, TenantPreference } from '@blr/core';
+import type { MetroLine, PoiCategory, PoiCategoryGroup, SortOption, TenantFilter, TenantPreference } from '@blr/core';
 
 export const SOURCE_LABELS: Record<string, string> = {
   nobroker: 'NoBroker',
@@ -25,10 +25,45 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
-export const NEAR_METRO_LABELS: Record<NearMetroM, string> = {
-  500: '500 m',
-  1000: '1 km',
-  1500: '1.5 km',
+export const POI_CATEGORY_LABELS: Record<PoiCategory, string> = {
+  tech_park: 'Tech parks',
+  metro: 'Metro',
+  railway_station: 'Railway stations',
+  bus_stop: 'Bus stops',
+  airport: 'Airport',
+  major_road: 'Main roads',
+  school: 'Schools',
+  college: 'Colleges',
+  hospital: 'Hospitals',
+  mall: 'Malls',
+  supermarket: 'Supermarkets',
+  restaurant: 'Restaurants & cafes',
+  gym: 'Gyms',
+  park: 'Parks',
+};
+
+export const POI_CATEGORY_NOUNS: Record<PoiCategory, string> = {
+  tech_park: 'tech park',
+  metro: 'metro',
+  railway_station: 'railway station',
+  bus_stop: 'bus stop',
+  airport: 'airport',
+  major_road: 'main road',
+  school: 'school',
+  college: 'college',
+  hospital: 'hospital',
+  mall: 'mall',
+  supermarket: 'supermarket',
+  restaurant: 'restaurant or cafe',
+  gym: 'gym',
+  park: 'park',
+};
+
+export const POI_GROUP_LABELS: Record<PoiCategoryGroup, string> = {
+  work: 'Work',
+  transit: 'Getting around',
+  education_health: 'Schools & health',
+  daily: 'Everyday',
 };
 
 export const METRO_LINE_LABELS: Record<MetroLine, string> = {

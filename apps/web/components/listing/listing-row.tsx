@@ -1,15 +1,17 @@
 import { Fragment, type ReactNode } from 'react';
 import { formatBedrooms } from '@blr/core';
-import type { SearchHit } from '@blr/db';
+import type { NearbyPoi, SearchHit } from '@blr/db';
 import Link from 'next/link';
 import { MetroLinesIcon } from '@/components/ui/metro-lines-icon';
 import {
   FURNISHING_LABELS,
   METRO_LINE_LABELS,
+  POI_CATEGORY_NOUNS,
   PROPERTY_TYPE_LABELS,
   SOURCE_LABELS,
   TENANT_PREFERENCE_LABELS,
 } from '@/constants/labels';
+import { NEARBY_CARD_LIMIT } from '@/constants/search';
 import { availability, formatDistance, timeAgo } from '@/utils/format';
 import { AlsoListed } from './also-listed';
 import { ListingBadges } from './listing-badges';
@@ -46,6 +48,16 @@ export function ListingRow({ hit, saved }: { hit: SearchHit; saved: boolean }) {
     });
   } else {
     details.push({ key: 'metro', node: <span className="text-muted">No metro within 3 km</span> });
+  }
+  for (const poi of hit.nearby.slice(0, NEARBY_CARD_LIMIT)) {
+    details.push({ key: `near-${poi.category}`, node: <span title={nearbyTitle(poi)}>{nearbyText(poi)}</span> });
+  }
+  const hidden = hit.nearby.slice(NEARBY_CARD_LIMIT);
+  if (hidden.length) {
+    details.push({
+      key: 'near-more',
+      node: <span title={hidden.map(nearbyText).join(' · ')}>+{hidden.length} nearby</span>,
+    });
   }
   if (updated) details.push({ key: 'updated', node: <span>Updated {updated}</span> });
   if (hit.rentDrop) {
@@ -125,3 +137,11 @@ export function ListingRow({ hit, saved }: { hit: SearchHit; saved: boolean }) {
     </ListingRowFrame>
   );
 }
+
+const nearbyText = (poi: NearbyPoi) =>
+  `${poi.approximate ? '~' : ''}${formatDistance(poi.distanceM)} to ${poi.name ?? `nearest ${POI_CATEGORY_NOUNS[poi.category]}`}`;
+
+const nearbyTitle = (poi: NearbyPoi) =>
+  `Nearest ${POI_CATEGORY_NOUNS[poi.category]} · straight-line distance${
+    poi.approximate ? ' from the locality centre, as this listing has no exact location' : ''
+  }`;

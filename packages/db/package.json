@@ -12,7 +12,8 @@
     "test": "vitest run",
     "migrate": "tsx src/scripts/migrate.ts",
     "seed": "tsx src/scripts/seed.ts",
-    "build-metro-seed": "tsx src/scripts/build-metro-seed.ts"
+    "build-metro-seed": "tsx src/scripts/build-metro-seed.ts",
+    "pois": "tsx src/scripts/pois.ts"
   },
   "dependencies": {
     "@blr/core": "workspace:*",

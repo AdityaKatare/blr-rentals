@@ -13,6 +13,7 @@ const CENTER = { lat: 12.9, lng: 77.9 };
 const metroPrefix = `zz-metro-${randomBytes(4).toString('hex')}`;
 const OPEN_STATION = { slug: `${metroPrefix}-open`, name: 'Test Open Station', km: 0.7 };
 const UPCOMING_STATION = { slug: `${metroPrefix}-upcoming`, name: 'Test Upcoming Station', km: 4 };
+const poiSource = `zz-poi-${randomBytes(4).toString('hex')}`;
 
 const offsetLat = (km: number) => CENTER.lat + km / 111.2;
 
@@ -71,6 +72,7 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     await sql`DELETE FROM listings WHERE source_id = ${sourceId}`;
     await sql`DELETE FROM sources WHERE id = ${sourceId}`;
     await sql`DELETE FROM metro_stations WHERE slug LIKE ${`${metroPrefix}-%`}`;
+    await sql`DELETE FROM pois WHERE source = ${poiSource}`;
     await handle?.close();
   });
 
@@ -177,8 +179,10 @@ describe.runIf(handle)('searchListings against Postgres', () => {
               'semi', 'car', 'owner', ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(0.7)}), 4326)::geography,
               'locality_centroid', '{}'::text[], '[]'::jsonb, 'h', 'active')`;
     const known = new Set([...fixtures.map((f) => f.id), centroidId]);
-    const mine = async (nearMetroM: 500 | 1000 | 1500) =>
-      ids((await search({ radiusKm: 5, sort: 'distance', nearMetroM })).hits).filter((id) => known.has(id!));
+    const mine = async (withinM: number) =>
+      ids((await search({ radiusKm: 5, sort: 'distance', near: [{ category: 'metro', withinM }] })).hits).filter((id) =>
+        known.has(id!),
+      );
 
     expect(await mine(500)).toEqual(['near-2bhk', 'rk']);
     expect(await mine(1500)).toEqual(['near-2bhk', 'rk', 'mid-2bhk-cheap']);
@@ -194,6 +198,63 @@ describe.runIf(handle)('searchListings against Postgres', () => {
 
     const saved = await listingsByIds(sql, [byId('near-2bhk').id]);
     expect(saved[0]!.nearestMetro).toMatchObject({ name: OPEN_STATION.name });
+
+    await sql`DELETE FROM listings WHERE source_id = ${sourceId} AND source_listing_id = ${centroidId}`;
+  });
+
+  it('filters by any mix of nearby categories, measuring to the edge of large places', async () => {
+    const centroidId = 'centroid-near-poi';
+    await sql`
+      INSERT INTO listings (source_id, source_listing_id, source_url, title, property_type, bedrooms, is_1rk, rent,
+                            furnishing, parking, listed_by, location, geo_accuracy, amenities, images, raw_hash, status)
+      VALUES (${sourceId}, ${centroidId}, ${`https://example.com/${centroidId}`}, ${centroidId}, 'apartment', 2, false, 22000,
+              'semi', 'car', 'owner', ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(0.7)}), 4326)::geography,
+              'locality_centroid', '{}'::text[], '[]'::jsonb, 'h', 'active')`;
+    const [s0, s1, w, e] = [offsetLat(5.8), offsetLat(6.2), CENTER.lng - 0.002, CENTER.lng + 0.002];
+    await sql`
+      INSERT INTO pois (category, name, location, source, source_ref)
+      VALUES ('tech_park', 'Test Tech Park',
+              ST_GeomFromText(${`POLYGON((${w} ${s0}, ${e} ${s0}, ${e} ${s1}, ${w} ${s1}, ${w} ${s0}))`}, 4326)::geography,
+              ${poiSource}, 'way/1'),
+             ('hospital', 'Test Hospital',
+              ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(0.6)}), 4326)::geography, ${poiSource}, 'node/2')`;
+    const known = new Set([...fixtures.map((f) => f.id), centroidId]);
+    const mine = async (near: { category: 'tech_park' | 'hospital'; withinM: number }[]) =>
+      ids((await search({ radiusKm: 5, sort: 'distance', near })).hits).filter((id) => known.has(id!));
+
+    expect(await mine([{ category: 'tech_park', withinM: 2000 }])).toEqual(['far-3bhk']);
+    expect(await mine([{ category: 'tech_park', withinM: 5000 }])).toEqual(['rk', 'mid-2bhk-cheap', 'far-3bhk']);
+    expect(await mine([{ category: 'tech_park', withinM: 5500 }])).toEqual([
+      'near-2bhk',
+      centroidId,
+      'rk',
+      'mid-2bhk-cheap',
+      'far-3bhk',
+    ]);
+    expect(await mine([{ category: 'hospital', withinM: 1000 }])).toEqual(['near-2bhk', 'rk']);
+    expect(
+      await mine([
+        { category: 'tech_park', withinM: 5000 },
+        { category: 'hospital', withinM: 1000 },
+      ]),
+    ).toEqual(['rk']);
+
+    const r = await search({
+      radiusKm: 5,
+      sort: 'distance',
+      near: [
+        { category: 'tech_park', withinM: 5500 },
+        { category: 'metro', withinM: 2000 },
+      ],
+    });
+    const rk = r.hits.find((h) => h.sourceUrl === 'https://example.com/rk')!;
+    expect(rk.nearby).toHaveLength(1);
+    expect(rk.nearby[0]).toMatchObject({ category: 'tech_park', name: 'Test Tech Park', approximate: false });
+    expect(rk.nearby[0]!.distanceM).toBeGreaterThan(4700);
+    expect(rk.nearby[0]!.distanceM).toBeLessThan(4900);
+
+    const plain = await search({ radiusKm: 5, sort: 'distance' });
+    expect(plain.hits.every((h) => h.nearby.length === 0)).toBe(true);
 
     await sql`DELETE FROM listings WHERE source_id = ${sourceId} AND source_listing_id = ${centroidId}`;
   });

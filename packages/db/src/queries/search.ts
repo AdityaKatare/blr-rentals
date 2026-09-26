@@ -4,6 +4,7 @@ import { geographyPoint, pgArray } from '../sql';
 import type { LocalityMatch, SearchHit, SearchResult } from '../types';
 import { enrichHits, hitColumns, plausibleDeposit, toHit, type ListingRow } from './hits';
 import { localityById, nearestLocality } from './localities';
+import { cardCategories, nearConditions } from './proximity';
 
 export const RELEVANCE_CANDIDATE_CAP = 1000;
 
@@ -64,12 +65,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   if (query.depositMaxMonths !== undefined) {
     conditions.push(sql`${plausibleDeposit(sql)} AND l.deposit <= l.rent * ${query.depositMaxMonths}`);
   }
-  if (query.nearMetroM !== undefined) {
-    conditions.push(sql`l.geo_accuracy IN ('exact', 'approximate')`);
-    conditions.push(sql`EXISTS (
-      SELECT 1 FROM metro_stations m
-      WHERE m.status = 'open' AND ST_DWithin(m.location, l.location, ${query.nearMetroM}))`);
-  }
+  conditions.push(...nearConditions(sql, query.near));
 
   const where = conditions.reduce((acc, c) => sql`${acc} AND ${c}`);
 
@@ -121,7 +117,7 @@ export async function searchListings(sql: Sql, query: SearchQuery, now: Date = n
   } else {
     hits = rows.map((r) => toHit(r, null));
   }
-  await enrichHits(sql, hits, now);
+  await enrichHits(sql, hits, now, { nearby: cardCategories(query.near) });
 
   const rankedTotal = relevance ? Math.min(total, RELEVANCE_CANDIDATE_CAP) : total;
   return {

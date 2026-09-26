@@ -47,6 +47,7 @@ function hit(overrides: Partial<SearchHit> = {}): SearchHit {
     sources: ['nobroker'],
     otherListings: [],
     nearestMetro: null,
+    nearby: [],
     ...overrides,
   };
 }

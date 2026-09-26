@@ -7,6 +7,7 @@ export { createListingStore } from './queries/listing-store';
 export { listingBySourceId, listingsByIds, type SourceLookup } from './queries/listings';
 export { findLocality, listLocalities, localityCoverage, nearestLocality } from './queries/localities';
 export { listMetroStations } from './queries/metro';
+export { poiCounts, replacePois } from './queries/pois';
 export { createRunRecorder, recentRuns } from './queries/scrape-runs';
 export { loadSearchArea } from './queries/search-areas';
 export { searchListings } from './queries/search';

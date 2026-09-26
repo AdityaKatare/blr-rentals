@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SORT_OPTIONS, SOURCE_SLUGS, TENANT_FILTERS } from './enums';
+import { NEAR_MAX_M, NEAR_MIN_M, POI_CATEGORIES } from './proximity';
 
 export const DEFAULT_RADIUS_KM = 5;
 
@@ -26,8 +27,16 @@ export const SearchQuerySchema = z.object({
   depositMaxMonths: z
     .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)])
     .optional(),
-  // keep in sync with NEAR_METRO_OPTIONS_M
-  nearMetroM: z.union([z.literal(500), z.literal(1000), z.literal(1500)]).optional(),
+  near: z
+    .array(
+      z.object({
+        category: z.enum(POI_CATEGORIES),
+        withinM: z.number().int().min(NEAR_MIN_M).max(NEAR_MAX_M),
+      }),
+    )
+    .max(POI_CATEGORIES.length)
+    .refine((items) => new Set(items.map((i) => i.category)).size === items.length, 'each category may appear once')
+    .default([]),
   sources: z.array(z.enum(SOURCE_SLUGS)).optional(),
   sort: z.enum(SORT_OPTIONS).default('relevance'),
   page: z.number().int().min(1).default(1),
@@ -36,3 +45,4 @@ export const SearchQuerySchema = z.object({
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type SearchQueryInput = z.input<typeof SearchQuerySchema>;
+export type NearCriterion = SearchQuery['near'][number];

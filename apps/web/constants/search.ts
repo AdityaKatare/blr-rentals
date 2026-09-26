@@ -17,8 +17,10 @@ export const NEW_LISTING_DAYS = 3;
 
 export const STATUS_RECENT_RUNS = 30;
 
-export const METRO_FILTER_NOTE =
-  'Metro distance is measured in a straight line from open Namma Metro stations. Listings placed only at their locality centre cannot match this filter and are left out.';
+export const NEARBY_FILTER_NOTE =
+  'Nearby distances are straight lines, measured to the edge of large places such as tech parks and parks. Listings placed only at their locality centre count only for distances of 3 km or more.';
+
+export const NEARBY_CARD_LIMIT = 3;
 
 export const DEPOSIT_FILTER_NOTE =
   'Deposit in months is the published deposit divided by the rent. Listings with no deposit, or one too far off the rent to believe, are left out.';

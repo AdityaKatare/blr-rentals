@@ -1,8 +1,8 @@
 import { Fragment, type ReactNode } from 'react';
 import { SocietyRentTable } from '@/components/society/society-rent-table';
-import { FURNISHING_LABELS, NEAR_METRO_LABELS, PROPERTY_TYPE_LABELS } from '@/constants/labels';
+import { FURNISHING_LABELS, PROPERTY_TYPE_LABELS } from '@/constants/labels';
 import { SHORTLIST_NEAR_METRO_M, SHORTLIST_TOP_AREAS } from '@/constants/shortlist';
-import { humanize, rupees } from '@/utils/format';
+import { formatRadius, humanize, rupees } from '@/utils/format';
 import { shortlistSizeHref } from '@/utils/shortlist';
 import type { ShortlistInsights as Insights, Spread, Tally } from '@/utils/shortlist-insights';
 
@@ -103,7 +103,7 @@ export function ShortlistInsights({ insights, activeSize }: { insights: Insights
           notes={[insights.ownerListed > 0 ? 'no brokerage' : null]}
         />
         <Stat
-          label={`Metro within ${NEAR_METRO_LABELS[SHORTLIST_NEAR_METRO_M]}`}
+          label={`Metro within ${formatRadius(SHORTLIST_NEAR_METRO_M)}`}
           value={ofHomes(insights.nearMetro)}
           notes={[insights.unlocated > 0 ? `${insights.unlocated} without a precise location` : null]}
         />

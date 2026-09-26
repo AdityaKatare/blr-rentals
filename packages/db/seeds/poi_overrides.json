@@ -1,0 +1,7 @@
+{
+  "extraNamePatterns": {
+    "tech_park": ["manyata", "bagmane", "ecospace", "ecoworld", "global village", "embassy golf links", "international tech"]
+  },
+  "exclude": [],
+  "rename": {}
+}

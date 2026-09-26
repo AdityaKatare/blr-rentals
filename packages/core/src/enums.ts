@@ -79,6 +79,3 @@ export type MetroLine = (typeof METRO_LINES)[number];
 
 export const METRO_STATION_STATUSES = ['open', 'upcoming'] as const;
 export type MetroStationStatus = (typeof METRO_STATION_STATUSES)[number];
-
-export const NEAR_METRO_OPTIONS_M = [500, 1000, 1500] as const;
-export type NearMetroM = (typeof NEAR_METRO_OPTIONS_M)[number];

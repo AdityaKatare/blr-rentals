@@ -25,6 +25,9 @@ export function formatDistance(meters: number): string {
   return rounded < 1000 ? `${rounded} m` : `${(rounded / 1000).toFixed(1)} km`;
 }
 
+export const formatRadius = (meters: number): string =>
+  meters < 1000 ? `${meters} m` : `${Number((meters / 1000).toFixed(1))} km`;
+
 export function timeAgo(iso: string | null, now: Date = new Date()): string | null {
   if (!iso) return null;
   const days = Math.floor((now.getTime() - Date.parse(iso)) / DAY_MS);

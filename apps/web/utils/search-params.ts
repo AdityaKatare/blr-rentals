@@ -3,13 +3,15 @@ import {
   DEFAULT_RADIUS_KM,
   DEPOSIT_MONTHS_OPTIONS,
   FURNISHINGS,
-  NEAR_METRO_OPTIONS_M,
+  isPoiCategory,
+  NEAR_MAX_M,
+  NEAR_MIN_M,
   PROPERTY_TYPES,
   SORT_OPTIONS,
   SOURCE_SLUGS,
   TENANT_FILTERS,
   type DepositMonths,
-  type NearMetroM,
+  type NearCriterion,
   type SearchQueryInput,
   type TenantFilter,
 } from '@blr/core';
@@ -64,8 +66,8 @@ export function parseParams(params: Params): ParsedParams {
   if (amenities.length) query.amenitiesAll = amenities;
   if (sources.length) query.sources = sources;
   if (availableBy && /^\d{4}-\d{2}-\d{2}$/.test(availableBy)) query.availableBy = availableBy;
-  const nearMetro = num(params.nearMetro);
-  if (nearMetro !== undefined && isNearMetroOption(nearMetro)) query.nearMetroM = nearMetro;
+  const near = parseNear(params);
+  if (near.length) query.near = near.map(({ category, withinM }) => ({ category, withinM }));
   const tenants = first(params.tenants);
   if (tenants !== undefined && isTenantFilter(tenants)) query.tenantPreference = tenants;
   const depositMonths = num(params.depositMonths);
@@ -81,7 +83,31 @@ export function parseParams(params: Params): ParsedParams {
   };
 }
 
-export const isNearMetroOption = (n: number): n is NearMetroM => (NEAR_METRO_OPTIONS_M as readonly number[]).includes(n);
+export interface ParsedNear extends NearCriterion {
+  param: 'near' | 'nearMetro';
+  raw: string;
+}
+
+export function parseNear(params: Params): ParsedNear[] {
+  const byCategory = new Map<string, ParsedNear>();
+  const legacy = first(params.nearMetro);
+  if (legacy !== undefined) {
+    const withinM = Number(legacy);
+    if (isNearDistance(withinM)) byCategory.set('metro', { category: 'metro', withinM, param: 'nearMetro', raw: legacy });
+  }
+  for (const raw of list(params.near)) {
+    const [category, meters] = raw.split(':');
+    const withinM = Number(meters);
+    if (category === undefined || !isPoiCategory(category) || !isNearDistance(withinM)) continue;
+    byCategory.delete(category);
+    byCategory.set(category, { category, withinM, param: 'near', raw });
+  }
+  return [...byCategory.values()];
+}
+
+const isNearDistance = (n: number): boolean => Number.isInteger(n) && n >= NEAR_MIN_M && n <= NEAR_MAX_M;
+
+export const nearValue = (c: NearCriterion): string => `${c.category}:${c.withinM}`;
 
 export const isTenantFilter = (v: string): v is TenantFilter => (TENANT_FILTERS as readonly string[]).includes(v);
 

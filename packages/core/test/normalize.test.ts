@@ -132,11 +132,24 @@ describe('SearchQuerySchema', () => {
     expect(SearchQuerySchema.safeParse({ center, depositMaxMonths: 2.5 }).success).toBe(false);
   });
 
-  it('accepts only the fixed near-metro distances', () => {
+  it('accepts one proximity criterion per known category within the distance bounds', () => {
     const center = { lat: 12.93, lng: 77.62 };
-    expect(SearchQuerySchema.parse({ center, nearMetroM: 1000 }).nearMetroM).toBe(1000);
-    expect(SearchQuerySchema.parse({ center }).nearMetroM).toBeUndefined();
-    expect(SearchQuerySchema.safeParse({ center, nearMetroM: 700 }).success).toBe(false);
+    expect(SearchQuerySchema.parse({ center }).near).toEqual([]);
+    expect(SearchQuerySchema.parse({ center, near: [{ category: 'tech_park', withinM: 5000 }] }).near).toEqual([
+      { category: 'tech_park', withinM: 5000 },
+    ]);
+    expect(SearchQuerySchema.safeParse({ center, near: [{ category: 'casino', withinM: 1000 }] }).success).toBe(false);
+    expect(SearchQuerySchema.safeParse({ center, near: [{ category: 'metro', withinM: 50 }] }).success).toBe(false);
+    expect(SearchQuerySchema.safeParse({ center, near: [{ category: 'metro', withinM: 40000 }] }).success).toBe(false);
+    expect(
+      SearchQuerySchema.safeParse({
+        center,
+        near: [
+          { category: 'metro', withinM: 500 },
+          { category: 'metro', withinM: 1000 },
+        ],
+      }).success,
+    ).toBe(false);
   });
 });
 

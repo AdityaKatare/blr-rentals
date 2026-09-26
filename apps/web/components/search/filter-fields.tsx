@@ -2,7 +2,6 @@ import {
   AMENITIES,
   DEPOSIT_MONTHS_OPTIONS,
   FURNISHINGS,
-  NEAR_METRO_OPTIONS_M,
   PROPERTY_TYPES,
   SOURCE_SLUGS,
   TENANT_FILTERS,
@@ -15,15 +14,15 @@ import { TextInput } from '@/components/ui/text-input';
 import { ToggleChip } from '@/components/ui/toggle-chip';
 import {
   FURNISHING_LABELS,
-  NEAR_METRO_LABELS,
   PROPERTY_TYPE_LABELS,
   SOURCE_LABELS,
   TENANT_FILTER_LABELS,
 } from '@/constants/labels';
-import { BHK_OPTIONS, DEPOSIT_FILTER_NOTE, METRO_FILTER_NOTE } from '@/constants/search';
+import { BHK_OPTIONS, DEPOSIT_FILTER_NOTE } from '@/constants/search';
 import { clearFiltersHref } from '@/utils/filters';
 import { humanize, shortDate } from '@/utils/format';
-import { first, list, type Params, type ParsedParams } from '@/utils/search-params';
+import { first, list, parseNear, type Params, type ParsedParams } from '@/utils/search-params';
+import { NearbyFilter } from './nearby-filter';
 
 interface FilterFieldsProps {
   params: Params;
@@ -126,16 +125,7 @@ export function FilterFields({ params, parsed }: FilterFieldsProps) {
           ]}
         />
 
-        <Select
-          name="nearMetro"
-          label="Metro"
-          title={METRO_FILTER_NOTE}
-          defaultValue={parsed.query.nearMetroM ? String(parsed.query.nearMetroM) : ''}
-          options={[
-            { value: '', label: 'Any' },
-            ...NEAR_METRO_OPTIONS_M.map((m) => ({ value: String(m), label: `Within ${NEAR_METRO_LABELS[m]}` })),
-          ]}
-        />
+        <NearbyFilter near={parseNear(params)} />
 
         <PopoverFilter label="Available by" summary={availableBy ? shortDate(availableBy) ?? availableBy : null} width="lg:w-56">
           <TextInput name="availableBy" type="date" aria-label="Available by" defaultValue={availableBy} />

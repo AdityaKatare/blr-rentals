@@ -1,13 +1,13 @@
 import {
   FURNISHING_LABELS,
-  NEAR_METRO_LABELS,
+  POI_CATEGORY_NOUNS,
   PROPERTY_TYPE_LABELS,
   SOURCE_LABELS,
   TENANT_FILTER_CHIPS,
 } from '@/constants/labels';
 import { BHK_OPTIONS, FILTERS_KEPT_ON_CLEAR } from '@/constants/search';
-import { humanize, rupees, shortDate } from './format';
-import { first, isDepositMonths, isNearMetroOption, isTenantFilter, list, withParams, type Params } from './search-params';
+import { formatRadius, humanize, rupees, shortDate } from './format';
+import { first, isDepositMonths, isTenantFilter, list, parseNear, withParams, type Params } from './search-params';
 
 export interface ActiveFilter {
   key: string;
@@ -51,12 +51,11 @@ export function activeFilters(params: Params): ActiveFilter[] {
     const label = `Available by ${shortDate(availableBy) ?? availableBy}`;
     chips.push({ key: 'availableBy', label, href: withParams(params, { availableBy: null, page: null }) });
   }
-  const nearMetro = Number(first(params.nearMetro));
-  if (isNearMetroOption(nearMetro)) {
+  for (const n of parseNear(params)) {
     chips.push({
-      key: 'nearMetro',
-      label: `Metro within ${NEAR_METRO_LABELS[nearMetro]}`,
-      href: withParams(params, { nearMetro: null, page: null }),
+      key: `near:${n.category}`,
+      label: `${capitalize(POI_CATEGORY_NOUNS[n.category])} within ${formatRadius(n.withinM)}`,
+      href: n.param === 'nearMetro' ? withParams(params, { nearMetro: null, page: null }) : withoutValue(params, 'near', n.raw),
     });
   }
   const tenants = first(params.tenants);
@@ -80,6 +79,8 @@ export function activeFilters(params: Params): ActiveFilter[] {
 
   return chips;
 }
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function clearFiltersHref(params: Params): string {
   const kept: Params = {};

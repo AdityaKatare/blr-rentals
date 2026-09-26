@@ -9,6 +9,7 @@ import {
   type ListingStatus,
   type MetroLine,
   type Parking,
+  type PoiCategory,
   type PropertyType,
   type SourceSlug,
   type TenantPreference,
@@ -16,6 +17,7 @@ import {
 import type { Sql } from '../client';
 import { pgArray, utcIso, type Fragment } from '../sql';
 import type { OtherListing, SearchHit } from '../types';
+import { nearestPois } from './proximity';
 
 export const RENT_DROP_WINDOW_DAYS = 14;
 export const CARD_IMAGE_LIMIT = 12;
@@ -110,6 +112,7 @@ export function toHit(r: ListingRow, score: number | null): SearchHit {
     sources: [r.source],
     otherListings: [],
     nearestMetro: null,
+    nearby: [],
   };
 }
 
@@ -131,11 +134,15 @@ export function hitColumns(sql: Sql, point: Fragment | null) {
     ${point ? sql`ST_Distance(l.location, ${point})` : sql`NULL::float8`} AS distance_m`;
 }
 
-export async function enrichHits(sql: Sql, hits: SearchHit[], now: Date): Promise<void> {
+export interface EnrichOptions {
+  nearby?: readonly PoiCategory[];
+}
+
+export async function enrichHits(sql: Sql, hits: SearchHit[], now: Date, options: EnrichOptions = {}): Promise<void> {
   if (!hits.length) return;
   const ids = pgArray(hits.map((h) => h.id));
   const since = new Date(now.getTime() - RENT_DROP_WINDOW_DAYS * DAY_MS).toISOString();
-  const [images, drops, metro] = await Promise.all([
+  const [images, drops, metro, nearby] = await Promise.all([
     sql<{ id: string; urls: string[] }[]>`
       SELECT l.id, COALESCE(array_agg(img.value ->> 'url' ORDER BY img.ordinality)
                             FILTER (WHERE img.ordinality <= ${CARD_IMAGE_LIMIT}), '{}') AS urls
@@ -167,6 +174,11 @@ export async function enrichHits(sql: Sql, hits: SearchHit[], now: Date): Promis
       WHERE l.id = ANY (${ids}::uuid[])
         AND l.location IS NOT NULL
         AND l.geo_accuracy IN ('exact', 'approximate')`,
+    nearestPois(
+      sql,
+      hits.map((h) => h.id),
+      options.nearby ?? [],
+    ),
   ]);
   const imagesById = new Map(images.map((r) => [r.id, [...new Set(r.urls.filter(Boolean))]]));
   const dropsById = new Map(drops.map((r) => [r.id, { from: r.from, at: r.at }]));
@@ -175,6 +187,7 @@ export async function enrichHits(sql: Sql, hits: SearchHit[], now: Date): Promis
     hit.images = imagesById.get(hit.id) ?? [];
     hit.rentDrop = dropsById.get(hit.id) ?? null;
     hit.nearestMetro = metroById.get(hit.id) ?? null;
+    hit.nearby = nearby.get(hit.id) ?? [];
   }
   await attachOtherListings(sql, hits);
 }

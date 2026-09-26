@@ -5,12 +5,12 @@ import { ListingRow } from '@/components/listing/listing-row';
 import { MapDialog } from '@/components/map/map-dialog';
 import { DatabaseErrorNotice, Notice } from '@/components/ui/notice';
 import { SORT_LABELS } from '@/constants/labels';
-import { DEPOSIT_FILTER_NOTE, METRO_FILTER_NOTE } from '@/constants/search';
+import { DEPOSIT_FILTER_NOTE, NEARBY_FILTER_NOTE } from '@/constants/search';
 import type { SearchOutcome } from '@/server/search';
 import { clearFiltersHref, type ActiveFilter } from '@/utils/filters';
 import { centerLabel, pinsFromHits } from '@/utils/map';
 import { groupByRegion } from '@/utils/regions';
-import { first, isDepositMonths, isNearMetroOption, type Params } from '@/utils/search-params';
+import { first, isDepositMonths, parseNear, type Params } from '@/utils/search-params';
 import { ActiveFilterChips } from './active-filter-chips';
 import { AreaGroups } from './area-groups';
 import { ActiveListingProvider } from './active-listing';
@@ -67,7 +67,7 @@ export function Results({ outcome, params, sort, radiusKm, saved, chips }: Resul
   const near = centerLabel(result.center);
   const { pins, approxOnly } = pinsFromHits(result.hits);
   const notes: string[] = [];
-  if (isNearMetroOption(Number(first(params.nearMetro)))) notes.push(METRO_FILTER_NOTE);
+  if (parseNear(params).length) notes.push(NEARBY_FILTER_NOTE);
   if (isDepositMonths(Number(first(params.depositMonths)))) notes.push(DEPOSIT_FILTER_NOTE);
 
   return (
