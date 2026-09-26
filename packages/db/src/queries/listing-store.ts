@@ -3,6 +3,7 @@ import type { NormalizedListing, SourceSlug } from '@blr/core';
 import type { Sql } from '../client';
 import { geographyPoint, inTransaction } from '../sql';
 import type { ListingStore, UpsertSummary } from '../types';
+import { refreshListingNearby } from './listing-nearby';
 import { resolveSourceId } from './sources';
 
 export function stableStringify(value: unknown): string {
@@ -130,6 +131,7 @@ export function createListingStore(sql: Sql): ListingStore {
         }
       });
 
+      await refreshListingNearby(sql, { listingIds: summary.touchedIds });
       return summary;
     },
   };

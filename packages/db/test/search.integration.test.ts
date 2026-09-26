@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { SearchQuerySchema, societySlug, type SearchQueryInput, type SourceSlug } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CARD_IMAGE_LIMIT } from '../src/queries/hits';
+import { refreshListingNearby } from '../src/queries/listing-nearby';
 import { listingsByIds } from '../src/queries/listings';
 import { findLocality } from '../src/queries/localities';
 import { DISTANCE_BAND_M, RENT_BAND, searchListings } from '../src/queries/search';
@@ -218,6 +219,8 @@ describe.runIf(handle)('searchListings against Postgres', () => {
               ${poiSource}, 'way/1'),
              ('hospital', 'Test Hospital',
               ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${offsetLat(0.6)}), 4326)::geography, ${poiSource}, 'node/2')`;
+    const mineIds = await sql<{ id: string }[]>`SELECT id FROM listings WHERE source_id = ${sourceId}`;
+    await refreshListingNearby(sql, { listingIds: mineIds.map((r) => r.id), categories: ['tech_park', 'hospital'] });
     const known = new Set([...fixtures.map((f) => f.id), centroidId]);
     const mine = async (near: { category: 'tech_park' | 'hospital'; withinM: number }[]) =>
       ids((await search({ radiusKm: 5, sort: 'distance', near })).hits).filter((id) => known.has(id!));

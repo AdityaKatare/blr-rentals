@@ -2,23 +2,23 @@ import { centroidCanMatch, type NearCriterion, type PoiCategory } from '@blr/cor
 import type { Sql } from '../client';
 import { pgArray, type Fragment } from '../sql';
 import type { NearbyPoi } from '../types';
-
-export function poiPoints(sql: Sql, category: PoiCategory): Fragment {
-  if (category === 'metro') return sql`SELECT name, location FROM metro_stations WHERE status = 'open'`;
-  return sql`SELECT name, location FROM pois WHERE category = ${category}`;
-}
+import { isPrecomputed, type PrecomputedCategory } from './listing-nearby';
 
 export function nearConditions(sql: Sql, near: readonly NearCriterion[]): Fragment[] {
   return near.flatMap((c) => {
-    const within = sql`EXISTS (
-      SELECT 1 FROM (${poiPoints(sql, c.category)}) p
-      WHERE ST_DWithin(p.location, l.location, ${c.withinM}))`;
+    const within = isPrecomputed(c.category)
+      ? sql`EXISTS (
+          SELECT 1 FROM listing_nearby n
+          WHERE n.listing_id = l.id AND n.category = ${c.category} AND n.distance_m <= ${c.withinM})`
+      : sql`EXISTS (
+          SELECT 1 FROM metro_stations m
+          WHERE m.status = 'open' AND ST_DWithin(m.location, l.location, ${c.withinM}))`;
     return centroidCanMatch(c.withinM) ? [within] : [sql`l.geo_accuracy IN ('exact', 'approximate')`, within];
   });
 }
 
-export const cardCategories = (near: readonly NearCriterion[]): PoiCategory[] =>
-  near.map((c) => c.category).filter((c) => c !== 'metro');
+export const cardCategories = (near: readonly NearCriterion[]): PrecomputedCategory[] =>
+  near.map((c) => c.category).filter(isPrecomputed);
 
 export async function nearestPois(
   sql: Sql,
@@ -26,26 +26,15 @@ export async function nearestPois(
   categories: readonly PoiCategory[],
 ): Promise<Map<string, NearbyPoi[]>> {
   const out = new Map<string, NearbyPoi[]>();
-  if (!ids.length || !categories.length) return out;
-  const idList = pgArray(ids);
-  const parts = categories.map(
-    (category, i) => sql`
-      SELECT l.id, ${i}::int AS ord, ${category}::text AS category, p.name,
-             ST_Distance(p.location, l.location) AS distance_m,
-             l.geo_accuracy = 'locality_centroid' AS approximate
-      FROM listings l
-      CROSS JOIN LATERAL (
-        SELECT q.name, q.location
-        FROM (${poiPoints(sql, category)}) q
-        ORDER BY q.location <-> l.location
-        LIMIT 1
-      ) p
-      WHERE l.id = ANY (${idList}::uuid[]) AND l.location IS NOT NULL`,
-  );
-  const union = parts.reduce((acc, part) => sql`${acc} UNION ALL ${part}`);
-  const rows = await sql<
-    { id: string; ord: number; category: PoiCategory; name: string | null; distance_m: number; approximate: boolean }[]
-  >`SELECT * FROM (${union}) n ORDER BY id, ord`;
+  const wanted = categories.filter(isPrecomputed);
+  if (!ids.length || !wanted.length) return out;
+  const rows = await sql<{ id: string; category: PrecomputedCategory; name: string | null; distance_m: number; approximate: boolean }[]>`
+    SELECT n.listing_id AS id, n.category, n.name, n.distance_m, l.geo_accuracy = 'locality_centroid' AS approximate
+    FROM listing_nearby n
+    JOIN listings l ON l.id = n.listing_id
+    WHERE n.listing_id = ANY (${pgArray(ids)}::uuid[]) AND n.category = ANY (${pgArray(wanted)}::text[])`;
+  const order = new Map(wanted.map((c, i) => [c, i]));
+  rows.sort((a, b) => order.get(a.category)! - order.get(b.category)!);
   for (const r of rows) {
     const list = out.get(r.id) ?? [];
     list.push({ category: r.category, name: r.name, distanceM: Math.round(r.distance_m), approximate: r.approximate });

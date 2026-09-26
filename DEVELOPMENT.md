@@ -75,7 +75,10 @@ traffic. Custom events (`track()`) need a Pro plan, so this Hobby project does n
 ## Nearby places
 
 The **Nearby** filter (`near=tech_park:5000&near=hospital:2000`, one per category, all must
-hold) reads the `pois` table, except `metro`, which reads `metro_stations`. Distances are
+hold) reads `listing_nearby`, which stores each listing's nearest place in every `pois`
+category, so the filter is an index lookup rather than a spatial search. `metro` is the
+exception and still asks `metro_stations` directly, because it is small and its open/upcoming
+status can change. Distances are
 straight-line `ST_DWithin` on geography, measured to the edge of polygons, so a 5 km tech park
 filter means 5 km from the campus boundary. Listings placed only at a locality centroid count
 only for distances of 3 km or more. The old `nearMetro=1000` links still work.
@@ -98,7 +101,13 @@ pnpm --filter @blr/db pois counts
 ```
 
 `ingest` replaces the `osm` rows of each category present in the export, in one transaction,
-and leaves categories the export does not mention alone.
+and leaves categories the export does not mention alone. It then recomputes `listing_nearby`
+for those categories. The listing store recomputes it for every listing a scrape inserts or
+changes, so it only needs a manual rebuild after editing `pois` by hand:
+
+```bash
+pnpm --filter @blr/db pois refresh
+```
 
 ## Browser extension
 

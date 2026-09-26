@@ -1,9 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createDb } from '../client';
+import { createDb, type Sql } from '../client';
 import { loadEnv } from '../env';
 import { buildPoiRows, includedRefs, osmRules, overpassQuery, type OsmElement, type PoiOverrides } from '../pois/osm';
+import { refreshListingNearby, type PrecomputedCategory } from '../queries/listing-nearby';
 import { poiCounts, replacePois } from '../queries/pois';
 
 /**
@@ -12,6 +13,7 @@ import { poiCounts, replacePois } from '../queries/pois';
  *
  *   pnpm --filter @blr/db pois query <south,west,north,east>
  *   pnpm --filter @blr/db pois ingest <overpass.json> [--dry-run]
+ *   pnpm --filter @blr/db pois refresh
  *   pnpm --filter @blr/db pois counts
  */
 
@@ -46,7 +48,19 @@ async function main(argv: string[]): Promise<void> {
     loadEnv();
     const handle = createDb(process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL, { max: 1 });
     try {
-      console.table(await replacePois(handle.sql, 'osm', rows));
+      const counts = await replacePois(handle.sql, 'osm', rows);
+      console.table(counts);
+      await refreshAndReport(handle.sql, Object.keys(counts) as PrecomputedCategory[]);
+    } finally {
+      await handle.close();
+    }
+    return;
+  }
+  if (command === 'refresh') {
+    loadEnv();
+    const handle = createDb(process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL, { max: 1 });
+    try {
+      await refreshAndReport(handle.sql);
     } finally {
       await handle.close();
     }
@@ -62,7 +76,13 @@ async function main(argv: string[]): Promise<void> {
     }
     return;
   }
-  throw new Error('usage: pois query <bbox> | pois ingest <overpass.json> [--dry-run] | pois counts');
+  throw new Error('usage: pois query <bbox> | pois ingest <overpass.json> [--dry-run] | pois refresh | pois counts');
+}
+
+async function refreshAndReport(sql: Sql, categories?: PrecomputedCategory[]): Promise<void> {
+  const started = performance.now();
+  const rows = await refreshListingNearby(sql, { categories });
+  console.log(`listing_nearby: ${rows} rows in ${Math.round((performance.now() - started) / 1000)} s`);
 }
 
 const isMain = process.argv[1] !== undefined && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
