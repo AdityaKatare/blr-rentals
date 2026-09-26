@@ -44,7 +44,7 @@ async function main(argv: string[]): Promise<void> {
       return;
     }
     loadEnv();
-    const handle = createDb(process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL, { max: 1, max_pipeline: 0 });
+    const handle = createDb(process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL, { max: 1 });
     try {
       console.table(await replacePois(handle.sql, 'osm', rows));
     } finally {
