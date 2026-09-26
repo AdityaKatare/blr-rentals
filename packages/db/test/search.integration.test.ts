@@ -257,7 +257,8 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     expect(rk.nearby[0]!.distanceM).toBeLessThan(4900);
 
     const plain = await search({ radiusKm: 5, sort: 'distance' });
-    expect(plain.hits.every((h) => h.nearby.length === 0)).toBe(true);
+    const plainRk = plain.hits.find((h) => h.sourceUrl === 'https://example.com/rk')!;
+    expect(plainRk.nearby.map((n) => n.category)).toEqual(['tech_park']);
 
     await sql`DELETE FROM listings WHERE source_id = ${sourceId} AND source_listing_id = ${centroidId}`;
   });

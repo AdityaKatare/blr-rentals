@@ -20,19 +20,29 @@ export function nearConditions(sql: Sql, near: readonly NearCriterion[]): Fragme
 export const cardCategories = (near: readonly NearCriterion[]): PrecomputedCategory[] =>
   near.map((c) => c.category).filter(isPrecomputed);
 
+export const CARD_ALWAYS_WITHIN_M: Partial<Record<PrecomputedCategory, number>> = { tech_park: 10000 };
+
 export async function nearestPois(
   sql: Sql,
   ids: readonly string[],
   categories: readonly PoiCategory[],
 ): Promise<Map<string, NearbyPoi[]>> {
   const out = new Map<string, NearbyPoi[]>();
-  const wanted = categories.filter(isPrecomputed);
+  const filtered = categories.filter(isPrecomputed);
+  const always = (Object.entries(CARD_ALWAYS_WITHIN_M) as [PrecomputedCategory, number][]).filter(
+    ([c]) => !filtered.includes(c),
+  );
+  const wanted = [...always.map(([c]) => c), ...filtered];
   if (!ids.length || !wanted.length) return out;
+  const capped = always.length
+    ? always.map(([c, m]) => sql`(n.category = ${c} AND n.distance_m <= ${m})`).reduce((acc, f) => sql`${acc} OR ${f}`)
+    : sql`false`;
   const rows = await sql<{ id: string; category: PrecomputedCategory; name: string | null; distance_m: number; approximate: boolean }[]>`
     SELECT n.listing_id AS id, n.category, n.name, n.distance_m, l.geo_accuracy = 'locality_centroid' AS approximate
     FROM listing_nearby n
     JOIN listings l ON l.id = n.listing_id
-    WHERE n.listing_id = ANY (${pgArray(ids)}::uuid[]) AND n.category = ANY (${pgArray(wanted)}::text[])`;
+    WHERE n.listing_id = ANY (${pgArray(ids)}::uuid[])
+      AND (n.category = ANY (${pgArray(filtered)}::text[]) OR ${capped})`;
   const order = new Map(wanted.map((c, i) => [c, i]));
   rows.sort((a, b) => order.get(a.category)! - order.get(b.category)!);
   for (const r of rows) {
