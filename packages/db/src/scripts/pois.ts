@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDb } from '../client';
 import { loadEnv } from '../env';
-import { buildPoiRows, osmRules, overpassQuery, type OsmElement, type PoiOverrides } from '../pois/osm';
+import { buildPoiRows, includedRefs, osmRules, overpassQuery, type OsmElement, type PoiOverrides } from '../pois/osm';
 import { poiCounts, replacePois } from '../queries/pois';
 
 /**
@@ -28,7 +28,8 @@ function parseBbox(arg: string | undefined): [number, number, number, number] {
 async function main(argv: string[]): Promise<void> {
   const [command, arg] = argv;
   if (command === 'query') {
-    process.stdout.write(overpassQuery(osmRules(await loadOverrides()), parseBbox(arg)));
+    const overrides = await loadOverrides();
+    process.stdout.write(overpassQuery(osmRules(overrides), parseBbox(arg), includedRefs(overrides)));
     return;
   }
   if (command === 'ingest') {

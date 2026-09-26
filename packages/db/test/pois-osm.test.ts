@@ -20,6 +20,13 @@ describe('overpassQuery', () => {
     expect(q).toContain('.w out geom;');
   });
 
+  it('fetches hand-picked places by id, outside the box filters', () => {
+    const q = overpassQuery(osmRules(), [0, 0, 1, 1], ['way/26399624', 'way/1', 'relation/7']);
+    expect(q).toContain('  way(id:26399624,1);');
+    expect(q).toContain('  relation(id:7);');
+    expect(q).not.toContain('node(id:');
+  });
+
   it('adds city-specific tech park names from the overrides', () => {
     expect(overpassQuery(osmRules({ extraNamePatterns: { tech_park: ['manyata'] } }), [0, 0, 1, 1])).toContain('|manyata"');
   });
@@ -75,6 +82,25 @@ describe('buildPoiRows', () => {
     expect(parks[0]!.sourceRef).toBe('way/10,way/11');
     expect(parks[0]!.geometry).toMatchObject({ type: 'GeometryCollection' });
     expect((parks[0]!.geometry as { geometries: unknown[] }).geometries).toHaveLength(2);
+  });
+
+  it('takes hand-picked places whatever their tags, and never a power substation', () => {
+    const picked = buildPoiRows(
+      [
+        { type: 'way', id: 50, geometry: square(12.98, 77.73, 0.003), tags: { landuse: 'commercial', name: 'ITPB' } },
+        { type: 'way', id: 51, geometry: square(12.84, 77.66, 0.002), tags: { landuse: 'commercial', name: 'Infosys' } },
+        { type: 'way', id: 52, geometry: square(12.845, 77.665, 0.002), tags: { landuse: 'commercial', name: 'Infosys Ltd' } },
+        { type: 'way', id: 53, geometry: square(13.05, 77.61, 0.002), tags: { landuse: 'industrial', power: 'substation', name: 'Manyata Substation' } },
+      ],
+      {
+        extraNamePatterns: { tech_park: ['manyata'] },
+        include: { tech_park: { 'way/50': 'ITPL', 'way/51': 'Infosys Electronic City', 'way/52': 'Infosys Electronic City' } },
+      },
+    );
+    expect(picked.map((r) => [r.name, r.sourceRef])).toEqual([
+      ['ITPL', 'way/50'],
+      ['Infosys Electronic City', 'way/51,way/52'],
+    ]);
   });
 
   it('measures polygon area well enough to drop tiny buildings', () => {

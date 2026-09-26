@@ -2,6 +2,55 @@
   "extraNamePatterns": {
     "tech_park": ["manyata", "bagmane", "ecospace", "ecoworld", "global village", "embassy golf links", "international tech"]
   },
-  "exclude": [],
-  "rename": {}
+  "include": {
+    "tech_park": {
+      "way/26399624": "ITPL (International Tech Park)",
+      "way/364872809": "Infosys Electronic City",
+      "way/264103043": "Infosys Electronic City",
+      "way/231349458": "Wipro Electronic City",
+      "way/231408285": "Wipro Electronic City",
+      "way/231332313": "Wipro Electronic City",
+      "way/230229162": "Wipro Sarjapur Road",
+      "way/370327479": "Wipro Sarjapur Road",
+      "way/688600223": "Oracle Tech Hub",
+      "way/131609429": "Oracle Technology Park",
+      "way/123613246": "SAP Labs",
+      "way/414838097": "Salarpuria Sattva Knowledge Court",
+      "way/781532336": "Salarpuria Sattva Knowledge Point",
+      "way/790387445": "Divyasree Technopark",
+      "way/116070091": "Divyasree NR Enclave",
+      "way/217566878": "Divyasree Greens",
+      "way/1034262008": "Divyasree Avance",
+      "way/1085952670": "Divyasree Towers"
+    }
+  },
+  "exclude": ["node/6201924573", "node/6201924574", "node/9811266167", "node/12892359309"],
+  "rename": {
+    "way/323047935": "Bagmane Tech Park",
+    "way/201986089": "Bagmane Tech Park",
+    "way/323047932": "Bagmane Tech Park",
+    "way/207900363": "Bagmane Tech Park",
+    "way/201986088": "Bagmane Tech Park",
+    "way/1065296607": "Bagmane Tech Park",
+    "way/790393651": "Bagmane Tech Park",
+    "way/218283836": "Bagmane World Technology Center",
+    "way/1065147882": "Bagmane Constellation Business Park",
+    "way/1065147881": "Bagmane Constellation Business Park",
+    "way/1065105694": "Bagmane Constellation Business Park",
+    "way/1235735228": "Bagmane Constellation Business Park",
+    "way/1197121100": "Bagmane Capital",
+    "way/1110572453": "Bagmane Capital",
+    "way/1065147893": "Bagmane Capital",
+    "way/1084971894": "Embassy TechVillage",
+    "way/1079506852": "North Gate Business Park",
+    "way/1110808769": "North Gate Business Park",
+    "way/313854313": "IBC Knowledge Park",
+    "node/3198945390": "IBC Knowledge Park",
+    "node/3485260898": "Mindtree Global Village",
+    "node/3485260899": "Mindtree Global Village",
+    "node/3485260900": "Mindtree Global Village",
+    "node/3485270356": "Mindtree Global Village",
+    "relation/20740900": "RMZ Ecoworld",
+    "way/1151907061": "Salarpuria Sattva Mindcomp Tech Park"
+  }
 }

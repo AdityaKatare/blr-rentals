@@ -19,6 +19,7 @@ export interface OsmRule {
 
 export interface PoiOverrides {
   extraNamePatterns?: Partial<Record<PoiCategory, string[]>>;
+  include?: Partial<Record<OsmRule['category'], Record<string, string>>>;
   exclude?: string[];
   rename?: Record<string, string>;
 }
@@ -71,6 +72,7 @@ export function osmRules(overrides: PoiOverrides = {}): OsmRule[] {
     category: 'tech_park',
     types: NWR,
     all: [{ key, value }, techName],
+    none: [{ key: 'power' }],
     minAreaM2: 5000,
     mergeByNameWithinM: 2000,
   });
@@ -108,13 +110,24 @@ function qlFilter(m: TagMatch, negate: boolean): string {
   return `["${m.key}"${negate ? '!~' : '~'}"${m.value.source.replace(/\\/g, '\\\\')}"${flags}]`;
 }
 
-export function overpassQuery(rules: readonly OsmRule[], bbox: readonly [number, number, number, number]): string {
+export function includedRefs(overrides: PoiOverrides): string[] {
+  return Object.values(overrides.include ?? {}).flatMap((refs) => Object.keys(refs ?? {}));
+}
+
+export function overpassQuery(
+  rules: readonly OsmRule[],
+  bbox: readonly [number, number, number, number],
+  refs: readonly string[] = [],
+): string {
   const box = `(${bbox.join(',')})`;
-  const byType = (type: OsmType) =>
-    rules
+  const byType = (type: OsmType) => {
+    const lines = rules
       .filter((r) => r.types.includes(type))
-      .map((r) => `  ${type}${[...r.all.map((m) => qlFilter(m, false)), ...(r.none ?? []).map((m) => qlFilter(m, true))].join('')}${box};`)
-      .join('\n');
+      .map((r) => `  ${type}${[...r.all.map((m) => qlFilter(m, false)), ...(r.none ?? []).map((m) => qlFilter(m, true))].join('')}${box};`);
+    const ids = refs.filter((r) => r.startsWith(`${type}/`)).map((r) => r.slice(type.length + 1));
+    if (ids.length) lines.push(`  ${type}(id:${ids.join(',')});`);
+    return lines.join('\n');
+  };
   return [
     '[out:json][timeout:600];',
     `(\n${byType('node')}\n)->.n;`,
@@ -210,26 +223,35 @@ function mergeByName(rows: PoiRow[], withinM: number): PoiRow[] {
 export function buildPoiRows(elements: readonly OsmElement[], overrides: PoiOverrides = {}): PoiRow[] {
   const rules = osmRules(overrides);
   const excluded = new Set(overrides.exclude ?? []);
+  const included = Object.entries(overrides.include ?? {}) as [OsmRule['category'], Record<string, string>][];
   const seen = new Set<string>();
   const byCategory = new Map<OsmRule['category'], PoiRow[]>();
   const mergeRadius = new Map<OsmRule['category'], number>();
+  for (const rule of rules) if (rule.mergeByNameWithinM) mergeRadius.set(rule.category, rule.mergeByNameWithinM);
+
+  const add = (el: OsmElement, ref: string, rule: OsmRule, name: string | null) => {
+    const key = `${rule.category}:${ref}`;
+    if (seen.has(key)) return;
+    const geometry = toGeometry(el, rule);
+    if (!geometry) return;
+    seen.add(key);
+    const tags = Object.fromEntries(KEPT_TAGS.filter((k) => el.tags?.[k] !== undefined).map((k) => [k, el.tags![k]!]));
+    const list = byCategory.get(rule.category) ?? [];
+    list.push({ category: rule.category, name: name || null, sourceRef: ref, geometry, tags });
+    byCategory.set(rule.category, list);
+  };
 
   for (const el of elements) {
     const ref = `${el.type}/${el.id}`;
     if (excluded.has(ref)) continue;
+    for (const [category, refs] of included) {
+      const name = refs[ref];
+      if (name === undefined) continue;
+      const lines = rules.find((r) => r.category === category)?.lines;
+      add(el, ref, { category, types: [el.type], all: [], lines }, name);
+    }
     for (const rule of rules) {
-      if (!ruleMatches(rule, el)) continue;
-      const key = `${rule.category}:${ref}`;
-      if (seen.has(key)) continue;
-      const geometry = toGeometry(el, rule);
-      if (!geometry) continue;
-      seen.add(key);
-      const tags = Object.fromEntries(KEPT_TAGS.filter((k) => el.tags?.[k] !== undefined).map((k) => [k, el.tags![k]!]));
-      const name = overrides.rename?.[ref] ?? el.tags?.name?.trim() ?? null;
-      const list = byCategory.get(rule.category) ?? [];
-      list.push({ category: rule.category, name: name || null, sourceRef: ref, geometry, tags });
-      byCategory.set(rule.category, list);
-      if (rule.mergeByNameWithinM) mergeRadius.set(rule.category, rule.mergeByNameWithinM);
+      if (ruleMatches(rule, el)) add(el, ref, rule, overrides.rename?.[ref] ?? el.tags?.name?.trim() ?? null);
     }
   }
 
