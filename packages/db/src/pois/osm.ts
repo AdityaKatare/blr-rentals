@@ -116,7 +116,7 @@ export function overpassQuery(rules: readonly OsmRule[], bbox: readonly [number,
       .map((r) => `  ${type}${[...r.all.map((m) => qlFilter(m, false)), ...(r.none ?? []).map((m) => qlFilter(m, true))].join('')}${box};`)
       .join('\n');
   return [
-    '[out:json][timeout:600][maxsize:1073741824];',
+    '[out:json][timeout:600];',
     `(\n${byType('node')}\n)->.n;`,
     `(\n${byType('way')}\n)->.w;`,
     `(\n${byType('relation')}\n)->.r;`,
