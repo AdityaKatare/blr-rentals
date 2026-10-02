@@ -11,7 +11,7 @@ const sans = Geist({ subsets: ['latin'], display: 'swap', variable: '--font-sans
 const mono = Geist_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-mono-face' });
 
 export const metadata: Metadata = {
-  title: { default: 'blr-rentals', template: '%s · blr-rentals' },
+  title: { default: 'blrflathunt', template: '%s · blrflathunt' },
   description: 'One search over Bangalore rental listings from several portals.',
   robots: { index: false, follow: false },
 };
