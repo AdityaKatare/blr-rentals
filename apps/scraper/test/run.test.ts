@@ -25,7 +25,7 @@ describe('runScrape', () => {
     };
     const dedupe = vi.fn(async () => ({ examined: 2, grouped: 0, created: 2, moved: 0, unchanged: 0, propertiesRemoved: 0 }));
 
-    const summary = await runScrape({ adapter: nobrokerAdapter, http, robots, logger, store, dedupe }, { area, slices: ['BHK2'] });
+    const summary = await runScrape({ adapter: nobrokerAdapter, http, robots, logger, places: new Set(), store, dedupe }, { area, slices: ['BHK2'] });
 
     expect(summary.status).toBe('ok');
     expect(summary.listingsSeen).toBe(6);
@@ -38,7 +38,7 @@ describe('runScrape', () => {
       upsertMany: vi.fn(async () => ({ inserted: 0, updated: 0, unchanged: 6, changes: 0, touchedIds: [] })),
     };
     const dedupe = vi.fn();
-    await runScrape({ adapter: nobrokerAdapter, http, robots, logger, store, dedupe }, { area, slices: ['BHK2'] });
+    await runScrape({ adapter: nobrokerAdapter, http, robots, logger, places: new Set(), store, dedupe }, { area, slices: ['BHK2'] });
     expect(dedupe).not.toHaveBeenCalled();
   });
 
@@ -55,7 +55,7 @@ describe('runScrape', () => {
       }),
     } as unknown as HttpClient;
 
-    const summary = await runScrape({ adapter: magicbricksAdapter, http: mbHttp, robots, logger }, { area });
+    const summary = await runScrape({ adapter: magicbricksAdapter, http: mbHttp, robots, logger, places: new Set() }, { area });
 
     expect(fetched).toEqual([
       'https://www.magicbricks.com/flats-for-rent-in-koramangala-bangalore-pppfr',
@@ -68,7 +68,7 @@ describe('runScrape', () => {
 
   it('fails when the area has no page on the source at all', async () => {
     const notFound = { get: vi.fn(async (url: string) => Promise.reject(new HttpError(404, url))) } as unknown as HttpClient;
-    const summary = await runScrape({ adapter: magicbricksAdapter, http: notFound, robots, logger }, { area });
+    const summary = await runScrape({ adapter: magicbricksAdapter, http: notFound, robots, logger, places: new Set() }, { area });
     expect(summary.status).toBe('failed');
     expect(summary.emptySlices).toEqual(['flats', 'independent-house']);
     expect(summary.errors.join()).toMatch(/source override/);

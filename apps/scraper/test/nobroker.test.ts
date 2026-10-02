@@ -3,6 +3,7 @@ import { NormalizedListingSchema } from '@blr/core';
 import { describe, expect, it } from 'vitest';
 import { NOBROKER_SLICES, nobrokerAdapter } from '../src/sources/nobroker/adapter';
 import { parseNobrokerSearchPage } from '../src/sources/nobroker/parse';
+import { placeNames } from '../src/sources/shared/society';
 import type { SearchArea } from '../src/sources/types';
 
 const html = readFileSync(new URL('./fixtures/nobroker-search.html', import.meta.url), 'utf8');
@@ -16,7 +17,7 @@ const area: SearchArea = {
   radiusKm: 3,
   sourceOverrides: {},
 };
-const ctx = { area, pageUrl: 'https://www.nobroker.in/x', fetchedAt: new Date('2026-09-15T00:00:00Z') };
+const ctx = { area, pageUrl: 'https://www.nobroker.in/x', fetchedAt: new Date('2026-09-15T00:00:00Z'), places: placeNames([{ name: 'HSR Layout', aliases: ['hsr'] }]) };
 
 const parsed = parseNobrokerSearchPage(html, 'https://www.nobroker.in/x');
 const byId = (suffix: string) => {

@@ -1,4 +1,4 @@
-import { SOCIETY_NAME_MIN_LENGTH, type SortOption } from '@blr/core';
+import { SOCIETY_NAME_MIN_LENGTH, type SortOption, type SourceSlug } from '@blr/core';
 import type { Sql } from '../client';
 import { utcIso, type Fragment } from '../sql';
 import type { NearestMetro, SearchHit, SocietyBedroomStat, SocietyDetail, SocietyListings, SocietySummary } from '../types';
@@ -195,4 +195,28 @@ export async function societyListings(
     sort,
     tookMs: Math.round(performance.now() - started),
   };
+}
+
+export interface StoredSocietyName {
+  id: string;
+  current: string | null;
+  given: string | null;
+}
+
+export async function storedSocietyNames(sql: Sql, source: SourceSlug, rawField: string): Promise<StoredSocietyName[]> {
+  return sql<StoredSocietyName[]>`
+    SELECT l.id, l.society_name AS current, l.raw->>${rawField} AS given
+    FROM listings l
+    JOIN sources s ON s.id = l.source_id
+    WHERE s.slug = ${source}`;
+}
+
+export async function renameSocieties(sql: Sql, renames: readonly { id: string; name: string | null }[]): Promise<number> {
+  if (renames.length === 0) return 0;
+  const result = await sql`
+    UPDATE listings l
+    SET society_name = r.name
+    FROM jsonb_to_recordset(${JSON.stringify(renames)}::jsonb) AS r(id uuid, name text)
+    WHERE l.id = r.id AND l.society_name IS DISTINCT FROM r.name`;
+  return result.count;
 }

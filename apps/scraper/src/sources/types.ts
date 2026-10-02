@@ -1,5 +1,6 @@
 import type { NormalizedListingInput, SourceSlug } from '@blr/core';
 import type { ResolvedSearchArea } from '@blr/db';
+import type { PlaceNames } from './shared/society';
 
 export type SearchArea = ResolvedSearchArea;
 
@@ -17,6 +18,7 @@ export interface NormalizeContext {
   area: SearchArea;
   pageUrl: string;
   fetchedAt: Date;
+  places: PlaceNames;
 }
 
 export interface SourceAdapter {

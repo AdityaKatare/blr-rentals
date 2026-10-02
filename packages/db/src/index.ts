@@ -1,6 +1,6 @@
 export { createDb, type DbHandle, type DbOptions, type Sql } from './client';
 export { loadEnv } from './env';
-export { resolveSeedArea } from './seeds';
+export { loadSeedLocalities, resolveSeedArea } from './seeds';
 export { geographyPoint, inTransaction, pgArray } from './sql';
 export { dedupeListings, refreshProperty } from './queries/dedupe';
 export { createListingStore } from './queries/listing-store';
@@ -15,10 +15,13 @@ export { searchListings } from './queries/search';
 export {
   findSociety,
   listSocieties,
+  renameSocieties,
   societyListings,
   societyOptions,
   SOCIETY_PAGE_SIZE,
+  storedSocietyNames,
   type SocietyOption,
+  type StoredSocietyName,
 } from './queries/societies';
 export { DEFAULT_REMOVE_DAYS, DEFAULT_STALE_DAYS, markStale } from './queries/stale';
 export { listingCounts, sourceOverview } from './queries/status';

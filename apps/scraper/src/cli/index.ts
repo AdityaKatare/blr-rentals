@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { registerCleanSocietiesCommand } from './commands/clean-societies';
 import { registerDedupeCommand } from './commands/dedupe';
 import { registerMarkStaleCommand } from './commands/mark-stale';
 import { registerScrapeCommand } from './commands/scrape';
@@ -16,5 +17,6 @@ registerScrapeCommand(program);
 registerStatusCommand(program);
 registerMarkStaleCommand(program);
 registerDedupeCommand(program);
+registerCleanSocietiesCommand(program);
 
 program.parseAsync(process.argv).catch(reportError);

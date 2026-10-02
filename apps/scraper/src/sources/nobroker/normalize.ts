@@ -95,7 +95,7 @@ function parseImages(raw: RawListing, id: string): Image[] {
   return images.slice(0, MAX_LISTING_IMAGES);
 }
 
-export function normalizeNobroker(raw: RawListing, _ctx: NormalizeContext): NormalizedListingInput {
+export function normalizeNobroker(raw: RawListing, ctx: NormalizeContext): NormalizedListingInput {
   const id = str(raw.id);
   if (!id) throw new Error('nobroker: listing without id');
   const detailUrl = str(raw.detailUrl);
@@ -143,7 +143,7 @@ export function normalizeNobroker(raw: RawListing, _ctx: NormalizeContext): Norm
     subLocality: place(raw.street),
     city: 'Bengaluru',
     pincode: pincode && /^\d{6}$/.test(pincode) ? pincode : null,
-    societyName: societyName(raw.society),
+    societyName: societyName(raw.society, ctx.places),
 
     lat: hasGeo ? lat : null,
     lng: hasGeo ? lng : null,

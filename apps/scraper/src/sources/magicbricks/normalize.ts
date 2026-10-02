@@ -199,7 +199,7 @@ function availableFrom(raw: RawListing, postedAt: string | null): string | null 
   return null;
 }
 
-export function normalizeMagicbricks(raw: RawListing, _ctx: NormalizeContext): NormalizedListingInput {
+export function normalizeMagicbricks(raw: RawListing, ctx: NormalizeContext): NormalizedListingInput {
   const id = raw.id === undefined || raw.id === null ? null : String(raw.id).trim();
   if (!id) throw new Error('magicbricks: listing without id');
   const path = str(raw.url);
@@ -247,7 +247,7 @@ export function normalizeMagicbricks(raw: RawListing, _ctx: NormalizeContext): N
     subLocality: null,
     city: 'Bengaluru',
     pincode: null,
-    societyName: societyName(raw.prjname),
+    societyName: societyName(raw.prjname, ctx.places),
 
     ...geo(raw),
 

@@ -3,6 +3,7 @@ import { NormalizedListingSchema } from '@blr/core';
 import { describe, expect, it } from 'vitest';
 import { MAGICBRICKS_SLICES, magicbricksAdapter } from '../src/sources/magicbricks/adapter';
 import { parseMagicbricksSearchPage } from '../src/sources/magicbricks/parse';
+import { placeNames } from '../src/sources/shared/society';
 import type { SearchArea } from '../src/sources/types';
 
 const html = readFileSync(new URL('./fixtures/magicbricks-search.html', import.meta.url), 'utf8');
@@ -16,7 +17,7 @@ const area: SearchArea = {
   radiusKm: 3,
   sourceOverrides: {},
 };
-const ctx = { area, pageUrl: PAGE_1, fetchedAt: new Date('2026-09-15T00:00:00Z') };
+const ctx = { area, pageUrl: PAGE_1, fetchedAt: new Date('2026-09-15T00:00:00Z'), places: placeNames([{ name: 'HSR Layout', aliases: ['hsr'] }]) };
 
 const parsed = parseMagicbricksSearchPage(html, PAGE_1);
 const listing = (id: string) => {

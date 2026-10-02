@@ -5,6 +5,7 @@ import { BlockedError, HttpError } from '../errors';
 import type { HttpClient } from '../http/client';
 import type { RobotsGate } from '../http/robots';
 import type { ParsedPage, SearchArea, SourceAdapter } from '../sources/types';
+import type { PlaceNames } from '../sources/shared/society';
 
 const PARTIAL_RUN_PARSE_FAILURE_RATE = 0.2;
 
@@ -13,6 +14,7 @@ export interface RunDeps {
   http: HttpClient;
   robots: RobotsGate;
   logger: Logger;
+  places: PlaceNames;
   store?: ListingStore;
   recorder?: RunRecorder;
   dedupe?: (listingIds: string[]) => Promise<DedupeSummary>;
@@ -188,7 +190,7 @@ async function collectSlice(
     for (const raw of parsed.raw) {
       summary.listingsSeen += 1;
       try {
-        const listing = NormalizedListingSchema.parse(adapter.normalize(raw, { area, pageUrl: url, fetchedAt: new Date() }));
+        const listing = NormalizedListingSchema.parse(adapter.normalize(raw, { area, pageUrl: url, fetchedAt: new Date(), places: deps.places }));
         summary.normalized.push(listing);
       } catch (err) {
         summary.parseFailures += 1;

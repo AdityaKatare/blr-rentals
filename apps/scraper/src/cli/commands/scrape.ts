@@ -2,6 +2,7 @@ import {
   createListingStore,
   createRunRecorder,
   dedupeListings,
+  loadSeedLocalities,
   loadSearchArea,
   resolveSeedArea,
   type DbHandle,
@@ -12,6 +13,7 @@ import { createHttpClient } from '../../http/client';
 import { createRobotsGate, type RobotsGate } from '../../http/robots';
 import { createLogger } from '../../log';
 import { runScrape, type RunSummary } from '../../pipeline/run';
+import { placeNames } from '../../sources/shared/society';
 import { getAdapter, listAdapters } from '../../sources/registry';
 import { positiveInt, runCommand, withDb } from '../run-command';
 
@@ -70,6 +72,7 @@ async function scrape(options: ScrapeOptions, config: ScraperConfig, db: DbHandl
       http,
       robots,
       logger,
+      places: placeNames(await loadSeedLocalities()),
       store: db ? createListingStore(db.sql) : undefined,
       recorder: db ? createRunRecorder(db.sql) : undefined,
       dedupe: db ? (listingIds: string[]) => dedupeListings(db.sql, { listingIds }) : undefined,
