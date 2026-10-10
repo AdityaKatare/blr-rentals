@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   description:
     'Search Bangalore flats for rent from NoBroker, MagicBricks and other portals in one place, with the nearest metro and tech park for every listing.',
   openGraph: { type: 'website', siteName: 'blrflathunt', url: '/' },
+  verification: { google: '8pKoyZ7sDW_3uztpp6pi9NEpG1qrvIF2SYPaxEWamOc' },
 };
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
