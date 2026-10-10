@@ -30,7 +30,11 @@ interface SocietyPageProps {
 export async function generateMetadata({ params }: SocietyPageProps) {
   const { slug } = await params;
   const name = await societyName(slug);
-  return { title: name ?? 'Apartment' };
+  return {
+    title: name ? `${name} flats for rent` : 'Apartment',
+    description: name ? `Every flat for rent in ${name}, Bangalore, gathered from the rental portals in one list.` : undefined,
+    alternates: { canonical: `/societies/${slug}` },
+  };
 }
 
 export default async function SocietyPage({ params, searchParams }: SocietyPageProps) {

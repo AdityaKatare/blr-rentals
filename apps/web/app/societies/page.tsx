@@ -9,7 +9,11 @@ import { first, type Params } from '@/utils/search-params';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'Apartments' };
+export const metadata = {
+  title: 'Apartments',
+  description: 'Bangalore apartment complexes with flats for rent, and the rent range across every listed unit.',
+  alternates: { canonical: '/societies' },
+};
 
 export default async function SocietiesPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;

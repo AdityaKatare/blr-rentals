@@ -14,6 +14,8 @@ import { parseParams, type Params } from '@/utils/search-params';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = { alternates: { canonical: '/' } };
+
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   const parsed = parseParams(params);

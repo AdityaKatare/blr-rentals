@@ -14,7 +14,7 @@ import { summarizeShortlist } from '@/utils/shortlist-insights';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'Shortlist' };
+export const metadata = { title: 'Shortlist', robots: { index: false } };
 
 interface ShortlistPageProps {
   searchParams: Promise<Params>;

@@ -7,7 +7,7 @@ import { loadStatus } from '@/server/status';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'Status' };
+export const metadata = { title: 'Status', robots: { index: false } };
 
 export default async function StatusPage() {
   const status = await loadStatus();

@@ -52,7 +52,10 @@ security is on and only `postgres` bypasses it. New tables in later migrations n
 same policy. Set Vercel's `DATABASE_URL` to the transaction-pooler URI with
 `web_reader.<project-ref>` as the user; never give it `DATABASE_URL_DIRECT`.
 
-The site answers `/robots.txt` with disallow-all and every page carries `noindex`.
+Search engines may crawl the site. `/robots.txt` blocks only `/api/` and points at
+`/sitemap.xml`, which lists the home page, `/societies` and every apartment page. The
+shortlist and status pages carry `noindex`. `SITE_URL` in `constants/site.ts` is the
+domain used for canonical URLs and the sitemap.
 
 ### Analytics and monitoring
 

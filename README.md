@@ -41,6 +41,5 @@ distance from wherever you actually need to be, and sorted by what it really cos
 - Nobody's name, phone number or email is ever stored — only whether a listing is from an
   owner or a broker. To contact anyone you go to the original listing.
 - Photos are shown from the portals' own servers, never copied.
-- The site is `noindex`: it isn't trying to outrank anyone in search.
 
 Not affiliated with NoBroker, MagicBricks, or anyone else.
