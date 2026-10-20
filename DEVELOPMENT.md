@@ -52,7 +52,7 @@ security is on and only `postgres` bypasses it. New tables in later migrations n
 same policy. Set Vercel's `DATABASE_URL` to the transaction-pooler URI with
 `web_reader.<project-ref>` as the user; never give it `DATABASE_URL_DIRECT`.
 
-Search engines may crawl the site. `/robots.txt` blocks only `/api/` and points at
+Search engines may crawl the site. `/robots.txt` blocks only `/api/` and `/ingest/` and points at
 `/sitemap.xml`, which lists the home page, `/societies` and every apartment page. The
 shortlist and status pages carry `noindex`. `SITE_URL` in `constants/site.ts` is the
 domain used for canonical URLs and the sitemap.
@@ -74,6 +74,17 @@ Neither uses cookies or stores IPs, so there is no consent banner.
 
 The environment filter in Analytics and Speed Insights separates Production from Preview
 traffic. Custom events (`track()`) need a Pro plan, so this Hobby project does not use them.
+
+PostHog is set up in `instrumentation-client.ts` and only starts when
+`NEXT_PUBLIC_POSTHOG_KEY` (the project API key, `phc_...`) is set, so add it to the Vercel
+project and leave it out of local `.env` files. Events go through `/ingest`, which
+`next.config.ts` rewrites to PostHog's US cloud so ad blockers don't drop them; for an EU
+project, change both `us` hosts there and `ui_host` to `eu`. It runs in cookieless mode, so
+**Cookieless server hash mode** must be on in the PostHog project settings or every event is
+dropped. It keeps no person profiles, has session replay and surveys off, and strips query
+strings from every URL and referrer property, for the same `lat`/`lng` reason as above.
+Pageviews, page leaves, autocaptured clicks and web vitals show up in Web analytics and
+Activity.
 
 ## Nearby places
 

@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@blr/core', '@blr/db'],
   serverExternalPackages: ['postgres'],
   headers: async () => [{ source: '/(.*)', headers: securityHeaders }],
+  rewrites: async () => [
+    { source: '/ingest/static/:path*', destination: 'https://us-assets.i.posthog.com/static/:path*' },
+    { source: '/ingest/:path*', destination: 'https://us.i.posthog.com/:path*' },
+  ],
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;
