@@ -63,7 +63,7 @@ domain used for canonical URLs and the sitemap.
 the root layout. Both need their toggle on in the project dashboard, need no environment
 variables, and send nothing from `next dev`. Query strings are removed before anything is
 sent, because search URLs can hold the `lat`/`lng` of a point someone picked on the map.
-Neither uses cookies or stores IPs, so there is no consent banner.
+Neither uses cookies or stores IPs.
 
 | Where in the Vercel project | What it shows |
 | --- | --- |
@@ -79,12 +79,13 @@ PostHog is set up in `instrumentation-client.ts` and only starts when
 `NEXT_PUBLIC_POSTHOG_KEY` (the project API key, `phc_...`) is set, so add it to the Vercel
 project and leave it out of local `.env` files. Events go through `/ingest`, which
 `next.config.ts` rewrites to PostHog's US cloud so ad blockers don't drop them; for an EU
-project, change both `us` hosts there and `ui_host` to `eu`. It runs in cookieless mode, so
-**Cookieless server hash mode** must be on in the PostHog project settings or every event is
-dropped. It keeps no person profiles, has session replay and surveys off, and strips query
-strings from every URL and referrer property, for the same `lat`/`lng` reason as above.
-Pageviews, page leaves, autocaptured clicks and web vitals show up in Web analytics and
-Activity.
+project, change both `us` hosts there and `ui_host` to `eu`. Unlike the Vercel tools it
+stores an anonymous ID in a `ph_..._posthog` cookie and localStorage, so returning visitors
+get one person profile and **Session replay** works once it is on in the PostHog project
+settings. There is no consent banner. Surveys are off, and query strings are stripped from
+every URL and referrer property on events, for the same `lat`/`lng` reason as above; replays
+still record the page URL, query string included. Pageviews, page leaves, autocaptured
+clicks and web vitals show up in Web analytics and Activity.
 
 ## Nearby places
 

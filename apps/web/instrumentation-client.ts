@@ -33,9 +33,7 @@ if (key) {
     api_host: '/ingest',
     ui_host: 'https://us.posthog.com',
     defaults: '2026-08-30',
-    cookieless_mode: 'always',
-    person_profiles: 'never',
-    disable_session_recording: true,
+    person_profiles: 'always',
     disable_surveys: true,
     before_send: withoutQuery,
   });
