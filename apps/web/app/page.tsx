@@ -1,4 +1,5 @@
 import { DEFAULT_RADIUS_KM } from '@blr/core';
+import type { Metadata } from 'next';
 import { FilterFields } from '@/components/search/filter-fields';
 import { LandingHero } from '@/components/search/landing-hero';
 import { Results } from '@/components/search/results';
@@ -14,7 +15,16 @@ import { parseParams, type Params } from '@/utils/search-params';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { alternates: { canonical: '/' } };
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Params> }): Promise<Metadata> {
+  const params = await searchParams;
+  if (Object.keys(params).length === 0) return { alternates: { canonical: '/' } };
+  const { localityText } = parseParams(params);
+  return {
+    title: localityText ? `Flats for rent near ${localityText}` : 'Flats for rent near a map pin',
+    alternates: { canonical: '/' },
+    robots: { index: false, follow: true },
+  };
+}
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
