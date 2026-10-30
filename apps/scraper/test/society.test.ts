@@ -30,7 +30,13 @@ describe('societyName', () => {
   });
 
   it('rejects addresses and every spelling of a standalone building', () => {
-    for (const name of ['68, 5th Cross, Vinayak Nagar', 'No-38,5th cross', '3A', 'standalone buidling', 'Stand alone bil', 'Standalone Building (2.5 BHK)']) {
+    for (const name of ['68, 5th Cross, Vinayak Nagar', 'No-38,5th cross', '3A', 'standalone buidling', 'Stand alone bil', 'Standalone Building (2.5 BHK)', '1st floor', 'Ground Floor', 'Not Applicable']) {
+      expect(clean(name)).toBeNull();
+    }
+  });
+
+  it('rejects names too short to identify a building', () => {
+    for (const name of ['#18', 'SB', 'no', 'st', 'Sri', 'AKG', '12-B']) {
       expect(clean(name)).toBeNull();
     }
   });

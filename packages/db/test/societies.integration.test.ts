@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { societySlug, type SourceSlug } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { findSociety, listSocieties, societyListings, societyOptions } from '../src/queries/societies';
+import { findSociety, listSocieties, refreshSocieties, societyListings, societyOptions } from '../src/queries/societies';
 import { connectTestDb } from './support/test-db';
 
 const handle = await connectTestDb('listings');
@@ -11,6 +11,8 @@ const suffix = randomBytes(3).toString('hex');
 const TOWERS = `Zz Test Towers ${suffix}`;
 const TOWERS_SHOUTED = TOWERS.toUpperCase();
 const COURT = `Zz Quiet Court ${suffix}`;
+const COURT_RUN_TOGETHER = `Zz QuietCourt ${suffix}`;
+const LONE = `Zz Lone House ${suffix}`;
 const TOWERS_SLUG = societySlug(TOWERS)!;
 const STATION = { slug: `zz-metro-${suffix}`, name: 'Zz Test Station', km: 0.4 };
 const stationLat = CENTER.lat + STATION.km / 111.2;
@@ -20,7 +22,10 @@ const fixtures = [
   { id: 's-2bhk-cheap', society: TOWERS_SHOUTED, bedrooms: 2, rent: 30000, deposit: 150000, maintenance: null, listedBy: 'broker', status: 'active' },
   { id: 's-2bhk', society: TOWERS, bedrooms: 2, rent: 40000, deposit: 200000, maintenance: 2000, listedBy: 'owner', status: 'active' },
   { id: 's-gone', society: TOWERS, bedrooms: 2, rent: 20000, deposit: 100000, maintenance: null, listedBy: 'owner', status: 'removed' },
+  { id: 's-far', society: TOWERS, bedrooms: 2, rent: 10000, deposit: 50000, maintenance: null, listedBy: 'owner', status: 'active', km: 5 },
   { id: 's-other', society: COURT, bedrooms: 1, rent: 25000, deposit: 125000, maintenance: null, listedBy: 'owner', status: 'active' },
+  { id: 's-other-2', society: COURT_RUN_TOGETHER, bedrooms: 1, rent: 26000, deposit: 130000, maintenance: null, listedBy: 'owner', status: 'active' },
+  { id: 's-lone', society: LONE, bedrooms: 2, rent: 30000, deposit: 150000, maintenance: null, listedBy: 'owner', status: 'active' },
   { id: 's-nameless', society: null, bedrooms: 2, rent: 35000, deposit: 175000, maintenance: null, listedBy: 'owner', status: 'active' },
 ];
 
@@ -45,13 +50,15 @@ describe.runIf(handle)('society queries against Postgres', () => {
         VALUES (${sourceId}, ${f.id}, ${`https://example.com/${f.id}`}, ${f.id}, 'apartment', ${f.bedrooms}, false, ${f.rent},
                 ${f.deposit}, ${f.maintenance}, 'semi'::furnishing, 'car'::parking, ${f.listedBy}::listed_by,
                 ${f.society}, 'Zz Test Locality',
-                ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${CENTER.lat}), 4326)::geography, 'exact',
+                ST_SetSRID(ST_MakePoint(${CENTER.lng}, ${CENTER.lat + (f.km ?? 0) / 111.2}), 4326)::geography, 'exact',
                 '{}'::text[], '[]'::jsonb, 'h', ${f.status}::listing_status)`;
     }
+    await refreshSocieties(sql);
   });
 
   afterAll(async () => {
     await sql`DELETE FROM listings WHERE source_id = ${sourceId}`;
+    await refreshSocieties(sql);
     await sql`DELETE FROM sources WHERE id = ${sourceId}`;
     await sql`DELETE FROM metro_stations WHERE slug = ${STATION.slug}`;
     await handle?.close();
@@ -71,6 +78,16 @@ describe.runIf(handle)('society queries against Postgres', () => {
     expect(society!.center!.lat).toBeCloseTo(CENTER.lat, 5);
     expect(society!.sources).toEqual([slug]);
     expect(await findSociety(sql, 'zz-no-such-society')).toBeNull();
+  });
+
+  it('keeps a name only where two or more flats share it in one place', async () => {
+    expect(await findSociety(sql, societySlug(LONE)!)).toBeNull();
+    const court = await findSociety(sql, societySlug(COURT)!);
+    expect(court).toMatchObject({ name: COURT, units: 2 });
+    expect(await findSociety(sql, societySlug(COURT_RUN_TOGETHER)!)).toBeNull();
+
+    const page = await societyListings(sql, TOWERS_SLUG);
+    expect(page!.hits.map((h) => h.sourceUrl.split('/').pop())).not.toContain('s-far');
   });
 
   it('measures the walk to the nearest open station from the middle of the apartment', async () => {
@@ -127,7 +144,7 @@ describe.runIf(handle)('society queries against Postgres', () => {
     expect(found.total).toBe(1);
 
     const both = await listSocieties(sql, { q: suffix });
-    expect(both.societies.map((s) => s.units)).toEqual([3, 1]);
+    expect(both.societies.map((s) => s.units)).toEqual([3, 2]);
     expect((await listSocieties(sql, { q: 'zz-nothing-matches-this' })).societies).toEqual([]);
   });
 
@@ -136,7 +153,7 @@ describe.runIf(handle)('society queries against Postgres', () => {
     const mine = options.filter((o) => o.name.includes(suffix));
     expect(mine).toEqual([
       { slug: TOWERS_SLUG, name: TOWERS, units: 3 },
-      { slug: societySlug(COURT), name: COURT, units: 1 },
+      { slug: societySlug(COURT), name: COURT, units: 2 },
     ]);
     expect(options.findIndex((o) => o.slug === TOWERS_SLUG)).toBeLessThan(
       options.findIndex((o) => o.slug === societySlug(COURT)),

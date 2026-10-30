@@ -1,4 +1,4 @@
-import { DEFAULT_REMOVE_DAYS, DEFAULT_STALE_DAYS, markStale } from '@blr/db';
+import { DEFAULT_REMOVE_DAYS, DEFAULT_STALE_DAYS, markStale, refreshSocieties } from '@blr/db';
 import type { Command } from 'commander';
 import { getAdapter } from '../../sources/registry';
 import { withDb } from '../run-command';
@@ -24,7 +24,7 @@ export function registerMarkStaleCommand(program: Command): void {
           staleAfterDays: Number(options.staleDays),
           removeAfterDays: Number(options.removeDays),
         });
-        console.log(summary);
+        console.log({ ...summary, societies: await refreshSocieties(db.sql) });
       }),
     );
 }

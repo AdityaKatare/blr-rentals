@@ -42,6 +42,7 @@ export interface RunSummary {
   normalized: NormalizedListing[];
   upsert?: UpsertSummary;
   dedupe?: DedupeSummary;
+  societies?: number;
   errors: string[];
   blocked: boolean;
 }

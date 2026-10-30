@@ -1,8 +1,11 @@
+import { SOCIETY_NAME_MIN_LENGTH } from '@blr/core';
+
 const PLACEHOLDER_SOCIETY =
-  /^(independent\s*(house|building)|stand\s*a?lone(\s*building)?|apartments?|flats?|house|building|villa|none|na|n\/a|nil|-+|\.+)$/i;
+  /^(independent\s*(house|building)|stand\s*a?lone(\s*building)?|apartments?|flats?|house|building|villa|none|na|n\/a|nil|not\s*applicable|(ground|\d+(st|nd|rd|th)?)\s*floor|-+|\.+)$/i;
 const NOT_A_SOCIETY = /^stand\s*a?lone\b|\b(rwa|welfare\s+association)$/i;
 const PROJECT_PREFIX = /^project\s+/i;
 const HOUSE_NUMBER = /^(no\.?\s*-?\s*)?\d+[a-z]?$/i;
+const TOO_SHORT = (name: string): boolean => name.length < SOCIETY_NAME_MIN_LENGTH || !/[a-z].*[a-z]/i.test(name);
 const NEIGHBOURHOOD = /\b(layout|colony|nagar|nagara|extension|stage|puram|pura|halli|palya|cross|main|road)$/i;
 
 export type PlaceNames = ReadonlySet<string>;
@@ -29,5 +32,5 @@ export function societyName(value: unknown, places: PlaceNames): string | null {
   const core = head.replace(PROJECT_PREFIX, '');
   if (places.has(placeKey(core))) return null;
   const name = withoutTrailingNeighbourhood(core, places);
-  return NEIGHBOURHOOD.test(name) ? null : name;
+  return NEIGHBOURHOOD.test(name) || TOO_SHORT(name) ? null : name;
 }

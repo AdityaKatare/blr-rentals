@@ -1,4 +1,4 @@
-import { dedupeListings } from '@blr/db';
+import { dedupeListings, refreshSocieties } from '@blr/db';
 import type { Command } from 'commander';
 import { withDb } from '../run-command';
 
@@ -9,6 +9,7 @@ export function registerDedupeCommand(program: Command): void {
     .action(() =>
       withDb(async (db) => {
         console.log(await dedupeListings(db.sql));
+        console.log({ societies: await refreshSocieties(db.sql) });
       }),
     );
 }

@@ -4,6 +4,7 @@ import { registerCleanSocietiesCommand } from './commands/clean-societies';
 import { registerDedupeCommand } from './commands/dedupe';
 import { registerMarkStaleCommand } from './commands/mark-stale';
 import { registerScrapeCommand } from './commands/scrape';
+import { registerSocietiesCommand } from './commands/societies';
 import { registerStatusCommand } from './commands/status';
 import { reportError } from './run-command';
 
@@ -18,5 +19,6 @@ registerStatusCommand(program);
 registerMarkStaleCommand(program);
 registerDedupeCommand(program);
 registerCleanSocietiesCommand(program);
+registerSocietiesCommand(program);
 
 program.parseAsync(process.argv).catch(reportError);

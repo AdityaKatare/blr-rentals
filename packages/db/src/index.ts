@@ -15,6 +15,7 @@ export { searchListings } from './queries/search';
 export {
   findSociety,
   listSocieties,
+  refreshSocieties,
   renameSocieties,
   societyListings,
   societyOptions,

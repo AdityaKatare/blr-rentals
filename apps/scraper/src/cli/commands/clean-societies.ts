@@ -1,4 +1,4 @@
-import { loadSeedLocalities, renameSocieties, storedSocietyNames } from '@blr/db';
+import { loadSeedLocalities, refreshSocieties, renameSocieties, storedSocietyNames } from '@blr/db';
 import type { Command } from 'commander';
 import { placeNames, societyName } from '../../sources/shared/society';
 import { withDb } from '../run-command';
@@ -23,6 +23,7 @@ export function registerCleanSocietiesCommand(program: Command): void {
           const updated = options.dryRun ? 0 : await renameSocieties(db.sql, renames.map(({ id, name }) => ({ id, name })));
           console.log({ source, changed: renames.length, updated });
         }
+        if (!options.dryRun) console.log({ societies: await refreshSocieties(db.sql) });
       }),
     );
 }

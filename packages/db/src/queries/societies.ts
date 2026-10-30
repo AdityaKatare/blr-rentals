@@ -1,6 +1,6 @@
 import { SOCIETY_NAME_MIN_LENGTH, type SortOption, type SourceSlug } from '@blr/core';
 import type { Sql } from '../client';
-import { utcIso, type Fragment } from '../sql';
+import { inTransaction, utcIso, type Fragment } from '../sql';
 import type { NearestMetro, SearchHit, SocietyBedroomStat, SocietyDetail, SocietyListings, SocietySummary } from '../types';
 import { enrichHits, hitColumns, NEAREST_METRO_MAX_M, toHit, type ListingRow } from './hits';
 import { orderBy } from './search';
@@ -8,6 +8,8 @@ import { orderBy } from './search';
 export const SOCIETY_OPTIONS_LIMIT = 300;
 export const SOCIETY_LIST_LIMIT = 60;
 export const SOCIETY_PAGE_SIZE = 25;
+export const SOCIETY_RADIUS_M = 1000;
+export const SOCIETY_MIN_UNITS = 2;
 
 export interface SocietyOption {
   slug: string;
@@ -21,15 +23,15 @@ interface MetroColumns {
   metro_distance_m: number | null;
 }
 
-const named = (sql: Sql) => sql`l.status = 'active'
-  AND l.society_slug IS NOT NULL
-  AND length(btrim(l.society_name)) >= ${SOCIETY_NAME_MIN_LENGTH}`;
+const members = (sql: Sql) => sql`societies k
+  JOIN listings l ON l.society_key = k.key AND l.status = 'active' AND ST_DWithin(l.location, k.centre, k.radius_m)
+  JOIN sources s ON s.id = l.source_id`;
 
 const units = (sql: Sql) => sql`count(DISTINCT COALESCE(l.property_id, l.id))::int`;
 
 const summaryColumns = (sql: Sql) => sql`
-  l.society_slug AS slug,
-  mode() WITHIN GROUP (ORDER BY l.society_name) AS name,
+  k.slug,
+  k.name,
   mode() WITHIN GROUP (ORDER BY l.locality) AS locality,
   ${units(sql)} AS units,
   min(l.rent)::int AS "rentMin",
@@ -54,12 +56,9 @@ const toNearestMetro = (r: MetroColumns): NearestMetro | null =>
 
 export async function societyOptions(sql: Sql, limit = SOCIETY_OPTIONS_LIMIT): Promise<SocietyOption[]> {
   return sql<SocietyOption[]>`
-    SELECT l.society_slug AS slug,
-           mode() WITHIN GROUP (ORDER BY l.society_name) AS name,
-           ${units(sql)} AS units
-    FROM listings l
-    WHERE ${named(sql)}
-    GROUP BY l.society_slug
+    SELECT k.slug, k.name, ${units(sql)} AS units
+    FROM ${members(sql)}
+    GROUP BY k.slug, k.name
     ORDER BY units DESC, name
     LIMIT ${limit}`;
 }
@@ -70,16 +69,15 @@ export async function listSocieties(
 ): Promise<{ societies: SocietySummary[]; total: number }> {
   const limit = options.limit ?? SOCIETY_LIST_LIMIT;
   const q = options.q?.trim();
-  const match: Fragment | null = q ? sql`AND l.society_name ILIKE ${`%${q}%`}` : null;
+  const match: Fragment = q ? sql`WHERE k.name ILIKE ${`%${q}%`}` : sql``;
   const centre = sql`ST_Centroid(ranked.precise_locations)::geography`;
 
   const rows = await sql<(SocietySummary & MetroColumns & { total: number })[]>`
     WITH grouped AS (
       SELECT ${summaryColumns(sql)}
-      FROM listings l
-      JOIN sources s ON s.id = l.source_id
-      WHERE ${named(sql)} ${match ?? sql``}
-      GROUP BY l.society_slug
+      FROM ${members(sql)}
+      ${match}
+      GROUP BY k.slug, k.name
     ),
     ranked AS (
       SELECT *, count(*) OVER ()::int AS total
@@ -112,10 +110,9 @@ export async function findSociety(sql: Sql, slug: string): Promise<SocietyDetail
       SELECT ${summaryColumns(sql)},
              array_remove(array_agg(DISTINCT l.locality), NULL) AS localities,
              ${utcIso(sql, sql`max(COALESCE(l.source_updated_at, l.posted_at, l.first_seen_at))`)} AS "lastUpdatedAt"
-      FROM listings l
-      JOIN sources s ON s.id = l.source_id
-      WHERE l.status = 'active' AND l.society_slug = ${slug}
-      GROUP BY l.society_slug
+      FROM ${members(sql)}
+      WHERE k.slug = ${slug}
+      GROUP BY k.slug, k.name
     )
     SELECT grouped.slug, grouped.name, grouped.locality, grouped.units, grouped."rentMin", grouped."rentMax",
            grouped.sources, grouped.localities, grouped."lastUpdatedAt",
@@ -140,8 +137,8 @@ async function bedroomStats(sql: Sql, slug: string): Promise<SocietyBedroomStat[
            min(l.rent)::int AS "rentMin",
            percentile_cont(0.5) WITHIN GROUP (ORDER BY l.rent) AS "rentMedian",
            max(l.rent)::int AS "rentMax"
-    FROM listings l
-    WHERE l.status = 'active' AND l.society_slug = ${slug}
+    FROM ${members(sql)}
+    WHERE k.slug = ${slug}
     GROUP BY l.bedrooms
     ORDER BY l.bedrooms`;
   return rows.map((r) => ({ ...r, rentMedian: Math.round(r.rentMedian) }));
@@ -167,9 +164,8 @@ export async function societyListings(
   const rows = await sql<(ListingRow & { total: number })[]>`
     WITH matched AS (
       SELECT COALESCE(l.property_id, l.id) AS group_id, ${hitColumns(sql, null)}
-      FROM listings l
-      JOIN sources s ON s.id = l.source_id
-      WHERE l.status = 'active' AND l.society_slug = ${slug}
+      FROM ${members(sql)}
+      WHERE k.slug = ${slug}
     ),
     grouped AS (
       SELECT DISTINCT ON (group_id) *
@@ -219,4 +215,58 @@ export async function renameSocieties(sql: Sql, renames: readonly { id: string; 
     FROM jsonb_to_recordset(${JSON.stringify(renames)}::jsonb) AS r(id uuid, name text)
     WHERE l.id = r.id AND l.society_name IS DISTINCT FROM r.name`;
   return result.count;
+}
+
+export async function refreshSocieties(sql: Sql): Promise<number> {
+  return inTransaction(sql, async (tx) => {
+    await tx`DELETE FROM societies`;
+    const inserted = await tx`
+      WITH located AS (
+        SELECT l.id, COALESCE(l.property_id, l.id) AS unit, l.society_key AS key, l.society_name AS name, l.location
+        FROM listings l
+        WHERE l.status = 'active'
+          AND l.society_key IS NOT NULL
+          AND l.location IS NOT NULL
+          AND length(btrim(l.society_name)) >= ${SOCIETY_NAME_MIN_LENGTH}
+          AND l.society_name ~* '[a-z].*[a-z]'
+      ),
+      density AS (
+        SELECT a.id, a.key, a.location, count(DISTINCT b.unit) AS near
+        FROM located a
+        JOIN located b ON b.key = a.key AND ST_DWithin(a.location, b.location, ${SOCIETY_RADIUS_M})
+        GROUP BY a.id, a.key, a.location
+      ),
+      centres AS (
+        SELECT DISTINCT ON (key) key, location AS centre
+        FROM density
+        ORDER BY key, near DESC, id
+      ),
+      totals AS (
+        SELECT key, count(DISTINCT unit) AS total FROM located GROUP BY key
+      ),
+      members AS (
+        SELECT c.key, c.centre, l.unit, btrim(l.name) AS name
+        FROM centres c
+        JOIN located l ON l.key = c.key AND ST_DWithin(l.location, c.centre, ${SOCIETY_RADIUS_M})
+      ),
+      known AS (
+        SELECT m.key, m.centre
+        FROM members m
+        JOIN totals t ON t.key = m.key
+        GROUP BY m.key, m.centre, t.total
+        HAVING count(DISTINCT m.unit) >= ${SOCIETY_MIN_UNITS} AND count(DISTINCT m.unit) * 2 >= t.total
+      ),
+      spellings AS (
+        SELECT DISTINCT ON (key) key, name
+        FROM members
+        GROUP BY key, name
+        ORDER BY key, count(*) DESC, (name <> upper(name) AND name <> lower(name)) DESC, name
+      )
+      INSERT INTO societies (slug, key, name, centre, radius_m)
+      SELECT nullif(btrim(regexp_replace(lower(sp.name), '[^a-z0-9]+', '-', 'g'), '-'), ''), k.key, sp.name, k.centre, ${SOCIETY_RADIUS_M}
+      FROM known k
+      JOIN spellings sp ON sp.key = k.key
+      ON CONFLICT (slug) DO NOTHING`;
+    return inserted.count;
+  });
 }

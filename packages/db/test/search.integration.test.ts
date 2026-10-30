@@ -1,11 +1,12 @@
 import { randomBytes } from 'node:crypto';
-import { SearchQuerySchema, societySlug, type SearchQueryInput, type SourceSlug } from '@blr/core';
+import { SearchQuerySchema, type SearchQueryInput, type SourceSlug } from '@blr/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CARD_IMAGE_LIMIT } from '../src/queries/hits';
 import { refreshListingNearby } from '../src/queries/listing-nearby';
 import { listingsByIds } from '../src/queries/listings';
 import { findLocality } from '../src/queries/localities';
 import { DISTANCE_BAND_M, RENT_BAND, searchListings } from '../src/queries/search';
+import { refreshSocieties } from '../src/queries/societies';
 import { connectTestDb } from './support/test-db';
 
 const handle = await connectTestDb('localities');
@@ -297,11 +298,13 @@ describe.runIf(handle)('searchListings against Postgres', () => {
     expect([...totals].sort((a, b) => a - b)).toEqual(totals);
   });
 
-  it('carries the apartment slug on every hit so cards can link to its page', async () => {
+  it('links a card to its apartment only when the apartment is known', async () => {
+    await refreshSocieties(sql);
     const r = await search({ radiusKm: 5, sort: 'distance' });
     const byId = (id: string) => r.hits.find((h) => h.sourceUrl.endsWith(id))!;
-    expect(byId('near-2bhk').societySlug).toBe(societySlug(SOCIETY));
-    expect(byId('far-3bhk').societySlug).toBe(societySlug(OTHER_SOCIETY));
+    expect(byId('near-2bhk').societyName).toBe(SOCIETY);
+    expect(byId('near-2bhk').societySlug).toBeNull();
+    expect(byId('far-3bhk').societySlug).toBeNull();
     expect(byId('rk').societySlug).toBeNull();
   });
 

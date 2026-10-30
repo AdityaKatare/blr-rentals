@@ -4,6 +4,7 @@ import {
   dedupeListings,
   loadSeedLocalities,
   loadSearchArea,
+  refreshSocieties,
   resolveSeedArea,
   type DbHandle,
 } from '@blr/db';
@@ -85,6 +86,7 @@ async function scrape(options: ScrapeOptions, config: ScraperConfig, db: DbHandl
     },
   );
 
+  if (db && summary.upsert) summary.societies = await refreshSocieties(db.sql);
   if (options.dryRun) printDryRun(summary, options.checkRobots);
   else printSummary(summary);
   if (summary.status === 'failed') process.exitCode = 1;

@@ -122,7 +122,10 @@ export function hitColumns(sql: Sql, point: Fragment | null) {
     l.id, l.property_id, s.slug AS source, l.source_url, l.title, l.rent, l.deposit, l.maintenance,
     l.bedrooms, l.is_1rk, l.bedrooms_plus, l.bathrooms, l.area_sqft,
     l.property_type, l.furnishing, l.parking, l.listed_by,
-    l.locality, l.society_name, l.society_slug, l.tenant_preference, l.geo_accuracy, l.is_verified, l.amenities,
+    l.locality, l.society_name,
+    (SELECT k.slug FROM societies k
+     WHERE k.key = l.society_key AND ST_DWithin(l.location, k.centre, k.radius_m)) AS society_slug,
+    l.tenant_preference, l.geo_accuracy, l.is_verified, l.amenities,
     ${moveInCostColumn(sql)} AS move_in_cost,
     jsonb_array_length(l.images) AS image_count,
     l.available_from::text AS available_from,
