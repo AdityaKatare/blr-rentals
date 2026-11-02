@@ -36,6 +36,15 @@ distance from wherever you actually need to be, and sorted by what it really cos
   so you can see what a building actually goes for.
 - Full-screen photo viewer, and every listing links straight to the original post.
 
+## Chrome extension
+
+On any NoBroker or MagicBricks listing, a small card shows whether the same flat is listed on the
+other portal and at what price, the nearest metro station, the real move-in cost and recent rent drops.
+
+1. Download `blr-flat-hunt-extension.zip` from the [latest release](https://github.com/AdityaKatare/blr-rentals/releases/latest) and unzip it.
+2. Open `chrome://extensions` and switch on **Developer mode**.
+3. Click **Load unpacked** and pick the unzipped `blr-flat-hunt-extension` folder.
+
 ## How it treats the portals
 
 - Nobody's name, phone number or email is ever stored — only whether a listing is from an
