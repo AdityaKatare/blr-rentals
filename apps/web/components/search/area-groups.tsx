@@ -1,4 +1,4 @@
-import { DEFAULT_RADIUS_KM } from '@blr/core';
+import { AREA_MIN_LISTINGS } from '@blr/core';
 import { Notice } from '@/components/ui/notice';
 import type { Region } from '@/utils/regions';
 import { withParams, type Params } from '@/utils/search-params';
@@ -23,7 +23,10 @@ export function AreaGroups({ regions, params }: AreaGroupsProps) {
     name: region.name,
     areas: region.areas.map((area) => ({
       ...area,
-      href: withParams(params, { locality: area.name, lat: null, lng: null, page: null }),
+      href:
+        area.listings >= AREA_MIN_LISTINGS && Object.keys(params).length === 0
+          ? `/areas/${area.slug}`
+          : withParams(params, { locality: area.name, lat: null, lng: null, page: null }),
     })),
   }));
 
@@ -33,7 +36,7 @@ export function AreaGroups({ regions, params }: AreaGroupsProps) {
         <h2 id="areas-heading" className="font-display text-[22px] leading-none sm:text-[26px]">
           Or start from an area
         </h2>
-        <p className="label">Live rentals within {DEFAULT_RADIUS_KM} km · busiest first</p>
+        <p className="label">Live rentals · busiest first</p>
       </div>
       <AreaTiles regions={tiles} />
     </section>

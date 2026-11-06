@@ -18,9 +18,9 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Params> }): Promise<Metadata> {
   const params = await searchParams;
   if (Object.keys(params).length === 0) return { alternates: { canonical: '/' } };
-  const { localityText } = parseParams(params);
+  const { hasCenter, localityText } = parseParams(params);
   return {
-    title: localityText ? `Flats for rent near ${localityText}` : 'Flats for rent near a map pin',
+    ...(hasCenter && { title: localityText ? `Flats for rent near ${localityText}` : 'Flats for rent near a map pin' }),
     alternates: { canonical: '/' },
     robots: { index: false, follow: true },
   };

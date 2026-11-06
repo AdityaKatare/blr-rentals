@@ -4,6 +4,7 @@ import type { LocalityCoverage, LocalityMatch } from '@blr/db';
 export type RegionKey = 'central' | 'east' | 'south' | 'north' | 'west';
 
 export interface AreaOption {
+  slug: string;
   name: string;
   listings: number;
 }
@@ -51,7 +52,7 @@ export function groupByRegion(localities: LocalityMatch[], coverage: LocalityCov
     if (listings === 0) continue;
     const key = regionOf(locality);
     const bucket = buckets.get(key) ?? [];
-    bucket.push({ name: locality.name, listings });
+    bucket.push({ slug: locality.slug, name: locality.name, listings });
     buckets.set(key, bucket);
   }
   return [...buckets]

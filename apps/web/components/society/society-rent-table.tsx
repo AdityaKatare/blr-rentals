@@ -6,11 +6,15 @@ import { rupees, sizeLabel } from '@/utils/format';
 export function SocietyRentTable({
   stats,
   unitsLabel = 'Live units',
+  lowLabel = 'Lowest',
+  highLabel = 'Highest',
   sizeHref,
   activeBedrooms = null,
 }: {
   stats: SocietyBedroomStat[];
   unitsLabel?: string;
+  lowLabel?: string;
+  highLabel?: string;
   sizeHref?: (bedrooms: number) => string;
   activeBedrooms?: number | null;
 }) {
@@ -22,9 +26,9 @@ export function SocietyRentTable({
           <tr>
             <th className={TH}>Size</th>
             <th className={TH}>{unitsLabel}</th>
-            <th className={TH}>Lowest</th>
+            <th className={TH}>{lowLabel}</th>
             <th className={TH}>Median</th>
-            <th className={TH}>Highest</th>
+            <th className={TH}>{highLabel}</th>
           </tr>
         </thead>
         <tbody>

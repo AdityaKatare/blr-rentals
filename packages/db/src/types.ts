@@ -15,6 +15,7 @@ import type {
   SourceSlug,
   TenantPreference,
 } from '@blr/core';
+import type { SocietyOption } from './queries/societies';
 
 export interface LocalityMatch {
   id: number;
@@ -119,6 +120,27 @@ export interface SocietyDetail extends SocietySummary {
 
 export interface SocietyListings {
   society: SocietyDetail;
+  hits: SearchHit[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+  sort: SortOption;
+  tookMs: number;
+}
+
+export interface AreaPlace {
+  name: string;
+  distanceM: number;
+}
+
+export interface AreaListings {
+  area: LocalityMatch;
+  byBedrooms: SocietyBedroomStat[];
+  metro: NearestMetro[];
+  techParks: AreaPlace[];
+  societies: SocietyOption[];
+  neighbours: LocalityMatch[];
   hits: SearchHit[];
   total: number;
   page: number;

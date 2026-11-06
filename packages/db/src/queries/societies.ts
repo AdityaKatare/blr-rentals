@@ -23,11 +23,11 @@ interface MetroColumns {
   metro_distance_m: number | null;
 }
 
-const members = (sql: Sql) => sql`societies k
+export const members = (sql: Sql) => sql`societies k
   JOIN listings l ON l.society_key = k.key AND l.status = 'active' AND ST_DWithin(l.location, k.centre, k.radius_m)
   JOIN sources s ON s.id = l.source_id`;
 
-const units = (sql: Sql) => sql`count(DISTINCT COALESCE(l.property_id, l.id))::int`;
+export const units = (sql: Sql) => sql`count(DISTINCT COALESCE(l.property_id, l.id))::int`;
 
 const summaryColumns = (sql: Sql) => sql`
   k.slug,

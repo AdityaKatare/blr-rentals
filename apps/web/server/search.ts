@@ -1,4 +1,4 @@
-import { DEFAULT_RADIUS_KM, SearchQuerySchema, type SearchQuery } from '@blr/core';
+import { SearchQuerySchema, type SearchQuery } from '@blr/core';
 import {
   findLocality,
   listLocalities,
@@ -29,16 +29,16 @@ interface Cached<T> {
 let localitiesCache: Cached<LocalityMatch[]> | null = null;
 let coverageCache: Cached<LocalityCoverage[]> | null = null;
 
-async function loadLocalities(sql: Sql, now = Date.now()): Promise<LocalityMatch[]> {
+export async function loadLocalities(sql: Sql, now = Date.now()): Promise<LocalityMatch[]> {
   if (localitiesCache && now - localitiesCache.at < LOCALITIES_TTL_MS) return localitiesCache.value;
   const localities = await listLocalities(sql);
   localitiesCache = { at: now, value: localities };
   return localities;
 }
 
-async function loadCoverage(sql: Sql, now = Date.now()): Promise<LocalityCoverage[]> {
+export async function loadCoverage(sql: Sql, now = Date.now()): Promise<LocalityCoverage[]> {
   if (coverageCache && now - coverageCache.at < LOCALITIES_TTL_MS) return coverageCache.value;
-  const coverage = await localityCoverage(sql, DEFAULT_RADIUS_KM);
+  const coverage = await localityCoverage(sql);
   coverageCache = { at: now, value: coverage };
   return coverage;
 }

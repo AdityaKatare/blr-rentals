@@ -3,6 +3,10 @@ import { AMENITIES, FURNISHINGS, PROPERTY_TYPES, SORT_OPTIONS, SOURCE_SLUGS, TEN
 import { NEAR_MAX_M, NEAR_MIN_M, POI_CATEGORIES } from './proximity';
 
 export const DEFAULT_RADIUS_KM = 5;
+export const AREA_RADIUS_M = 5000;
+export const AREA_MIN_LISTINGS = 20;
+export const AREA_RENT_MIN = 3000;
+export const AREA_RENT_MAX = 1000000;
 
 export const SearchQuerySchema = z.object({
   center: z.union([
